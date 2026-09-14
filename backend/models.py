@@ -175,6 +175,15 @@ class SettingsInput(BaseModel):
     gst_percent: Optional[float] = None
     announcement_bar_text: Optional[str] = None
     announcement_enabled: Optional[bool] = None
+    home_sections: Optional[List[Dict[str, Any]]] = None
+
+
+class AnnouncementInput(BaseModel):
+    text: str
+    active: bool = True
+    start: Optional[str] = None
+    end: Optional[str] = None
+    order: int = 0
 
 
 class BannerInput(BaseModel):

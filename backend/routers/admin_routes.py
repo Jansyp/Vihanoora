@@ -7,7 +7,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from core import db, require_admin, enrich_product, now_iso
 from mailer import send_order_email
 from models import (ProductInput, CategoryInput, ComboInput, CouponInput,
-                    ShippingInput, OrderStatusInput, SettingsInput, BannerInput)
+                    ShippingInput, OrderStatusInput, SettingsInput, BannerInput,
+                    AnnouncementInput)
 
 router = APIRouter(prefix="/api/admin", tags=["admin"], dependencies=[Depends(require_admin)])
 
@@ -283,4 +284,32 @@ async def update_banner(banner_id: str, payload: BannerInput):
 @router.delete("/banners/{banner_id}")
 async def delete_banner(banner_id: str):
     await db.banners.delete_one({"id": banner_id})
+    return {"deleted": True}
+
+
+# ---- Announcements ----
+@router.get("/announcements")
+async def admin_announcements():
+    return await db.announcements.find({}, {"_id": 0}).sort([("order", 1)]).to_list(100)
+
+
+@router.post("/announcements")
+async def create_announcement(payload: AnnouncementInput):
+    data = payload.model_dump()
+    data["id"] = str(uuid.uuid4())
+    data["created_at"] = now_iso()
+    await db.announcements.insert_one(dict(data))
+    data.pop("_id", None)
+    return data
+
+
+@router.put("/announcements/{announcement_id}")
+async def update_announcement(announcement_id: str, payload: AnnouncementInput):
+    await db.announcements.update_one({"id": announcement_id}, {"$set": payload.model_dump()})
+    return await db.announcements.find_one({"id": announcement_id}, {"_id": 0})
+
+
+@router.delete("/announcements/{announcement_id}")
+async def delete_announcement(announcement_id: str):
+    await db.announcements.delete_one({"id": announcement_id})
     return {"deleted": True}

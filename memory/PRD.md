@@ -49,3 +49,7 @@ See /app/memory/test_credentials.md — Admin: admin@javehouse.com / Admin@123
 ## To go live
 - Add `RESEND_API_KEY` (+ verified sender) for real emails
 - Add `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` (+ webhook secret) for real payments
+
+## Feature Batch 3 (2026-06) — DONE
+- **Homepage Sections**: `home_sections` in store settings; admin `/admin/settings` toggles visibility + reorders 9 sections; Home renders dynamically. Verified 100%.
+- **Announcement Editor**: `announcements` collection + admin `/admin/announcements` CRUD with start/end scheduling; public `/api/announcements` returns only live/in-window (legacy settings fallback); header rotates multiple. Verified 100%.

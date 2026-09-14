@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Search, Heart, ShoppingBag, User, Menu, X } from "lucide-react";
+import api from "@/lib/api";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { useSettings } from "@/context/SettingsContext";
@@ -21,21 +22,32 @@ export default function Header() {
   const { settings } = useSettings();
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
+  const [anns, setAnns] = useState([]);
+  const [annIdx, setAnnIdx] = useState(0);
   const nav = useNavigate();
   const loc = useLocation();
+
+  useEffect(() => {
+    api.get("/announcements").then(({ data }) => setAnns(data || [])).catch(() => {});
+  }, []);
+  useEffect(() => {
+    if (anns.length <= 1) return;
+    const t = setInterval(() => setAnnIdx((i) => (i + 1) % anns.length), 4500);
+    return () => clearInterval(t);
+  }, [anns.length]);
 
   const submitSearch = (e) => {
     e.preventDefault();
     if (q.trim()) { nav(`/search?q=${encodeURIComponent(q.trim())}`); setOpen(false); }
   };
 
-  const announce = settings?.announcement_enabled && settings?.announcement_bar_text;
+  const announce = anns.length > 0 ? anns[annIdx % anns.length]?.text : null;
 
   return (
     <>
       {announce && (
-        <div className="bg-[var(--ink)] text-white text-center text-xs sm:text-sm py-2 px-4 overflow-hidden">
-          <div className="whitespace-nowrap">{settings.announcement_bar_text}</div>
+        <div className="bg-[var(--ink)] text-white text-center text-xs sm:text-sm py-2 px-4 overflow-hidden" data-testid="announcement-bar">
+          <div className="whitespace-nowrap transition-opacity duration-500">{announce}</div>
         </div>
       )}
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-[var(--line)]" style={{ boxShadow: "0 4px 20px rgba(42,36,33,0.05)" }}>

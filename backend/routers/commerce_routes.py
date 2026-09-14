@@ -34,6 +34,17 @@ DEFAULT_SETTINGS = {
     "gst_percent": 0,
     "announcement_bar_text": "✨ Free shipping on orders above ₹999 • Flat ₹50 delivery • Shop the Instagram trends",
     "announcement_enabled": True,
+    "home_sections": [
+        {"key": "trending", "label": "Trending on Instagram", "enabled": True, "order": 1},
+        {"key": "best_sellers", "label": "Best Sellers", "enabled": True, "order": 2},
+        {"key": "offer_banner", "label": "Offer Zone Banner", "enabled": True, "order": 3},
+        {"key": "new_arrivals", "label": "New Arrivals", "enabled": True, "order": 4},
+        {"key": "gift_picks", "label": "Gift Picks", "enabled": True, "order": 5},
+        {"key": "combos", "label": "Combo Offers", "enabled": True, "order": 6},
+        {"key": "instagram", "label": "Instagram Gallery", "enabled": True, "order": 7},
+        {"key": "reviews", "label": "Customer Reviews", "enabled": True, "order": 8},
+        {"key": "newsletter", "label": "Newsletter", "enabled": True, "order": 9},
+    ],
 }
 
 
@@ -49,6 +60,20 @@ async def get_settings() -> dict:
 @router.get("/settings")
 async def public_settings():
     return await get_settings()
+
+
+@router.get("/announcements")
+async def public_announcements():
+    now = datetime.now(timezone.utc).isoformat()
+    docs = await db.announcements.find({"active": True}, {"_id": 0}).sort([("order", 1)]).to_list(50)
+    live = [a for a in docs if (not a.get("start") or a["start"] <= now) and (not a.get("end") or a["end"] >= now)]
+    if live:
+        return live
+    # Fallback to legacy single announcement in settings
+    s = await get_settings()
+    if s.get("announcement_enabled") and s.get("announcement_bar_text"):
+        return [{"id": "legacy", "text": s["announcement_bar_text"], "active": True}]
+    return []
 
 
 @router.get("/payment-config")

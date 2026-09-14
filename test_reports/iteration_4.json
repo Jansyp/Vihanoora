@@ -1,0 +1,45 @@
+{
+  "summary": "Tested Jan-2026 feature batch: Announcements CRUD + public window filtering, and Homepage Sections manager (toggle/reorder/persist). Backend pytest (2/2) green. Frontend Playwright end-to-end verified: admin login, /admin/announcements Add→Save→list with Live chip, toggle active (Live↔Hidden), delete works; homepage top bar renders live announcement via [data-testid='announcement-bar']. /admin/settings shows exactly 9 home_sections rows; hiding gift_picks + Save persists (gift_picks removed from Home render) while Best Sellers/Trending/New Arrivals/Newsletter still render and hero+categories intact. Admin nav shows admin-nav-announce and admin-nav-banners. Store restored to all-sections-enabled default via API at end.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "GET /api/announcements", "issue": "Window filter compares ISO strings lexicographically ('2026-...' vs datetime-local 'YYYY-MM-DDTHH:MM'). Works because both are lexicographically comparable at minute precision, but timezone is ambiguous (datetime-local has no TZ; server compares against UTC now). Acceptable but noted."},
+      {"endpoint": "PUT /api/admin/announcements/{id}", "issue": "Overwrites ALL fields via payload.model_dump() (Pydantic AnnouncementInput). Any legacy/extra fields on the DB doc are silently dropped. Non-blocking."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "AdminSettings Homepage Sections restore via UI", "issue": "In back-to-back reloads (hide→save→go home→come back→toggle→save), the second toggle click sometimes did not persist (verified via API: gift_picks remained enabled=false after second save). Reproduced once; likely a race between GET /api/settings hydrating state and the immediate toggle click on the just-rendered row. Suggestion: disable toggle buttons until initial load resolves, or await a settled state in useEffect.", "affected_selectors": ["[data-testid=toggle-section-gift_picks]", "[data-testid=save-settings-btn]"]}
+    ],
+    "design_issues": [
+      {"screen": "AdminAnnouncements list row", "issues": ["Eye/edit/trash icon buttons have no aria-labels or data-testids on all three (only edit has data-testid=edit-announcement-{id}); makes selector-based testing brittle — recommend adding testids like toggle-announcement-{id} and delete-announcement-{id}."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_announcements_and_sections.py",
+    "/app/test_reports/pytest/announce_sections.xml"
+  ],
+  "action_items": [
+    "Optional: add data-testids for the eye/toggle and trash buttons in AdminAnnouncements rows.",
+    "Optional: guard AdminSettings toggle/save until initial GET resolves to avoid rare state-race on rapid reload/toggle sequences.",
+    "Optional: In commerce_routes.public_announcements, compare using timezone-aware datetimes (parse ISO) rather than string prefix compare — future-proofing when datetime-local strings ever include seconds/offset."
+  ],
+  "critical_code_review_comments": [
+    "commerce_routes.public_announcements filters with lexicographic string compare between UTC now.isoformat() and datetime-local strings ('YYYY-MM-DDTHH:MM'). It works for the current window semantics but is timezone-ambiguous. Consider parsing with fromisoformat and comparing as datetimes; treat naive datetime-local as UTC or store TZ info.",
+    "admin_routes.update_announcement uses payload.model_dump() (full replace) without preserving created_at/id/etc. AnnouncementInput carries no created_at so update wipes it. Consider $set with only supplied fields or attach created_at back.",
+    "AdminSettings.save posts numeric fields with Number() but doesn't validate NaN — an empty gst_percent could serialize as NaN in JS then JSON.stringify to null (harmless) — but delivery_charge/free_shipping_threshold NaN would return null too. Add fallback || 0.",
+    "AdminAnnouncements toggle button uses non-testid selector; adding data-testid=toggle-announcement-{id} & delete-announcement-{id} would harden automation.",
+    "Home.jsx (per files_of_reference) renders sections dynamically from settings.home_sections — good. Verify that unknown/legacy section keys are ignored gracefully (didn't inspect code path here)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_announcements_and_sections.py (new)"
+  ],
+  "success_rate": {"backend": "100% (2/2 new)", "frontend": "100% (all requested flows verified)"},
+  "test_credentials": "admin@javehouse.com / Admin@123 (from /app/memory/test_credentials.md)",
+  "seed_data_creation": "Created + deleted 1 test announcement 'TEST_UI_LIVE_MSG_zzz' via UI. Backend pytest created and deleted 3 announcements (LIVE/SCHEDULED/EXPIRED TEST_ prefixed). Home sections restored to all-enabled defaults via admin API at end.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Reuse /app/backend/tests/test_announcements_and_sections.py for regression on announcements + home_sections. Store state is clean (all home_sections enabled, only default 'Diwali Sale' legacy announcement live — that comes from settings.announcement_bar_text fallback since no explicit announcements row exists after cleanup). REACT_APP_BACKEND_URL must be exported for pytest. Payments MOCK / emails console fallback expected.",
+  "rca of the issue": "No blocking issues. One minor UI race in AdminSettings toggle-after-reload was observed once during automated back-to-back saves; not user-visible in normal flow. Backend restore via API was used to guarantee clean end-state."
+}
