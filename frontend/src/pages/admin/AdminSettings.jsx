@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ArrowUp, ArrowDown, Eye, EyeOff } from "lucide-react";
 import api, { formatApiError } from "@/lib/api";
+import { SECTION_THEMES } from "@/lib/themes";
 import { toast } from "sonner";
 
 const FIELDS = [
@@ -34,6 +35,7 @@ export default function AdminSettings() {
     setSections(next.map((x, idx) => ({ ...x, order: idx + 1 })));
   };
   const toggleSec = (i) => setSections(sections.map((x, idx) => idx === i ? { ...x, enabled: !x.enabled } : x));
+  const setTheme = (i, theme) => setSections(sections.map((x, idx) => idx === i ? { ...x, theme } : x));
 
   const save = async () => {
     const payload = {
@@ -63,9 +65,16 @@ export default function AdminSettings() {
       <p className="text-sm text-[var(--ink-soft)] mb-4">Reorder or hide sections shown on the homepage. Changes apply live.</p>
       <div className="bg-white rounded-2xl border border-[var(--line)] divide-y divide-[var(--line)]">
         {sections.map((sec, i) => (
-          <div key={sec.key} data-testid={`home-section-${sec.key}`} className="flex items-center gap-3 px-4 py-3">
+          <div key={sec.key} data-testid={`home-section-${sec.key}`} className="flex flex-wrap items-center gap-3 px-4 py-3">
             <span className="text-xs text-[var(--ink-soft)] w-5">{i + 1}</span>
-            <span className={`flex-1 text-sm font-medium ${sec.enabled ? "" : "text-[var(--ink-soft)] line-through"}`}>{sec.label}</span>
+            <span className={`flex-1 min-w-[120px] text-sm font-medium ${sec.enabled ? "" : "text-[var(--ink-soft)] line-through"}`}>{sec.label}</span>
+            <div className="flex items-center gap-1.5">
+              {Object.entries(SECTION_THEMES).map(([key, t]) => (
+                <button key={key} onClick={() => setTheme(i, key)} data-testid={`theme-${sec.key}-${key}`} title={t.label}
+                  className={`w-6 h-6 rounded-full border-2 transition-transform hover:scale-110 ${(sec.theme || "cream") === key ? "border-[var(--ink)] scale-110" : "border-[var(--line)]"}`}
+                  style={{ background: t.bg }} />
+              ))}
+            </div>
             <button onClick={() => toggleSec(i)} data-testid={`toggle-section-${sec.key}`} className="text-[var(--ink-soft)] hover:text-[var(--brand)]" title={sec.enabled ? "Hide" : "Show"}>
               {sec.enabled ? <Eye size={17} /> : <EyeOff size={17} />}
             </button>

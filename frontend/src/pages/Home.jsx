@@ -5,6 +5,7 @@ import api, { formatINR } from "@/lib/api";
 import Hero3D from "@/components/Hero3D";
 import CategoryTiles from "@/components/CategoryTiles";
 import { useSettings } from "@/context/SettingsContext";
+import { themeBg } from "@/lib/themes";
 import { Section, SectionHeader, ProductRow, ProductGrid, GridSkeleton, Reveal } from "@/components/common";
 
 const REVIEWS = [
@@ -53,7 +54,7 @@ export default function Home() {
 
   const sections = {
     trending: () => (
-      <Section key="trending" className="bg-white rounded-t-[2.5rem]">
+      <Section key="trending">
         <SectionHeader subtitle="#JaveHouse" title="Trending on Instagram" to="/trending" />
         <ProductRow products={data.trend || []} />
       </Section>
@@ -87,7 +88,7 @@ export default function Home() {
       </Section>
     ),
     gift_picks: () => (
-      <Section key="gift_picks" className="bg-white rounded-[2.5rem] mx-2 sm:mx-6 lg:mx-12">
+      <Section key="gift_picks">
         <SectionHeader subtitle="For someone special" title="Gift Picks" to="/gifts" />
         <ProductGrid products={(data.gift || []).slice(0, 8)} />
       </Section>
@@ -134,7 +135,7 @@ export default function Home() {
       </Section>
     ),
     reviews: () => (
-      <Section key="reviews" className="bg-white rounded-[2.5rem] mx-2 sm:mx-6 lg:mx-12">
+      <Section key="reviews">
         <SectionHeader subtitle="Kind words" title="Customer Reviews" />
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {REVIEWS.map((r, i) => (
@@ -190,7 +191,11 @@ export default function Home() {
       {loading ? (
         <Section><GridSkeleton /></Section>
       ) : (
-        order.map((s) => (sections[s.key] ? sections[s.key]() : null))
+        order.map((s) => sections[s.key] ? (
+          <div key={s.key} style={{ background: themeBg(s.theme) }} className="transition-colors">
+            {sections[s.key]()}
+          </div>
+        ) : null)
       )}
     </div>
   );

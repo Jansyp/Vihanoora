@@ -53,3 +53,4 @@ See /app/memory/test_credentials.md — Admin: admin@javehouse.com / Admin@123
 ## Feature Batch 3 (2026-06) — DONE
 - **Homepage Sections**: `home_sections` in store settings; admin `/admin/settings` toggles visibility + reorders 9 sections; Home renders dynamically. Verified 100%.
 - **Announcement Editor**: `announcements` collection + admin `/admin/announcements` CRUD with start/end scheduling; public `/api/announcements` returns only live/in-window (legacy settings fallback); header rotates multiple. Verified 100%.
+- **Section Themes**: each `home_section` has a `theme` (cream/white/blush/sage/butter/lavender); admin picks a colour swatch per section in `/admin/settings`; homepage renders each section with its themed background live.
