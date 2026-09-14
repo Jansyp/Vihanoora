@@ -53,25 +53,25 @@ export default function Home() {
   }, []);
 
   const sections = {
-    trending: () => (
+    trending: (c) => (
       <Section key="trending">
-        <SectionHeader subtitle="#JaveHouse" title="Trending on Instagram" to="/trending" />
+        <SectionHeader subtitle={c.subtitle || "#JaveHouse"} title={c.title || "Trending on Instagram"} to="/trending" />
         <ProductRow products={data.trend || []} />
       </Section>
     ),
-    best_sellers: () => (
+    best_sellers: (c) => (
       <Section key="best_sellers">
-        <SectionHeader subtitle="Loved by many" title="Best Sellers" to="/women" />
+        <SectionHeader subtitle={c.subtitle || "Loved by many"} title={c.title || "Best Sellers"} to="/women" />
         <ProductGrid products={(data.best || []).slice(0, 8)} />
       </Section>
     ),
-    offer_banner: () => (
+    offer_banner: (c) => (
       <Section key="offer_banner">
         <Reveal>
           <Link to="/offer-zone" className="block relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-[var(--brand)] to-[var(--terracotta)] text-white p-8 sm:p-12">
             <div className="relative z-10">
-              <span className="text-xs font-semibold tracking-widest uppercase">Flash & Everyday Deals</span>
-              <h3 className="font-serif text-3xl sm:text-4xl font-semibold mt-2">Up to {offer.max_discount || 50}% Off</h3>
+              <span className="text-xs font-semibold tracking-widest uppercase">{c.subtitle || "Flash & Everyday Deals"}</span>
+              <h3 className="font-serif text-3xl sm:text-4xl font-semibold mt-2">{c.title || `Up to ${offer.max_discount || 50}% Off`}</h3>
               <p className="mt-2 text-white/85 max-w-md">Auto-updated deals from live prices. The more you save, the more you gift.</p>
               <span className="inline-block mt-5 px-6 py-3 rounded-full bg-white text-[var(--brand)] font-medium">Enter the Offer Zone →</span>
             </div>
@@ -81,21 +81,21 @@ export default function Home() {
         </Reveal>
       </Section>
     ),
-    new_arrivals: () => (
+    new_arrivals: (c) => (
       <Section key="new_arrivals">
-        <SectionHeader subtitle="Fresh drops" title="New Arrivals" to="/women" />
+        <SectionHeader subtitle={c.subtitle || "Fresh drops"} title={c.title || "New Arrivals"} to="/women" />
         <ProductRow products={data.arr || []} />
       </Section>
     ),
-    gift_picks: () => (
+    gift_picks: (c) => (
       <Section key="gift_picks">
-        <SectionHeader subtitle="For someone special" title="Gift Picks" to="/gifts" />
+        <SectionHeader subtitle={c.subtitle || "For someone special"} title={c.title || "Gift Picks"} to="/gifts" />
         <ProductGrid products={(data.gift || []).slice(0, 8)} />
       </Section>
     ),
-    combos: () => (
+    combos: (c) => (
       <Section key="combos">
-        <SectionHeader subtitle="Bundle & save" title="Combo Offers" to="/combo-offers" />
+        <SectionHeader subtitle={c.subtitle || "Bundle & save"} title={c.title || "Combo Offers"} to="/combo-offers" />
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {combos.map((c, i) => (
             <Reveal key={c.id} delay={i * 0.05}>
@@ -119,9 +119,9 @@ export default function Home() {
         </div>
       </Section>
     ),
-    instagram: () => (
+    instagram: (c) => (
       <Section key="instagram">
-        <SectionHeader subtitle="@javehouse" title="JAVE HOUSE on Instagram" to="/instagram" cta="Follow us" />
+        <SectionHeader subtitle={c.subtitle || "@javehouse"} title={c.title || "JAVE HOUSE on Instagram"} to="/instagram" cta="Follow us" />
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {(offer.items || []).concat(data.trend || []).slice(0, 6).map((p, i) => (
             <Link key={i} to={`/product/${p.slug}`} className="relative aspect-square rounded-2xl overflow-hidden group">
@@ -134,9 +134,9 @@ export default function Home() {
         </div>
       </Section>
     ),
-    reviews: () => (
+    reviews: (c) => (
       <Section key="reviews">
-        <SectionHeader subtitle="Kind words" title="Customer Reviews" />
+        <SectionHeader subtitle={c.subtitle || "Kind words"} title={c.title || "Customer Reviews"} />
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {REVIEWS.map((r, i) => (
             <Reveal key={i} delay={i * 0.05}>
@@ -152,11 +152,11 @@ export default function Home() {
         </div>
       </Section>
     ),
-    newsletter: () => (
+    newsletter: (c) => (
       <Section key="newsletter">
         <div className="rounded-[2rem] bg-[var(--ink)] text-white p-10 sm:p-14 text-center">
-          <h3 className="font-serif text-3xl sm:text-4xl font-semibold">Join the JAVE fam ✨</h3>
-          <p className="mt-3 text-white/70 max-w-md mx-auto">Get early access to drops, flash deals & gifting inspo on WhatsApp.</p>
+          <h3 className="font-serif text-3xl sm:text-4xl font-semibold">{c.title || "Join the JAVE fam ✨"}</h3>
+          <p className="mt-3 text-white/70 max-w-md mx-auto">{c.subtitle || "Get early access to drops, flash deals & gifting inspo on WhatsApp."}</p>
           <form onSubmit={(e) => e.preventDefault()} className="mt-6 flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
             <input data-testid="newsletter-email" placeholder="your@email.com" className="flex-1 px-5 py-3.5 rounded-full text-[var(--ink)] outline-none" />
             <button className="px-7 py-3.5 rounded-full bg-[var(--brand)] font-medium hover:bg-[var(--brand-hover)] transition-colors">Subscribe</button>
@@ -193,7 +193,7 @@ export default function Home() {
       ) : (
         order.map((s) => sections[s.key] ? (
           <div key={s.key} style={{ background: themeBg(s.theme) }} className="transition-colors">
-            {sections[s.key]()}
+            {sections[s.key](s)}
           </div>
         ) : null)
       )}
