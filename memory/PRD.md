@@ -1,0 +1,41 @@
+# JAVE HOUSE — PRD & Build Log
+
+## Original Problem
+Production-ready, mobile-first e-commerce + gifting platform for "JAVE HOUSE" (tagline: *Little Things. Beautiful Moments.*). Product universe: Women (jewellery, crystal bracelets, hair accessories, scrunchies), Kids (toys, giftables), Gifts (birthday/couple/return/festival/hampers), Combo Offers. Instagram-native, gift-first vibe with a 3D progressive-enhancement layer.
+
+## Stack (as built)
+- Frontend: React 19 + React Router 7 + Tailwind + Framer Motion + react-three-fiber/drei (3D)
+- Backend: FastAPI (modular routers) + Motor
+- DB: MongoDB (uuid string IDs, `id` field; never Mongo `_id`)
+- Auth: JWT email/password (Admin+Customer) **and** Emergent Google OAuth
+- Payments: Razorpay (server-verified, webhook idempotent) — runs in MOCK mode until keys added
+
+## User choices
+React/FastAPI/Mongo · Razorpay · build everything · JWT + Google auth · 3D enabled.
+
+## Implemented (2026-06)
+- **Storefront**: 3D WebGL hero (with 2D fallback + reduce-motion), clay category tiles, Trending/Best Sellers/New Arrivals/Gift Picks/Combos/Offer Zone/Instagram gallery/Reviews/Newsletter, sticky header + mobile bottom nav + floating WhatsApp.
+- **Catalog**: products with auto discount % (from MRP/selling), flash deals (auto-expire), stock states, tilt product cards, category pages with filters (subcat, price, discount 10/20/30/40/50+) & sorts, search.
+- **Product page**: gallery + "Rotate in 3D" viewer, variants, qty, stock, add/buy-now/wishlist/WhatsApp share, PIN estimate, related + frequently-bought, reviews (add live).
+- **Offer Zone**: auto-populated, live max-discount claim.
+- **Combos**: list + detail, auto combo discount/savings, add as combo line item.
+- **Cart/Checkout**: client cart + server `/cart/validate` (re-prices, coupons, admin-configurable delivery/free-ship threshold), guest + logged-in checkout, Razorpay (mock fallback), gift-reveal success screen.
+- **Orders/Tracking**: sequential IDs `JH2026xxxxx`, status lifecycle, public Track Order (order# + mobile/email), status timeline, courier/AWB.
+- **Coupons**: %/flat, min order, max cap, validity, total + per-customer usage limits.
+- **Admin**: dashboard (sales/orders/status/low-stock/top-sellers), product CRUD + flags + flash + stock, orders (status + shipping/AWB → auto Shipped), combos CRUD, coupons CRUD, categories view, store settings (all live-editable).
+- **Account**: orders, addresses, wishlist; JWT + Google login; RBAC admin guard.
+- **Business rules honored**: delivery ₹50 admin-configurable, order confirmed only after server-verified payment, payment vs order status independent, inventory auto-decrement on paid + no overselling, discount always computed, SellingPrice<MRP auto-enrolls Offer Zone, combos w/ linked inventory, flash/combo expiry, guest checkout always available, mobile-first + 3D 2D-fallback.
+
+## Testing
+- Backend: 27/27 pytest pass (catalog, offer zone, combos, cart+coupons, guest order + mock payment, stock decrement, OOS block, tracking, webhook idempotency, auth, admin RBAC/CRUD, order status+shipping, settings propagation).
+- Frontend: checkout→order-success→track verified 100%; catalog/product/cart/admin flows verified.
+
+## Backlog / Next (P1/P2)
+- Real Razorpay keys → live payments + webhook secret enforcement
+- Cloudinary/object-storage image uploads in admin (currently URL paste)
+- Email notifications (order lifecycle), SEO sitemap/OG/structured data, GA/Meta Pixel wiring
+- Admin category/subcategory & banner CRUD editor UI (backend endpoints exist)
+- Abandoned cart, loyalty/referrals, GST invoices
+
+## Credentials
+See /app/memory/test_credentials.md — Admin: admin@javehouse.com / Admin@123

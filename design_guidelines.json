@@ -1,0 +1,105 @@
+{
+  "brand": {
+    "name": "JAVE HOUSE",
+    "tagline": "Little Things. Beautiful Moments.",
+    "category": "Curated Lifestyle & Gifting E-Commerce",
+    "vibe": "Elevated, Tactile, Instagram-Native, Soft Pastels on Cream, Warm, Trustworthy, Modern Boutique"
+  },
+  "theme": {
+    "default": "light",
+    "background_color": "#FAF7F2",
+    "card_background": "#FFFFFF",
+    "secondary_card_bg": "#F5F0EB",
+    "text_primary": "#2A2421",
+    "text_secondary": "#786F6A",
+    "border_color": "#EAE4DC"
+  },
+  "colors": {
+    "primary_brand": "#D9777F",
+    "primary_hover": "#C5646C",
+    "accent_terracotta": "#E07A5F",
+    "soft_blush": "#FCEEE9",
+    "blush_border": "#F7D6D0",
+    "warm_sage": "#E3E8DC",
+    "sage_dark": "#617052",
+    "soft_butter": "#FFF4DC",
+    "amber_gold": "#D9933B",
+    "soft_lavender": "#EBE6F5",
+    "lavender_dark": "#7B62A3",
+    "dark_espresso": "#2A2421",
+    "light_cream": "#FAF7F2",
+    "pure_white": "#FFFFFF"
+  },
+  "typography": {
+    "heading_font": "'Playfair Display', 'Cormorant Garamond', Georgia, serif",
+    "body_font": "'Plus Jakarta Sans', 'Outfit', 'Manrope', sans-serif",
+    "font_files_import": "@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..700;1,400..700&family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&display=swap');",
+    "hierarchy": {
+      "h1_hero": "text-4xl sm:text-5xl lg:text-6xl font-serif font-semibold tracking-tight leading-tight text-[#2A2421]",
+      "h2_section": "text-2xl sm:text-3xl lg:text-4xl font-serif font-medium tracking-tight text-[#2A2421]",
+      "h3_card_title": "text-lg sm:text-xl font-sans font-semibold text-[#2A2421]",
+      "price_highlight": "text-lg font-bold text-[#D9777F]",
+      "price_mrp_strikethrough": "text-xs sm:text-sm line-through text-[#786F6A]",
+      "badge_discount": "text-xs font-semibold px-2 py-0.5 rounded-full bg-[#FCEEE9] text-[#D9777F] border border-[#F7D6D0]",
+      "body_text": "text-sm sm:text-base text-[#786F6A] leading-relaxed",
+      "caption": "text-xs text-[#786F6A] tracking-wide"
+    }
+  },
+  "spacing_and_layout": {
+    "mobile_first": true,
+    "container_padding": "px-4 sm:px-6 lg:px-12 max-w-7xl mx-auto",
+    "section_gap": "py-12 sm:py-20",
+    "card_padding": "p-4 sm:p-6",
+    "border_radius": {
+      "product_card": "rounded-3xl",
+      "button": "rounded-full",
+      "badge": "rounded-full",
+      "input": "rounded-2xl",
+      "modal_drawer": "rounded-t-3xl sm:rounded-3xl"
+    },
+    "shadows": {
+      "soft_card": "shadow-[0_8px_30px_rgba(42,36,33,0.04)]",
+      "hover_card": "shadow-[0_12px_40px_rgba(217,119,127,0.12)]",
+      "sticky_nav": "shadow-[0_4px_20px_rgba(42,36,33,0.05)]"
+    }
+  },
+  "progressive_enhancement_3d": {
+    "library": "Three.js / React Three Fiber / Canvas 2D fallback",
+    "hero_3d": "Floating gift boxes, crystal charms, floating scrunchies with soft ambient light, lazy loaded with Suspense",
+    "fallback_2d": "High quality curated hero banner image if R3F/WebGL is disabled or slow",
+    "product_rotate_3d": "Interactive 3D rotation preview mode on product details page with drag control",
+    "tilt_card": "Subtle 3D depth tilt on hover using framer-motion rotateX/rotateY",
+    "gift_reveal": "Confetti burst + unboxing ribbon animation micro-interaction on checkout confirmation and mystery gift pick"
+  },
+  "image_urls": {
+    "hampers": [
+      "https://images.unsplash.com/photo-1707944145479-12755f0434d8?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzV8MHwxfHNlYXJjaHwxfHxjdXJhdGVkJTIwZ2lmdCUyMGJveCUyMGhhbXBlciUyMGFlc3RoZXRpY3MlMjBwYXN0ZWx8ZW58MHx8fHwxNzg5MzkxNTUyfDA&ixlib=rb-4.1.0&q=85",
+      "https://images.unsplash.com/photo-1778686568681-699398da3b65?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzV8MHwxfHNlYXJjaHwzfHxjdXJhdGVkJTIwZ2lmdCUyMGJveCUyMGhhbXBlciUyMGFlc3RoZXRpY3MlMjBwYXN0ZWx8ZW58MHx8fHwxNzg5MzkxNTUyfDA&ixlib=rb-4.1.0&q=85"
+    ],
+    "jewellery": [
+      "https://images.unsplash.com/photo-1689367436442-76c859315008?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMjd8MHwxfHNlYXJjaHszfHxtaW5pbWFsaXN0JTIwYWVzdGhldGljJTIwZ29sZCUyMGpld2VscnklMjBjcnlzdGFsJTIwYnJhY2VsZXR8ZW58MHx8fHwxNzg5MzkxNTUyfDA&ixlib=rb-4.1.0&q=85",
+      "https://images.unsplash.com/photo-1626122509259-ea8e0a136ada?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMjd8MHwxfHNlYXJjaHwyfHxtaW5pbWFsaXN0JTIwYWVzdGhldGljJTIwZ29sZCUyMGpld2VscnklMjBjcnlzdGFsJTIwYnJhY2VsZXR8ZW58MHx8fHwxNzg5MzkxNTUyfDA&ixlib=rb-4.1.0&q=85"
+    ],
+    "hair_accessories": [
+      "https://images.unsplash.com/photo-1649479747361-7f862d1d29a9?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzNDR8MHwxfHNlYXJjaHwxfHxjdXRlJTIwaGFpciUyMGFjY2Vzc29yaWVzJTIwc2NydW5jaGllcyUyMGNsaXBzJTIwYWVzdGhldGljfGVufDB8fHx8MTc4OTM5MTU2MXww&ixlib=rb-4.1.0&q=85",
+      "https://images.unsplash.com/photo-1672699323645-75ace776093e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzNDR8MHwxfHNlYXJjaHw0fHxjdXRlJTIwaGFpciUyMGFjY2Vzc29yaWVzJTIwc2NydW5jaGllcyUyMGNsaXBzJTIwYWVzdGhldGljfGVufDB8fHx8MTc4OTM5MTU2MXww&ixlib=rb-4.1.0&q=85",
+      "https://images.unsplash.com/photo-1671262591369-8ac7b5f40812?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzNDR8MHwxfHNlYXJjaHwyfHxjdXRlJTIwaGFpciUyMGFjY2Vzc29yaWVzJTIwc2NydW5jaGllcyUyMGNsaXBzJTIwYWVzdGhldGljfGVufDB8fHx8MTc4OTM5MTU2MXww&ixlib=rb-4.1.0&q=85"
+    ]
+  },
+  "instructions_to_main_agent": [
+    "Use Javascript (.js / .jsx) components.",
+    "Ensure Header nav has a solid background with soft border or glassmorphism (never transparent over text).",
+    "Add 'data-testid' attributes to all interactive elements, CTAs, product cards, cart buttons, and form inputs.",
+    "Provide mobile bottom navigation tab bar for seamless Instagram mobile traffic shopping experience.",
+    "Include a floating WhatsApp CTA button with predefined message trigger.",
+    "Use 'sonner' for toast notifications on wishlist/add-to-cart/coupon actions.",
+    "Support discount calculator badges (MRP strikethrough + selling price + discount % auto-calc).",
+    "Include Admin panel layout for product CRUD, inventory, combos, and orders management."
+  ],
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": [
+    "Avoid Inter font for main headings. Use 'Playfair Display' for headlines to give JAVE HOUSE an authentic boutique feel.",
+    "Maintain high contrast ratios for text on pastel backgrounds.",
+    "Never use full-screen harsh dark gradients.",
+    "Respect prefers-reduced-motion for all 3D and floating animations."
+  ]
+}
