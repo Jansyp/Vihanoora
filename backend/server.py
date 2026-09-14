@@ -9,7 +9,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from core import db
 from seed import seed
-from routers import auth_routes, catalog_routes, commerce_routes, admin_routes
+from routers import auth_routes, catalog_routes, commerce_routes, admin_routes, upload_routes
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("javehouse")
@@ -20,6 +20,7 @@ app.include_router(auth_routes.router)
 app.include_router(catalog_routes.router)
 app.include_router(commerce_routes.router)
 app.include_router(admin_routes.router)
+app.include_router(upload_routes.router)
 
 
 @app.get("/api/")
@@ -37,6 +38,12 @@ async def startup():
     await db.orders.create_index("order_number", unique=True)
     await db.combos.create_index("slug")
     await seed()
+    try:
+        from storage import init_storage
+        init_storage()
+        logger.info("Object storage initialized")
+    except Exception as e:
+        logger.error(f"Storage init failed: {e}")
     logger.info("JAVE HOUSE startup complete")
 
 

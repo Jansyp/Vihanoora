@@ -1,0 +1,36 @@
+{
+  "summary": "Tested Jan-2026 feature batch: admin image upload (Emergent object storage), public /api/files serving, Banner Studio CRUD, homepage hero wiring to /api/banners, admin nav link, and order-status email regression (console fallback). Backend: 7/7 new pytest cases pass (upload + banners) plus existing regression (admin_orders_list_and_flow) still green. Frontend: full end-to-end Playwright flows pass — admin login, /admin/banners CRUD with image upload thumbnail + save, hero displays active banners with rotation dots (hero-dot-0, hero-shop-now with CTA text/link from banner), /admin/products Add Product opens modal with ImageUploader, upload works (thumbnail appears, 'image(s) uploaded' toast), Save creates product ('Product saved' toast, product visible in list). admin-nav-banners link present. Email console fallback confirmed in supervisor logs ([EMAIL:console] to=... subject='Your order is being prepared/shipped ...' — RESEND_API_KEY not set), which is expected per request.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Hero3D", "issues": ["When an active banner is selected, subtitle is always taken from banner but the accent-styled second-line is dropped (heading.accent forced empty). Result is a single pink line — visually consistent but loses the two-line accent that the default hero shows. Consider parsing/splitting banner title or keeping DEFAULT.accent styling."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_banners_upload.py",
+    "/app/test_reports/pytest/banners_upload.xml"
+  ],
+  "action_items": [
+    "None blocking. Optional: preserve two-line hero styling when a banner is active (see design note).",
+    "Optional: In AdminBanners.jsx, `In` component only wires data-testid on the Title field; adding testids for subtitle/cta/link would make future automation less brittle."
+  ],
+  "critical_code_review_comments": [
+    "upload_routes.py serve_file: uses record.content_type when present, else falls back to storage-returned content-type — good. If DB record is missing but storage has file, the response media_type is 'application/octet-stream' fallback rather than image/*. Consider inferring from extension. Non-blocking.",
+    "Hero3D.jsx: when active banner exists, `heading.accent` is hardcoded to empty and title renders single-color — intentional but drops the two-line default look. Minor UX regression on hero styling.",
+    "AdminBanners.jsx: order defaults to 0 and multiple banners with same order share same slot; sort by (order asc) but no secondary tiebreaker (e.g., created_at). Rotation still works but ordering can be non-deterministic.",
+    "Storage init: put/get_object re-inits key on 404; good self-heal. However both endpoints use module-global `_storage_key` without lock — under high concurrency two workers may init twice (harmless).",
+    "mailer.send_order_email: swallows all exceptions from Resend and logs; good for reliability. Ensure a metric/alert in production when RESEND_API_KEY is set."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_banners_upload.py (new)"
+  ],
+  "success_rate": {"backend": "100% (7/7 new + regression)", "frontend": "100% (all requested flows verified)"},
+  "test_credentials": "admin@javehouse.com / Admin@123 (from /app/memory/test_credentials.md)",
+  "seed_data_creation": "Created + deleted 1 test banner (TEST_PW_Banner_Zzz) via UI. Created 1 test product (TEST PW Product <ts>) via UI Add Product with uploaded image; delete triggered via trash icon (browser confirm auto-accepted, though verify in DB if leftover). Uploaded 2 small 1x1 PNGs to object storage.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "New feature batch is stable. Backend pytest suite for uploads+banners lives in /app/backend/tests/test_banners_upload.py — reuse. REACT_APP_BACKEND_URL must be exported when invoking pytest locally (frontend .env is not auto-loaded). Emails intentionally log to console (RESEND_API_KEY empty). Razorpay stays in MOCK mode. Only cosmetic action item is hero styling loss when banner is active.",
+  "rca of the issue": "No blocking issue identified. All 6 requested items verified working end-to-end."
+}

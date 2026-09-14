@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Plus, Trash2, Edit, X } from "lucide-react";
 import api, { formatINR, formatApiError } from "@/lib/api";
+import ImageUploader from "@/components/ImageUploader";
 import { toast } from "sonner";
 
 const BLANK = { name: "", description: "", images: [], product_ids: [], original_price: 0, combo_price: 0, stock: 0, active: true };
@@ -62,7 +63,7 @@ export default function AdminCombos() {
             <div className="space-y-3">
               <In label="Name" v={form.name} on={(x) => setForm({ ...form, name: x })} />
               <In label="Description" v={form.description} on={(x) => setForm({ ...form, description: x })} />
-              <In label="Image URL" v={form.images.join(",")} on={(x) => setForm({ ...form, images: x.split(",").map((s) => s.trim()).filter(Boolean) })} />
+              <ImageUploader images={form.images} onChange={(imgs) => setForm({ ...form, images: imgs })} label="Combo Image" max={3} />
               <div>
                 <p className="text-xs font-semibold mb-2">Select products</p>
                 <div className="max-h-44 overflow-y-auto border border-[var(--line)] rounded-xl p-2 space-y-1">

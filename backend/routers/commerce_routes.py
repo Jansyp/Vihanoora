@@ -8,6 +8,7 @@ from fastapi import APIRouter, Request, Depends, HTTPException
 
 from core import (db, enrich_product, next_order_number, now_iso,
                   get_current_user, get_optional_user)
+from mailer import send_order_email
 from models import (ValidateCartInput, CreateOrderInput, VerifyPaymentInput,
                     TrackInput, AddressInput, CartItemIn)
 
@@ -225,6 +226,9 @@ async def _finalize_paid(order: dict, payment_id: str, method: str = "razorpay")
                   "paid_at": now_iso()},
          "$push": {"status_history": {"status": "Payment Confirmed", "at": now_iso()}}},
     )
+    fresh = await db.orders.find_one({"id": order["id"]}, {"_id": 0})
+    if fresh:
+        await send_order_email("paid", fresh)
 
 
 @router.post("/payments/verify")

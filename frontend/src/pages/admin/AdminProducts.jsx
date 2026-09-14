@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Plus, Edit, Trash2, X } from "lucide-react";
 import api, { formatINR, formatApiError } from "@/lib/api";
+import ImageUploader from "@/components/ImageUploader";
 import { toast } from "sonner";
 
 const BLANK = {
@@ -90,7 +91,7 @@ export default function AdminProducts() {
               <Field label="Selling Price" v={form.selling_price} on={(x) => setForm({ ...form, selling_price: x })} type="number" />
               <Field label="Stock" v={form.stock} on={(x) => setForm({ ...form, stock: x })} type="number" />
               <Field label="Low Stock Alert" v={form.low_stock_threshold} on={(x) => setForm({ ...form, low_stock_threshold: x })} type="number" />
-              <div className="sm:col-span-2"><Field label="Image URLs (comma separated)" v={form.images.join(", ")} on={(x) => setForm({ ...form, images: x.split(",").map((s) => s.trim()).filter(Boolean) })} /></div>
+              <div className="sm:col-span-2"><ImageUploader images={form.images} onChange={(imgs) => setForm({ ...form, images: imgs })} /></div>
               <div className="sm:col-span-2"><Field label="Colors (comma separated)" v={form.colors.join(", ")} on={(x) => setForm({ ...form, colors: x.split(",").map((s) => s.trim()).filter(Boolean) })} /></div>
               <div className="sm:col-span-2"><Field label="Description" v={form.description} on={(x) => setForm({ ...form, description: x })} area /></div>
               <div className="sm:col-span-2"><Field label="Details" v={form.details} on={(x) => setForm({ ...form, details: x })} /></div>

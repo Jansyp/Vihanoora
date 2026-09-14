@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Link, useNavigate, useLocation, Outlet } from "react-router-dom";
-import { LayoutDashboard, Package, ShoppingCart, Boxes, Ticket, FolderTree, Settings, Home } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Boxes, Ticket, FolderTree, Settings, Home, Image } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 const LINKS = [
@@ -10,6 +10,7 @@ const LINKS = [
   { to: "/admin/combos", label: "Combos", icon: Boxes },
   { to: "/admin/coupons", label: "Coupons", icon: Ticket },
   { to: "/admin/categories", label: "Categories", icon: FolderTree },
+  { to: "/admin/banners", label: "Banners", icon: Image },
   { to: "/admin/settings", label: "Settings", icon: Settings },
 ];
 

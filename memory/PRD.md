@@ -39,3 +39,13 @@ React/FastAPI/Mongo · Razorpay · build everything · JWT + Google auth · 3D e
 
 ## Credentials
 See /app/memory/test_credentials.md — Admin: admin@javehouse.com / Admin@123
+
+## Feature Batch 2 (2026-06) — DONE
+- **Image Uploads**: Admin uploads product & combo images via built-in Emergent object storage (`/api/admin/upload` → `/api/files/{path}`); ImageUploader UI with thumbnails. Verified 100%.
+- **Order Emails**: Resend integration (`mailer.py`) sends branded HTML emails on paid/processing/shipped/delivered/cancelled. Runs in CONSOLE-LOG fallback until `RESEND_API_KEY` is set in backend/.env.
+- **Live Payments**: Razorpay flow fully implemented & live-ready; auto-activates when `RAZORPAY_KEY_ID`/`RAZORPAY_KEY_SECRET` added (currently MOCK).
+- **Banner Studio**: Admin `/admin/banners` CRUD (title, subtitle, image, CTA, order, active) powering the homepage hero as a rotating carousel over the 3D scene. Verified 100%.
+
+## To go live
+- Add `RESEND_API_KEY` (+ verified sender) for real emails
+- Add `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` (+ webhook secret) for real payments

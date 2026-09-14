@@ -29,6 +29,7 @@ import AdminOrders from "@/pages/admin/AdminOrders";
 import AdminCombos from "@/pages/admin/AdminCombos";
 import AdminCoupons from "@/pages/admin/AdminCoupons";
 import AdminCategories from "@/pages/admin/AdminCategories";
+import AdminBanners from "@/pages/admin/AdminBanners";
 import AdminSettings from "@/pages/admin/AdminSettings";
 
 const Store = ({ children }) => <Layout>{children}</Layout>;
@@ -67,6 +68,7 @@ function AppRoutes() {
         <Route path="combos" element={<AdminCombos />} />
         <Route path="coupons" element={<AdminCoupons />} />
         <Route path="categories" element={<AdminCategories />} />
+        <Route path="banners" element={<AdminBanners />} />
         <Route path="settings" element={<AdminSettings />} />
       </Route>
     </Routes>

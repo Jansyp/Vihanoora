@@ -5,6 +5,7 @@ from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, Depends, HTTPException
 
 from core import db, require_admin, enrich_product, now_iso
+from mailer import send_order_email
 from models import (ProductInput, CategoryInput, ComboInput, CouponInput,
                     ShippingInput, OrderStatusInput, SettingsInput, BannerInput)
 
@@ -225,7 +226,11 @@ async def update_order_status(order_id: str, payload: OrderStatusInput):
         {"$set": {"order_status": payload.order_status},
          "$push": {"status_history": {"status": payload.order_status, "at": now_iso()}}},
     )
-    return await db.orders.find_one({"id": order_id}, {"_id": 0})
+    updated = await db.orders.find_one({"id": order_id}, {"_id": 0})
+    _EMAIL_EVENTS = {"Processing": "processing", "Shipped": "shipped", "Delivered": "delivered", "Cancelled": "cancelled"}
+    if payload.order_status in _EMAIL_EVENTS and updated:
+        await send_order_email(_EMAIL_EVENTS[payload.order_status], updated)
+    return updated
 
 
 @router.put("/orders/{order_id}/shipping")
@@ -240,7 +245,10 @@ async def add_shipping(order_id: str, payload: ShippingInput):
         {"$set": {"shipping": shipping, "order_status": "Shipped"},
          "$push": {"status_history": {"status": "Shipped", "at": now_iso()}}},
     )
-    return await db.orders.find_one({"id": order_id}, {"_id": 0})
+    updated = await db.orders.find_one({"id": order_id}, {"_id": 0})
+    if updated:
+        await send_order_email("shipped", updated)
+    return updated
 
 
 # ---- Settings ----
