@@ -1,0 +1,57 @@
+yarn run v1.22.22
+$ craco start
+Starting the development server...
+
+Compiled with warnings.
+
+[eslint] 
+src\pages\Account.jsx
+  Line 22:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 28:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 16:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src\pages\Account.jsx
+  Line 22:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 28:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 16:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+webpack compiled with 1 warning
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src\pages\Account.jsx
+  Line 22:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 28:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 16:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src\pages\Account.jsx
+  Line 22:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 28:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 16:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+webpack compiled with 1 warning

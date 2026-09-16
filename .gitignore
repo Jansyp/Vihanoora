@@ -93,3 +93,6 @@ frontend/node_modules/.cache/default-development/8.pack
 credentials.json
 *.key
 .credentials
+backend/uploads/
+backend/*.stdout*.log
+backend/*.stderr*.log

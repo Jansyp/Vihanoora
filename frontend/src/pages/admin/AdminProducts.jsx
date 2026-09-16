@@ -17,18 +17,24 @@ export default function AdminProducts() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(BLANK);
   const [editId, setEditId] = useState(null);
+  const [colorsInput, setColorsInput] = useState("");
 
   const load = () => api.get("/admin/products").then(({ data }) => setProducts(data));
   useEffect(() => { load(); }, []);
 
-  const openNew = () => { setForm(BLANK); setEditId(null); setOpen(true); };
+  const openNew = () => { setForm(BLANK); setColorsInput(""); setEditId(null); setOpen(true); };
   const openEdit = (p) => {
     setForm({ ...BLANK, ...p, images: p.images || [], colors: p.colors || [] });
+    setColorsInput((p.colors || []).join(", "));
     setEditId(p.id); setOpen(true);
   };
 
   const save = async () => {
-    const payload = { ...form, mrp: Number(form.mrp), selling_price: Number(form.selling_price), stock: Number(form.stock), low_stock_threshold: Number(form.low_stock_threshold) };
+    const payload = {
+      ...form,
+      colors: colorsInput.split(",").map((color) => color.trim()).filter(Boolean),
+      mrp: Number(form.mrp), selling_price: Number(form.selling_price), stock: Number(form.stock), low_stock_threshold: Number(form.low_stock_threshold),
+    };
     if (!payload.flash_price) { payload.flash_price = null; payload.flash_start = null; payload.flash_end = null; }
     try {
       if (editId) await api.put(`/admin/products/${editId}`, payload);
@@ -92,7 +98,7 @@ export default function AdminProducts() {
               <Field label="Stock" v={form.stock} on={(x) => setForm({ ...form, stock: x })} type="number" />
               <Field label="Low Stock Alert" v={form.low_stock_threshold} on={(x) => setForm({ ...form, low_stock_threshold: x })} type="number" />
               <div className="sm:col-span-2"><ImageUploader images={form.images} onChange={(imgs) => setForm({ ...form, images: imgs })} /></div>
-              <div className="sm:col-span-2"><Field label="Colors (comma separated)" v={form.colors.join(", ")} on={(x) => setForm({ ...form, colors: x.split(",").map((s) => s.trim()).filter(Boolean) })} /></div>
+              <div className="sm:col-span-2"><Field label="Colors (comma separated)" v={colorsInput} on={setColorsInput} /></div>
               <div className="sm:col-span-2"><Field label="Description" v={form.description} on={(x) => setForm({ ...form, description: x })} area /></div>
               <div className="sm:col-span-2"><Field label="Details" v={form.details} on={(x) => setForm({ ...form, details: x })} /></div>
               <Field label="Material" v={form.material} on={(x) => setForm({ ...form, material: x })} />
