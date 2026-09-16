@@ -4,12 +4,12 @@ import logging
 from pathlib import Path
 import requests
 
-logger = logging.getLogger("javehouse.storage")
+logger = logging.getLogger("vihaanora.storage")
 
 STORAGE_BASE = (os.environ.get("INTEGRATION_PROXY_URL") or "").strip() or "https://integrations.emergentagent.com"
 STORAGE_URL = STORAGE_BASE.rstrip("/") + "/objstore/api/v1/storage"
 EMERGENT_KEY = os.environ.get("EMERGENT_LLM_KEY")
-APP_NAME = "javehouse"
+APP_NAME = "vihaanora"
 STORAGE_MODE = os.environ.get("STORAGE_MODE", "emergent").strip().lower()
 LOCAL_STORAGE_DIR = Path(os.environ.get("LOCAL_STORAGE_DIR", Path(__file__).parent / "uploads"))
 

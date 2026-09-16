@@ -4,7 +4,7 @@ import { useSettings } from "@/context/SettingsContext";
 export default function WhatsAppButton() {
   const { settings } = useSettings();
   const num = settings?.whatsapp || "919000000000";
-  const msg = encodeURIComponent("Hi JAVE HOUSE! I'd love to know more about your products 🎁");
+  const msg = encodeURIComponent("Hi Vihaanora! I'd love to know more about your products 🎁");
   return (
     <a
       data-testid="whatsapp-float-btn"

@@ -6,11 +6,12 @@ import { toast } from "sonner";
 
 const BLANK = {
   name: "", sku: "", group: "women", category: "", description: "", details: "", material: "",
-  mrp: 0, selling_price: 0, stock: 0, low_stock_threshold: 5, images: [], colors: [],
+  mrp: 0, selling_price: 0, stock: 0, low_stock_threshold: 5, images: [], colors: [], color_images: {},
   weight: "", dimensions: "", trending: false, best_seller: false, new_arrival: false,
   featured: false, giftable: false, active: true, flash_price: null, flash_start: null, flash_end: null,
 };
 const FLAGS = ["trending", "best_seller", "new_arrival", "featured", "giftable", "active"];
+const parseColors = (value) => [...new Set(value.split(",").map((color) => color.trim()).filter(Boolean))];
 
 export default function AdminProducts() {
   const [products, setProducts] = useState([]);
@@ -24,15 +25,17 @@ export default function AdminProducts() {
 
   const openNew = () => { setForm(BLANK); setColorsInput(""); setEditId(null); setOpen(true); };
   const openEdit = (p) => {
-    setForm({ ...BLANK, ...p, images: p.images || [], colors: p.colors || [] });
+    setForm({ ...BLANK, ...p, images: p.images || [], colors: p.colors || [], color_images: p.color_images || {} });
     setColorsInput((p.colors || []).join(", "));
     setEditId(p.id); setOpen(true);
   };
 
   const save = async () => {
+    const colors = parseColors(colorsInput);
     const payload = {
       ...form,
-      colors: colorsInput.split(",").map((color) => color.trim()).filter(Boolean),
+      colors,
+      color_images: Object.fromEntries(colors.map((color) => [color, form.color_images?.[color] || []])),
       mrp: Number(form.mrp), selling_price: Number(form.selling_price), stock: Number(form.stock), low_stock_threshold: Number(form.low_stock_threshold),
     };
     if (!payload.flash_price) { payload.flash_price = null; payload.flash_start = null; payload.flash_end = null; }
@@ -97,8 +100,18 @@ export default function AdminProducts() {
               <Field label="Selling Price" v={form.selling_price} on={(x) => setForm({ ...form, selling_price: x })} type="number" />
               <Field label="Stock" v={form.stock} on={(x) => setForm({ ...form, stock: x })} type="number" />
               <Field label="Low Stock Alert" v={form.low_stock_threshold} on={(x) => setForm({ ...form, low_stock_threshold: x })} type="number" />
-              <div className="sm:col-span-2"><ImageUploader images={form.images} onChange={(imgs) => setForm({ ...form, images: imgs })} /></div>
+              <div className="sm:col-span-2"><ImageUploader label="Fallback Images (for products without color images)" images={form.images} onChange={(imgs) => setForm({ ...form, images: imgs })} /></div>
               <div className="sm:col-span-2"><Field label="Colors (comma separated)" v={colorsInput} on={setColorsInput} /></div>
+              {parseColors(colorsInput).map((color) => (
+                <div className="sm:col-span-2" key={color}>
+                  <ImageUploader
+                    label={`${color} Images`}
+                    images={form.color_images?.[color] || []}
+                    onChange={(imgs) => setForm({ ...form, color_images: { ...form.color_images, [color]: imgs } })}
+                    max={6}
+                  />
+                </div>
+              ))}
               <div className="sm:col-span-2"><Field label="Description" v={form.description} on={(x) => setForm({ ...form, description: x })} area /></div>
               <div className="sm:col-span-2"><Field label="Details" v={form.details} on={(x) => setForm({ ...form, details: x })} /></div>
               <Field label="Material" v={form.material} on={(x) => setForm({ ...form, material: x })} />

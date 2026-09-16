@@ -33,13 +33,16 @@ export default function ProductPage() {
   if (!d) return <Section><p className="text-center py-20">Product not found.</p></Section>;
 
   const p = d.product;
+  const activeImages = p.color_images?.[color]?.length ? p.color_images[color] : p.images || [];
+  const selectedProduct = activeImages === p.images ? p : { ...p, images: activeImages };
   const oos = p.stock_state === "Out of Stock";
   const wished = inWishlist(p.id);
 
-  const buyNow = () => { addToCart(p, qty, color); nav("/checkout"); };
+  const selectColor = (value) => { setColor(value); setImg(0); setMode3d(false); };
+  const buyNow = () => { addToCart(selectedProduct, qty, color); nav("/checkout"); };
   const share = () => {
     const url = window.location.href;
-    const text = `Check out ${p.name} on JAVE HOUSE — ${url}`;
+    const text = `Check out ${p.name} on Vihaanora — ${url}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
   };
   const checkPin = () => {
@@ -67,10 +70,10 @@ export default function ProductPage() {
             <div className="relative aspect-square rounded-3xl overflow-hidden bg-white border border-[var(--line)] soft-shadow group">
               {mode3d ? (
                 <Suspense fallback={<div className="skeleton w-full h-full" />}>
-                  <Product3D image={p.images?.[0]} />
+                  <Product3D image={activeImages[0]} />
                 </Suspense>
               ) : (
-                <img src={p.images?.[img]} alt={p.name} className="w-full h-full object-cover" />
+                <img src={activeImages[img]} alt={p.name} className="w-full h-full object-cover" />
               )}
               {p.discount_percent > 0 && !mode3d && (
                 <span className="absolute top-4 left-4 text-sm font-bold px-3 py-1 rounded-full bg-[var(--brand)] text-white">-{p.discount_percent}%</span>
@@ -80,9 +83,9 @@ export default function ProductPage() {
                 <RotateCcw size={15} /> {mode3d ? "View Photos" : "Rotate in 3D"}
               </button>
             </div>
-            {!mode3d && p.images?.length > 1 && (
+            {!mode3d && activeImages.length > 1 && (
               <div className="flex gap-3 mt-4">
-                {p.images.map((im, i) => (
+                {activeImages.map((im, i) => (
                   <button key={i} onClick={() => setImg(i)} className={`w-20 h-20 rounded-2xl overflow-hidden border-2 ${img === i ? "border-[var(--brand)]" : "border-transparent"}`}>
                     <img src={im} alt="" className="w-full h-full object-cover" />
                   </button>
@@ -116,7 +119,7 @@ export default function ProductPage() {
                 <p className="text-sm font-semibold mb-2">Color: <span className="font-normal text-[var(--ink-soft)]">{color}</span></p>
                 <div className="flex gap-2">
                   {p.colors.map((c) => (
-                    <button key={c} onClick={() => setColor(c)} data-testid={`color-${c}`}
+                    <button key={c} onClick={() => selectColor(c)} data-testid={`color-${c}`}
                       className={`px-4 py-2 rounded-full text-sm font-medium border-2 ${color === c ? "border-[var(--brand)] bg-[var(--blush)]" : "border-[var(--line)]"}`}>{c}</button>
                   ))}
                 </div>
@@ -139,7 +142,7 @@ export default function ProductPage() {
             </div>
 
             <div className="mt-5 flex flex-col sm:flex-row gap-3">
-              <button data-testid="add-to-cart-detail" disabled={oos} onClick={() => addToCart(p, qty, color)}
+              <button data-testid="add-to-cart-detail" disabled={oos} onClick={() => addToCart(selectedProduct, qty, color)}
                 className="flex-1 flex items-center justify-center gap-2 py-4 rounded-full bg-[var(--ink)] text-white font-medium hover:bg-[var(--brand)] transition-colors disabled:opacity-40">
                 <ShoppingBag size={18} /> Add to Cart
               </button>

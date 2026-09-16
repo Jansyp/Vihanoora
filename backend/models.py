@@ -40,6 +40,7 @@ class ProductInput(BaseModel):
     low_stock_threshold: int = 5
     images: List[str] = []
     colors: List[str] = []
+    color_images: Dict[str, List[str]] = {}
     weight: str = ""
     dimensions: str = ""
     trending: bool = False

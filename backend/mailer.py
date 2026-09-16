@@ -3,7 +3,7 @@ import os
 import asyncio
 import logging
 
-logger = logging.getLogger("javehouse.mailer")
+logger = logging.getLogger("vihaanora.mailer")
 
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
 SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
@@ -17,7 +17,7 @@ def _wrap(title: str, body_html: str) -> str:
   <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
     <table width="560" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:20px;overflow:hidden;border:1px solid #EAE4DC;">
       <tr><td style="background:{BRAND};padding:24px 32px;">
-        <span style="font-size:24px;font-weight:bold;color:#fff;letter-spacing:1px;">JAVE HOUSE</span>
+        <span style="font-size:24px;font-weight:bold;color:#fff;letter-spacing:1px;">Vihaanora</span>
         <div style="color:#fff;opacity:.85;font-size:12px;">Little Things. Beautiful Moments.</div>
       </td></tr>
       <tr><td style="padding:32px;color:#2A2421;">
@@ -25,7 +25,7 @@ def _wrap(title: str, body_html: str) -> str:
         {body_html}
       </td></tr>
       <tr><td style="padding:20px 32px;background:#F5F0EB;color:#786F6A;font-size:12px;text-align:center;">
-        Need help? Reply to this email or reach us on WhatsApp. © JAVE HOUSE
+        Need help? Reply to this email or reach us on WhatsApp. © Vihaanora
       </td></tr>
     </table>
   </td></tr></table>

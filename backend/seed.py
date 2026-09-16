@@ -103,7 +103,7 @@ COUPONS = [
 
 async def seed():
     # Admin
-    admin_email = os.environ.get("ADMIN_EMAIL", "admin@javehouse.com")
+    admin_email = os.environ.get("ADMIN_EMAIL", "admin@vihaanora.com")
     admin_pw = os.environ.get("ADMIN_PASSWORD", "Admin@123")
     existing = await db.users.find_one({"email": admin_email})
     if not existing:
@@ -137,7 +137,7 @@ async def seed():
         img_pick = [imgs[i % len(imgs)], imgs[(i + 1) % len(imgs)]]
         doc = {
             "id": str(uuid.uuid4()), "name": name, "slug": slug, "sku": f"JH-{group[:2].upper()}-{i+1:03d}",
-            "description": f"{name} — a beautifully curated piece from JAVE HOUSE. Perfect for gifting or treating yourself.",
+            "description": f"{name} — a beautifully curated piece from Vihaanora. Perfect for gifting or treating yourself.",
             "details": "Premium quality, thoughtfully packaged. Handpicked to match Instagram-trending aesthetics.",
             "material": "Skin-friendly, high-grade materials.",
             "group": group, "category": cat, "mrp": mrp, "selling_price": sell, "stock": stock,

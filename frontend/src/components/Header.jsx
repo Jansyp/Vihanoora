@@ -58,8 +58,7 @@ export default function Header() {
             </button>
 
             <Link to="/" data-testid="logo-link" className="flex items-center gap-2 shrink-0">
-              <span className="font-serif text-2xl font-semibold tracking-tight text-[var(--ink)]">JAVE</span>
-              <span className="font-serif text-2xl font-semibold tracking-tight text-[var(--brand)]">HOUSE</span>
+              <span className="font-serif text-2xl font-semibold tracking-tight text-[var(--brand)]">Vihaanora</span>
             </Link>
 
             <nav className="hidden lg:flex items-center gap-6 flex-1 justify-center">
@@ -102,7 +101,7 @@ export default function Header() {
           <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
           <div className="absolute left-0 top-0 h-full w-72 bg-white p-6 shadow-xl fade-up">
             <div className="flex items-center justify-between mb-6">
-              <span className="font-serif text-xl font-semibold">JAVE HOUSE</span>
+              <span className="font-serif text-xl font-semibold">Vihaanora</span>
               <button onClick={() => setOpen(false)} data-testid="mobile-menu-close"><X size={22} /></button>
             </div>
             <form onSubmit={submitSearch} className="flex items-center bg-[var(--card-2)] rounded-full px-3 py-2 mb-5">

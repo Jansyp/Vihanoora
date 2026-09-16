@@ -1,6 +1,6 @@
 {
   "brand": {
-    "name": "JAVE HOUSE",
+    "name": "Vihaanora",
     "tagline": "Little Things. Beautiful Moments.",
     "category": "Curated Lifestyle & Gifting E-Commerce",
     "vibe": "Elevated, Tactile, Instagram-Native, Soft Pastels on Cream, Warm, Trustworthy, Modern Boutique"
@@ -97,7 +97,7 @@
     "Include Admin panel layout for product CRUD, inventory, combos, and orders management."
   ],
   "UNIVERSAL GUIDELINES FOR MAIN AGENT": [
-    "Avoid Inter font for main headings. Use 'Playfair Display' for headlines to give JAVE HOUSE an authentic boutique feel.",
+    "Avoid Inter font for main headings. Use 'Playfair Display' for headlines to give Vihaanora an authentic boutique feel.",
     "Maintain high contrast ratios for text on pastel backgrounds.",
     "Never use full-screen harsh dark gradients.",
     "Respect prefers-reduced-motion for all 3D and floating animations."

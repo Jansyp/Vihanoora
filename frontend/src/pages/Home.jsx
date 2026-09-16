@@ -55,7 +55,7 @@ export default function Home() {
   const sections = {
     trending: (c) => (
       <Section key="trending">
-        <SectionHeader subtitle={c.subtitle || "#JaveHouse"} title={c.title || "Trending on Instagram"} to="/trending" />
+        <SectionHeader subtitle={c.subtitle || "#Vihaanora"} title={c.title || "Trending on Instagram"} to="/trending" />
         <ProductRow products={data.trend || []} />
       </Section>
     ),
@@ -121,7 +121,7 @@ export default function Home() {
     ),
     instagram: (c) => (
       <Section key="instagram">
-        <SectionHeader subtitle={c.subtitle || "@javehouse"} title={c.title || "JAVE HOUSE on Instagram"} to="/instagram" cta="Follow us" />
+        <SectionHeader subtitle={c.subtitle || "@vihaanora"} title={c.title || "Vihaanora on Instagram"} to="/instagram" cta="Follow us" />
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {(offer.items || []).concat(data.trend || []).slice(0, 6).map((p, i) => (
             <Link key={i} to={`/product/${p.slug}`} className="relative aspect-square rounded-2xl overflow-hidden group">

@@ -19,7 +19,7 @@ export default function Login() {
     try {
       if (mode === "login") await login(form.email, form.password);
       else await register(form.name, form.email, form.password);
-      toast.success("Welcome to JAVE HOUSE!");
+      toast.success("Welcome to Vihaanora!");
       nav("/account");
     } catch (e2) { setErr(formatApiError(e2.response?.data?.detail)); }
     finally { setBusy(false); }

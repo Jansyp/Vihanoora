@@ -20,14 +20,21 @@ RAZORPAY_WEBHOOK_SECRET = os.environ.get("RAZORPAY_WEBHOOK_SECRET", "")
 PAYMENT_MODE = "razorpay" if (RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET) else "mock"
 
 
+def _product_image_for_variant(product: dict, variant: str | None) -> str:
+    """Return the first image assigned to a selected color, with a legacy fallback."""
+    color_images = product.get("color_images") or {}
+    variant_images = color_images.get(variant) if variant else None
+    return (variant_images or product.get("images") or [""])[0]
+
+
 DEFAULT_SETTINGS = {
-    "store_name": "JAVE HOUSE",
+    "store_name": "Vihaanora",
     "tagline": "Little Things. Beautiful Moments.",
     "logo": "",
     "contact_number": "+91 90000 00000",
-    "email": "hello@javehouse.com",
+    "email": "hello@vihaanora.com",
     "whatsapp": "919000000000",
-    "instagram_url": "https://instagram.com/javehouse",
+    "instagram_url": "https://instagram.com/vihaanora",
     "delivery_charge": 50,
     "free_shipping_threshold": 999,
     "currency": "INR",
@@ -35,13 +42,13 @@ DEFAULT_SETTINGS = {
     "announcement_bar_text": "✨ Free shipping on orders above ₹999 • Flat ₹50 delivery • Shop the Instagram trends",
     "announcement_enabled": True,
     "home_sections": [
-        {"key": "trending", "label": "Trending on Instagram", "enabled": True, "order": 1, "theme": "white", "subtitle": "#JaveHouse", "title": "Trending on Instagram"},
+        {"key": "trending", "label": "Trending on Instagram", "enabled": True, "order": 1, "theme": "white", "subtitle": "#Vihaanora", "title": "Trending on Instagram"},
         {"key": "best_sellers", "label": "Best Sellers", "enabled": True, "order": 2, "theme": "cream", "subtitle": "Loved by many", "title": "Best Sellers"},
         {"key": "offer_banner", "label": "Offer Zone Banner", "enabled": True, "order": 3, "theme": "cream", "subtitle": "Flash & Everyday Deals", "title": ""},
         {"key": "new_arrivals", "label": "New Arrivals", "enabled": True, "order": 4, "theme": "cream", "subtitle": "Fresh drops", "title": "New Arrivals"},
         {"key": "gift_picks", "label": "Gift Picks", "enabled": True, "order": 5, "theme": "blush", "subtitle": "For someone special", "title": "Gift Picks"},
         {"key": "combos", "label": "Combo Offers", "enabled": True, "order": 6, "theme": "cream", "subtitle": "Bundle & save", "title": "Combo Offers"},
-        {"key": "instagram", "label": "Instagram Gallery", "enabled": True, "order": 7, "theme": "white", "subtitle": "@javehouse", "title": "JAVE HOUSE on Instagram"},
+        {"key": "instagram", "label": "Instagram Gallery", "enabled": True, "order": 7, "theme": "white", "subtitle": "@vihaanora", "title": "Vihaanora on Instagram"},
         {"key": "reviews", "label": "Customer Reviews", "enabled": True, "order": 8, "theme": "sage", "subtitle": "Kind words", "title": "Customer Reviews"},
         {"key": "newsletter", "label": "Newsletter", "enabled": True, "order": 9, "theme": "cream", "subtitle": "", "title": "Join the JAVE fam ✨"},
     ],
@@ -112,7 +119,7 @@ async def _price_items(items: list[CartItemIn]):
             mrp = float(p["mrp"])
             line_items.append({
                 "product_id": it.product_id, "name": p["name"],
-                "image": (p.get("images") or [""])[0], "variant": it.variant,
+                "image": _product_image_for_variant(p, it.variant), "variant": it.variant,
                 "qty": it.qty, "mrp": mrp, "unit_price": price,
                 "discount": round((mrp - price)), "combo": False,
             })

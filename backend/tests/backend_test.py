@@ -1,4 +1,4 @@
-"""JAVE HOUSE backend API tests.
+"""Vihaanora backend API tests.
 
 Covers: catalog, offer zone, combos, categories, settings,
 cart validation, coupons, guest order + mock payment, tracking,
@@ -11,10 +11,10 @@ import time
 import requests
 import pytest
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://jave-house-shop.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "http://localhost:8000").rstrip("/")
 API = f"{BASE_URL}/api"
 
-ADMIN_EMAIL = "admin@javehouse.com"
+ADMIN_EMAIL = "admin@vihaanora.com"
 ADMIN_PASSWORD = "Admin@123"
 
 

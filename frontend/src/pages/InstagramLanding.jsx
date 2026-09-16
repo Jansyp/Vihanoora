@@ -26,7 +26,7 @@ export default function InstagramLanding() {
         <Instagram size={40} className="mx-auto text-[var(--brand)]" />
         <h1 className="font-serif text-4xl sm:text-5xl font-semibold mt-4">Welcome, Insta friend! 👋</h1>
         <p className="text-[var(--ink-soft)] mt-3 max-w-lg mx-auto">You saw it on our feed — now shop the exact trending finds, best sellers & deals.</p>
-        <a href={settings?.instagram_url || "#"} target="_blank" rel="noreferrer" className="inline-block mt-6 px-7 py-3.5 rounded-full bg-[var(--ink)] text-white font-medium">Follow @javehouse</a>
+        <a href={settings?.instagram_url || "#"} target="_blank" rel="noreferrer" className="inline-block mt-6 px-7 py-3.5 rounded-full bg-[var(--ink)] text-white font-medium">Follow @vihaanora</a>
       </section>
       {!d ? <Section><GridSkeleton /></Section> : (
         <>
