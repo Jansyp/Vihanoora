@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Heart, ShoppingBag, Star } from "lucide-react";
 import { motion } from "framer-motion";
-import { formatINR } from "@/lib/api";
+import { assetUrl, formatINR } from "@/lib/api";
 import { useCart } from "@/context/CartContext";
 
 export default function ProductCard({ product, index = 0 }) {
@@ -40,7 +40,7 @@ export default function ProductCard({ product, index = 0 }) {
       <Link to={`/product/${product.slug}`} className="block">
         <div className="relative aspect-square overflow-hidden bg-[var(--card-2)]">
           <img
-            src={product.images?.[0]}
+            src={assetUrl(product.images?.[0])}
             alt={product.name}
             loading="lazy"
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"

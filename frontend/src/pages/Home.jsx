@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Star, Truck, ShieldCheck, RefreshCw, Instagram } from "lucide-react";
 import api, { formatINR } from "@/lib/api";
-import Hero3D from "@/components/Hero3D";
+import FeaturedProductHero from "@/components/FeaturedProductHero";
 import CategoryTiles from "@/components/CategoryTiles";
 import { useSettings } from "@/context/SettingsContext";
 import { themeBg } from "@/lib/themes";
@@ -171,7 +171,7 @@ export default function Home() {
 
   return (
     <div>
-      <Hero3D />
+      <FeaturedProductHero />
 
       <div className="bg-white border-y border-[var(--line)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 grid grid-cols-2 md:grid-cols-4 gap-4 py-5 text-center">

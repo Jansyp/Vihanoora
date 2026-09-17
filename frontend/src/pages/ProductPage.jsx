@@ -1,7 +1,7 @@
 import { Suspense, lazy, useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { Heart, Share2, Truck, ShieldCheck, RotateCcw, Star, Minus, Plus, ShoppingBag } from "lucide-react";
-import api, { formatINR } from "@/lib/api";
+import { ArrowLeft, Heart, Share2, Truck, ShieldCheck, RotateCcw, Star, Minus, Plus, ShoppingBag } from "lucide-react";
+import api, { assetUrl, formatINR } from "@/lib/api";
 import { useCart } from "@/context/CartContext";
 import { Section, ProductRow, SectionHeader, GridSkeleton } from "@/components/common";
 import { toast } from "sonner";
@@ -45,6 +45,10 @@ export default function ProductPage() {
     const text = `Check out ${p.name} on Vihaanora — ${url}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
   };
+  const goBack = () => {
+    if (window.history.length > 1) nav(-1);
+    else nav(`/${p.group}`);
+  };
   const checkPin = () => {
     if (pin.length !== 6) { setPinMsg("Enter a valid 6-digit PIN"); return; }
     setPinMsg(`Delivery in 4-6 days to ${pin}. Flat ₹50 delivery.`);
@@ -60,8 +64,11 @@ export default function ProductPage() {
   return (
     <div>
       <Section className="!py-8">
-        <nav className="text-xs text-[var(--ink-soft)] mb-6">
-          <Link to="/" className="hover:text-[var(--brand)]">Home</Link> / <Link to={`/${p.group}`} className="hover:text-[var(--brand)] capitalize">{p.group}</Link> / <span className="text-[var(--ink)]">{p.name}</span>
+        <nav className="mb-6" aria-label="Product navigation">
+          <button type="button" onClick={goBack} aria-label="Go to previous page"
+            className="inline-flex items-center gap-2 text-xs font-medium text-[var(--ink-soft)] hover:text-[var(--brand)] transition-colors">
+            <ArrowLeft size={16} /> <span>Previous page</span>
+          </button>
         </nav>
 
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-14">
@@ -70,10 +77,10 @@ export default function ProductPage() {
             <div className="relative aspect-square rounded-3xl overflow-hidden bg-white border border-[var(--line)] soft-shadow group">
               {mode3d ? (
                 <Suspense fallback={<div className="skeleton w-full h-full" />}>
-                  <Product3D image={activeImages[0]} />
+                  <Product3D image={assetUrl(activeImages[0])} />
                 </Suspense>
               ) : (
-                <img src={activeImages[img]} alt={p.name} className="w-full h-full object-cover" />
+                <img src={assetUrl(activeImages[img])} alt={p.name} className="w-full h-full object-cover" />
               )}
               {p.discount_percent > 0 && !mode3d && (
                 <span className="absolute top-4 left-4 text-sm font-bold px-3 py-1 rounded-full bg-[var(--brand)] text-white">-{p.discount_percent}%</span>
@@ -87,7 +94,7 @@ export default function ProductPage() {
               <div className="flex gap-3 mt-4">
                 {activeImages.map((im, i) => (
                   <button key={i} onClick={() => setImg(i)} className={`w-20 h-20 rounded-2xl overflow-hidden border-2 ${img === i ? "border-[var(--brand)]" : "border-transparent"}`}>
-                    <img src={im} alt="" className="w-full h-full object-cover" />
+                    <img src={assetUrl(im)} alt="" className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>

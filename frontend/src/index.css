@@ -75,12 +75,14 @@ body {
 @keyframes shimmer { 0% { background-position: -400px 0 } 100% { background-position: 400px 0 } }
 @keyframes pop { 0% { transform: scale(.6); opacity: 0 } 70% { transform: scale(1.05) } 100% { transform: scale(1); opacity: 1 } }
 @keyframes marquee { from { transform: translateX(0) } to { transform: translateX(-50%) } }
+@keyframes product-float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-8px) } }
 
 .animate-float-slow { animation: float-slow 6s ease-in-out infinite; }
 .animate-float-med { animation: float-med 5s ease-in-out infinite; }
 .fade-up { animation: fade-up .7s cubic-bezier(.2,.7,.2,1) both; }
 .pop-in { animation: pop .5s cubic-bezier(.2,1.2,.3,1) both; }
 .marquee { animation: marquee 26s linear infinite; }
+.animate-product-float { animation: product-float 6s ease-in-out infinite; }
 
 .skeleton {
   background: linear-gradient(90deg, #efe9e2 25%, #f6f1ea 37%, #efe9e2 63%);
@@ -98,7 +100,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-float-slow, .animate-float-med, .marquee { animation: none !important; }
+  .animate-float-slow, .animate-float-med, .animate-product-float, .marquee { animation: none !important; }
   * { scroll-behavior: auto !important; }
 }
-.reduce-motion .animate-float-slow, .reduce-motion .animate-float-med, .reduce-motion .marquee { animation: none !important; }
+.reduce-motion .animate-float-slow, .reduce-motion .animate-float-med, .reduce-motion .animate-product-float, .reduce-motion .marquee { animation: none !important; }

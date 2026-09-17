@@ -70,6 +70,10 @@ def put_object(path: str, data: bytes, content_type: str) -> dict:
 def get_object(path: str):
     if STORAGE_MODE == "local":
         target = _local_path(path)
+        if not target.exists() and path.startswith(f"{APP_NAME}/"):
+            legacy_target = _local_path(path.replace(f"{APP_NAME}/", "javehouse/", 1))
+            if legacy_target.exists():
+                target = legacy_target
         return target.read_bytes(), MIME_TYPES.get(target.suffix.lstrip(".").lower(), "application/octet-stream")
 
     key = init_storage()

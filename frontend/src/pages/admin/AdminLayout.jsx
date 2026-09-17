@@ -32,7 +32,7 @@ export default function AdminLayout() {
   return (
     <div className="min-h-screen bg-[var(--cream)] flex">
       <aside className="hidden md:flex flex-col w-60 bg-[var(--ink)] text-white/80 p-4 sticky top-0 h-screen">
-        <Link to="/" className="font-serif text-2xl font-semibold text-white px-2 py-3">JAVE <span className="text-[var(--brand)]">HOUSE</span></Link>
+        <Link to="/" className="font-serif text-2xl font-semibold text-[var(--brand)] px-2 py-3">Vihaanora</Link>
         <p className="text-xs text-white/40 px-2 mb-4">Admin Console</p>
         <nav className="flex flex-col gap-1 flex-1">
           {LINKS.map((l) => {
