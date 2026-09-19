@@ -8,7 +8,7 @@ from core import db, require_admin, enrich_product, now_iso
 from mailer import send_order_email
 from models import (ProductInput, CategoryInput, ComboInput, CouponInput,
                     ShippingInput, OrderStatusInput, SettingsInput, BannerInput,
-                    AnnouncementInput)
+                    AnnouncementInput, WOMEN_PRODUCT_CATEGORIES, LEGACY_PRODUCT_CATEGORY)
 
 router = APIRouter(prefix="/api/admin", tags=["admin"], dependencies=[Depends(require_admin)])
 
@@ -62,13 +62,38 @@ async def admin_products():
     return [enrich_product(d) for d in docs]
 
 
+async def _next_product_sku() -> str:
+    counter = await db.counters.find_one_and_update(
+        {"_id": "product_sku"},
+        {"$inc": {"seq": 1}},
+        upsert=True,
+        return_document=True,
+    )
+    sequence = counter.get("seq", 1) if counter else 1
+    sku = f"VH-{sequence:06d}"
+    while await db.products.find_one({"sku": sku}, {"_id": 1}):
+        sequence += 1
+        sku = f"VH-{sequence:06d}"
+        await db.counters.update_one({"_id": "product_sku"}, {"$max": {"seq": sequence}}, upsert=True)
+    return sku
+
+
+def _normalize_product_category(data: dict):
+    if data.get("group") == "women":
+        category = data.get("category") or LEGACY_PRODUCT_CATEGORY
+        if category not in WOMEN_PRODUCT_CATEGORIES and category != LEGACY_PRODUCT_CATEGORY:
+            raise HTTPException(status_code=422, detail="Invalid Women's product category")
+        data["category"] = category
+
+
 @router.post("/products")
 async def create_product(payload: ProductInput):
     data = payload.model_dump()
-    data["slug"] = data.get("slug") or slugify(payload.name)
-    existing = await db.products.find_one({"sku": payload.sku})
-    if existing:
+    _normalize_product_category(data)
+    if payload.sku and await db.products.find_one({"sku": payload.sku}):
         raise HTTPException(status_code=400, detail="SKU already exists")
+    data["sku"] = await _next_product_sku()
+    data["slug"] = data.get("slug") or slugify(payload.name)
     if await db.products.find_one({"slug": data["slug"]}):
         data["slug"] = f"{data['slug']}-{uuid.uuid4().hex[:4]}"
     data["id"] = str(uuid.uuid4())
@@ -83,10 +108,12 @@ async def create_product(payload: ProductInput):
 @router.put("/products/{product_id}")
 async def update_product(product_id: str, payload: ProductInput):
     data = payload.model_dump()
+    _normalize_product_category(data)
     data["slug"] = data.get("slug") or slugify(payload.name)
     existing = await db.products.find_one({"id": product_id})
     if not existing:
         raise HTTPException(status_code=404, detail="Product not found")
+    data["sku"] = existing.get("sku") or await _next_product_sku()
     await db.products.update_one({"id": product_id}, {"$set": data})
     updated = await db.products.find_one({"id": product_id})
     return enrich_product(updated)

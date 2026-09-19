@@ -6,7 +6,8 @@ from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, Request, Response, Depends, HTTPException
 
 from core import (db, hash_password, verify_password, create_access_token,
-                  create_refresh_token, set_auth_cookies, get_current_user, now_iso)
+                  create_refresh_token, set_auth_cookies, get_current_user, now_iso,
+                  cookie_security_settings)
 from models import RegisterInput, LoginInput, GoogleSessionInput
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
@@ -97,8 +98,9 @@ async def refresh_token(request: Request, response: Response):
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
     access = create_access_token(user["id"], user["email"], user.get("role", "customer"))
-    response.set_cookie("access_token", access, httponly=True, secure=True,
-                        samesite="none", max_age=43200, path="/")
+    secure, samesite = cookie_security_settings()
+    response.set_cookie("access_token", access, httponly=True, secure=secure,
+                        samesite=samesite, max_age=43200, path="/")
     return {"message": "refreshed"}
 
 
@@ -132,7 +134,8 @@ async def google_session(payload: GoogleSessionInput, response: Response):
                   "created_at": datetime.now(timezone.utc)}},
         upsert=True,
     )
-    response.set_cookie("session_token", session_token, httponly=True, secure=True,
-                        samesite="none", max_age=604800, path="/")
+    secure, samesite = cookie_security_settings()
+    response.set_cookie("session_token", session_token, httponly=True, secure=secure,
+                        samesite=samesite, max_age=604800, path="/")
     return {"id": user["id"], "name": user["name"], "email": email,
             "role": user.get("role", "customer"), "picture": user.get("picture", "")}

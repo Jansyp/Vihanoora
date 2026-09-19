@@ -3,6 +3,15 @@ from pydantic import BaseModel, Field, EmailStr
 from typing import List, Optional, Dict, Any
 import uuid
 
+WOMEN_PRODUCT_CATEGORIES = [
+    "Chains",
+    "Bracelets",
+    "Earrings",
+    "Hair Accessories",
+    "Necklaces",
+]
+LEGACY_PRODUCT_CATEGORY = "Uncategorized"
+
 
 def gen_id() -> str:
     return str(uuid.uuid4())
@@ -28,7 +37,7 @@ class GoogleSessionInput(BaseModel):
 class ProductInput(BaseModel):
     name: str
     slug: Optional[str] = None
-    sku: str
+    sku: Optional[str] = None
     description: str = ""
     details: str = ""
     material: str = ""

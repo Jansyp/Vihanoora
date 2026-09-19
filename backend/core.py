@@ -14,6 +14,18 @@ db = client[os.environ["DB_NAME"]]
 JWT_ALGORITHM = "HS256"
 
 
+def cookie_security_settings() -> tuple[bool, str]:
+    override = os.environ.get("COOKIE_SECURE")
+    if override is not None:
+        secure = override.lower() in {"1", "true", "yes", "on"}
+        return secure, "none" if secure else "lax"
+
+    env = os.environ.get("APP_ENV", "development").lower()
+    if env in {"development", "local", "test"}:
+        return False, "lax"
+    return True, "none"
+
+
 def get_jwt_secret() -> str:
     return os.environ["JWT_SECRET"]
 
@@ -53,10 +65,11 @@ def create_refresh_token(user_id: str) -> str:
 
 
 def set_auth_cookies(response, access_token: str, refresh_token: str):
-    response.set_cookie("access_token", access_token, httponly=True, secure=True,
-                        samesite="none", max_age=43200, path="/")
-    response.set_cookie("refresh_token", refresh_token, httponly=True, secure=True,
-                        samesite="none", max_age=604800, path="/")
+    secure, samesite = cookie_security_settings()
+    response.set_cookie("access_token", access_token, httponly=True, secure=secure,
+                        samesite=samesite, max_age=43200, path="/")
+    response.set_cookie("refresh_token", refresh_token, httponly=True, secure=secure,
+                        samesite=samesite, max_age=604800, path="/")
 
 
 async def _get_token(request: Request):

@@ -14,6 +14,7 @@ const GROUP_TITLE = {
 };
 
 const SORTS = [
+  ["default", "Default"],
   ["biggest_discount", "Biggest Discount"],
   ["newest", "Newest"],
   ["price_asc", "Price: Low → High"],
@@ -21,6 +22,7 @@ const SORTS = [
   ["best_selling", "Best Selling"],
 ];
 const DISCOUNTS = [0, 10, 20, 30, 40, 50];
+const WOMEN_CATEGORIES = ["Chains", "Bracelets", "Earrings", "Hair Accessories", "Necklaces"];
 
 export default function CategoryPage({ type, group: groupProp }) {
   const params = useParams();
@@ -32,7 +34,7 @@ export default function CategoryPage({ type, group: groupProp }) {
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sort, setSort] = useState(type === "offer-zone" ? "biggest_discount" : "newest");
+  const [sort, setSort] = useState(type === "offer-zone" ? "biggest_discount" : "default");
   const [minDiscount, setMinDiscount] = useState(0);
   const [maxPrice, setMaxPrice] = useState(5000);
   const [subcat, setSubcat] = useState("");
@@ -56,7 +58,7 @@ export default function CategoryPage({ type, group: groupProp }) {
       if (group) parts.push(`group=${group}`);
       if (type === "trending") parts.push("trending=true");
       if (type === "search" && q) parts.push(`q=${encodeURIComponent(q)}`);
-      if (subcat) parts.push(`category=${subcat}`);
+      if (subcat) parts.push(`category=${encodeURIComponent(subcat)}`);
       if (minDiscount) parts.push(`min_discount=${minDiscount}`);
       parts.push(`max_price=${maxPrice}`);
       url = `/products?${parts.join("&")}`;
@@ -71,6 +73,28 @@ export default function CategoryPage({ type, group: groupProp }) {
         {subtitle && <p className="text-[var(--ink-soft)] mt-1">{subtitle}</p>}
         {!loading && <p className="text-sm text-[var(--ink-soft)] mt-1">{items.length} products</p>}
       </div>
+
+      {group === "women" && (
+        <div className="mb-6 -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto no-scrollbar">
+          <div className="flex w-max min-w-full gap-2" role="tablist" aria-label="Women's product categories">
+            {["All", ...WOMEN_CATEGORIES].map((category) => {
+              const selected = category === "All" ? !subcat : subcat === category;
+              return (
+                <button
+                  key={category}
+                  type="button"
+                  role="tab"
+                  aria-selected={selected}
+                  onClick={() => setSubcat(category === "All" ? "" : category)}
+                  className={`px-4 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${selected ? "bg-[var(--ink)] text-white" : "bg-white border border-[var(--line)] text-[var(--ink-soft)] hover:border-[var(--brand)] hover:text-[var(--brand)]"}`}
+                >
+                  {category}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div className="flex gap-3 mb-6 flex-wrap items-center">
         <button data-testid="toggle-filters" onClick={() => setShowFilters((v) => !v)}

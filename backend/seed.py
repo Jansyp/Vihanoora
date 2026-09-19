@@ -3,6 +3,7 @@ import os
 import uuid
 from datetime import datetime, timezone, timedelta
 from core import db, hash_password, now_iso
+from models import LEGACY_PRODUCT_CATEGORY, WOMEN_PRODUCT_CATEGORIES
 
 IMG = {
     "bracelet": [
@@ -100,6 +101,15 @@ COUPONS = [
      "total_usage_limit": 300, "per_customer_limit": 1, "active": True},
 ]
 
+SEED_WOMEN_CATEGORY_MAP = {
+    "crystal-jewellery": "Necklaces",
+    "bracelets": "Bracelets",
+    "jewellery": "Earrings",
+    "hair-clips": "Hair Accessories",
+    "scrunchies": "Hair Accessories",
+    "hair-bands": "Hair Accessories",
+}
+
 
 async def seed():
     # Admin
@@ -119,14 +129,26 @@ async def seed():
         if existing.get("role") != "admin":
             await db.users.update_one({"email": admin_email}, {"$set": {"role": "admin"}})
 
+    await db.products.update_many(
+        {"group": "women", "category": {"$nin": [*WOMEN_PRODUCT_CATEGORIES, LEGACY_PRODUCT_CATEGORY]}},
+        {"$set": {"category": LEGACY_PRODUCT_CATEGORY}},
+    )
+
+    catalog_marker = await db.seed_meta.find_one({"key": "default_catalog_initialized"})
+    if catalog_marker:
+        return
+
     if await db.products.count_documents({}) > 0:
-        return  # already seeded content
+        await db.seed_meta.insert_one({"key": "default_catalog_initialized", "created_at": now_iso()})
+        return
 
-    # Categories
+    # Categories: keep existing records and only add any missing default category set.
+    existing_category_slugs = {c["slug"] async for c in db.categories.find({}, {"slug": 1})}
     for c in CATEGORIES:
-        await db.categories.insert_one({"id": str(uuid.uuid4()), **c})
+        if c["slug"] not in existing_category_slugs:
+            await db.categories.insert_one({"id": str(uuid.uuid4()), **c})
 
-    # Products
+    # Products: repair partial seed state without deleting other customer/admin entries.
     all_ids = {}
     flash_end = (datetime.now(timezone.utc) + timedelta(days=3)).isoformat()
     flash_start = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
@@ -135,12 +157,14 @@ async def seed():
         slug = "-".join(slug.split())
         imgs = IMG[imgkey]
         img_pick = [imgs[i % len(imgs)], imgs[(i + 1) % len(imgs)]]
+        sku = f"JH-{group[:2].upper()}-{i+1:03d}"
         doc = {
-            "id": str(uuid.uuid4()), "name": name, "slug": slug, "sku": f"JH-{group[:2].upper()}-{i+1:03d}",
+            "id": str(uuid.uuid4()), "name": name, "slug": slug, "sku": sku,
             "description": f"{name} — a beautifully curated piece from Vihaanora. Perfect for gifting or treating yourself.",
             "details": "Premium quality, thoughtfully packaged. Handpicked to match Instagram-trending aesthetics.",
             "material": "Skin-friendly, high-grade materials.",
-            "group": group, "category": cat, "mrp": mrp, "selling_price": sell, "stock": stock,
+            "group": group, "category": SEED_WOMEN_CATEGORY_MAP.get(cat, cat) if group == "women" else cat,
+            "mrp": mrp, "selling_price": sell, "stock": stock,
             "low_stock_threshold": 5, "images": img_pick, "colors": ["Blush", "Sage", "Lavender"][: (i % 3) + 1],
             "weight": "80g", "dimensions": "10 x 8 x 4 cm",
             "trending": "trending" in flags, "best_seller": "best_seller" in flags,
@@ -154,6 +178,19 @@ async def seed():
             doc["flash_price"] = round(sell * 0.8)
             doc["flash_start"] = flash_start
             doc["flash_end"] = flash_end
+
+        existing = await db.products.find_one({"$or": [{"sku": sku}, {"slug": slug}, {"name": name}]})
+        if existing:
+            current_id = existing.get("id") or str(uuid.uuid4())
+            doc["id"] = current_id
+            updates = {k: v for k, v in doc.items() if k not in {"id", "created_at"} and existing.get(k) != v}
+            if updates:
+                await db.products.update_one({"_id": existing["_id"]}, {"$set": updates})
+            if existing.get("id") is None:
+                await db.products.update_one({"_id": existing["_id"]}, {"$set": {"id": current_id}})
+            all_ids[name] = current_id
+            continue
+
         await db.products.insert_one(dict(doc))
         all_ids[name] = doc["id"]
 
@@ -189,3 +226,5 @@ async def seed():
     # Banners
     for b in BANNERS:
         await db.banners.insert_one({"id": str(uuid.uuid4()), **b})
+
+    await db.seed_meta.insert_one({"key": "default_catalog_initialized", "created_at": now_iso()})

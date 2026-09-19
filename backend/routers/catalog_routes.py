@@ -4,7 +4,7 @@ from fastapi import APIRouter, Query, HTTPException
 from typing import Optional
 
 from core import db, enrich_product, enrich_combo, now_iso, effective_price, discount_percent
-from models import ReviewInput
+from models import ReviewInput, WOMEN_PRODUCT_CATEGORIES
 
 router = APIRouter(prefix="/api", tags=["catalog"])
 
@@ -16,6 +16,7 @@ async def _product_map(ids):
 
 def _sort_stage(sort: str):
     return {
+        "default": [("created_at", -1)],
         "newest": [("created_at", -1)],
         "price_asc": [("selling_price", 1)],
         "price_desc": [("selling_price", -1)],
@@ -48,6 +49,8 @@ async def list_products(
         query["group"] = group
     if category:
         query["category"] = category
+        if group == "women" and category not in WOMEN_PRODUCT_CATEGORIES:
+            query["category"] = "__no_matching_category__"
     for flag, val in [("trending", trending), ("best_seller", best_seller),
                       ("new_arrival", new_arrival), ("featured", featured), ("giftable", giftable)]:
         if val:

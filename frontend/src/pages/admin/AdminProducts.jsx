@@ -5,12 +5,13 @@ import ImageUploader from "@/components/ImageUploader";
 import { toast } from "sonner";
 
 const BLANK = {
-  name: "", sku: "", group: "women", category: "", description: "", details: "", material: "",
+  name: "", group: "women", category: "Uncategorized", description: "", details: "", material: "",
   mrp: 0, selling_price: 0, stock: 0, low_stock_threshold: 5, images: [], colors: [], color_images: {},
   weight: "", dimensions: "", trending: false, best_seller: false, new_arrival: false,
   featured: false, giftable: false, active: true, flash_price: null, flash_start: null, flash_end: null,
 };
 const FLAGS = ["trending", "best_seller", "new_arrival", "featured", "giftable", "active"];
+const WOMEN_CATEGORIES = ["Chains", "Bracelets", "Earrings", "Hair Accessories", "Necklaces"];
 const parseColors = (value) => [...new Set(value.split(",").map((color) => color.trim()).filter(Boolean))];
 
 export default function AdminProducts() {
@@ -38,6 +39,7 @@ export default function AdminProducts() {
       color_images: Object.fromEntries(colors.map((color) => [color, form.color_images?.[color] || []])),
       mrp: Number(form.mrp), selling_price: Number(form.selling_price), stock: Number(form.stock), low_stock_threshold: Number(form.low_stock_threshold),
     };
+    delete payload.sku;
     if (!payload.flash_price) { payload.flash_price = null; payload.flash_start = null; payload.flash_end = null; }
     try {
       if (editId) await api.put(`/admin/products/${editId}`, payload);
@@ -89,13 +91,21 @@ export default function AdminProducts() {
             </div>
             <div className="grid sm:grid-cols-2 gap-3">
               <Field label="Name" v={form.name} on={(x) => setForm({ ...form, name: x })} />
-              <Field label="SKU" v={form.sku} on={(x) => setForm({ ...form, sku: x })} />
               <div><label className="text-xs font-semibold">Group</label>
-                <select value={form.group} onChange={(e) => setForm({ ...form, group: e.target.value })} className="w-full mt-1 px-3 py-2.5 rounded-xl bg-[var(--card-2)] outline-none text-sm">
+                <select value={form.group} onChange={(e) => setForm({ ...form, group: e.target.value, category: e.target.value === "women" ? (WOMEN_CATEGORIES.includes(form.category) ? form.category : "Uncategorized") : "" })} className="w-full mt-1 px-3 py-2.5 rounded-xl bg-[var(--card-2)] outline-none text-sm">
                   {["women", "kids", "gifts"].map((g) => <option key={g} value={g}>{g}</option>)}
                 </select>
               </div>
-              <Field label="Category slug" v={form.category} on={(x) => setForm({ ...form, category: x })} />
+              {form.group === "women" ? (
+                <div><label className="text-xs font-semibold">Category</label>
+                  <select required value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="w-full mt-1 px-3 py-2.5 rounded-xl bg-[var(--card-2)] outline-none text-sm">
+                    <option value="Uncategorized">Uncategorized</option>
+                    {WOMEN_CATEGORIES.map((category) => <option key={category} value={category}>{category}</option>)}
+                  </select>
+                </div>
+              ) : (
+                <Field label="Category slug" v={form.category} on={(x) => setForm({ ...form, category: x })} />
+              )}
               <Field label="MRP" v={form.mrp} on={(x) => setForm({ ...form, mrp: x })} type="number" />
               <Field label="Selling Price" v={form.selling_price} on={(x) => setForm({ ...form, selling_price: x })} type="number" />
               <Field label="Stock" v={form.stock} on={(x) => setForm({ ...form, stock: x })} type="number" />
