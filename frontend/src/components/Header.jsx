@@ -5,6 +5,7 @@ import api from "@/lib/api";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { useSettings } from "@/context/SettingsContext";
+import vMark from "@/assets/vihaanora-v-mark.svg";
 
 const NAV = [
   { label: "Home", to: "/" },
@@ -53,12 +54,9 @@ export default function Header() {
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-[var(--line)]" style={{ boxShadow: "0 4px 20px rgba(42,36,33,0.05)" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
           <div className="flex items-center justify-between h-16 gap-4">
-            <button className="lg:hidden p-2 -ml-2" onClick={() => setOpen(true)} data-testid="mobile-menu-btn" aria-label="menu">
-              <Menu size={22} />
-            </button>
-
-            <Link to="/" data-testid="logo-link" className="flex items-center gap-2 shrink-0">
-              <span className="font-serif text-2xl font-semibold tracking-tight text-[var(--brand)]">Vihaanora</span>
+            <Link to="/" data-testid="logo-link" className="flex items-center gap-0 shrink-0" aria-label="Vihaanora home">
+              <img src={vMark} alt="" className="h-9 w-9 object-contain sm:h-10 sm:w-10" />
+              <span className="font-serif text-[1.2rem] sm:text-2xl font-semibold tracking-[0.12em] text-[var(--brand)]">IHAANORA</span>
             </Link>
 
             <nav className="hidden lg:flex items-center gap-6 flex-1 justify-center">
@@ -90,6 +88,9 @@ export default function Header() {
               <Link to={user ? "/account" : "/login"} data-testid="account-nav" className="p-2" aria-label="account">
                 <User size={20} />
               </Link>
+              <button className="lg:hidden p-2" onClick={() => setOpen(true)} data-testid="mobile-menu-btn" aria-label="menu">
+                <Menu size={22} />
+              </button>
             </div>
           </div>
         </div>
@@ -101,7 +102,10 @@ export default function Header() {
           <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
           <div className="absolute left-0 top-0 h-full w-72 bg-white p-6 shadow-xl fade-up">
             <div className="flex items-center justify-between mb-6">
-              <span className="font-serif text-xl font-semibold">Vihaanora</span>
+              <Link to="/" onClick={() => setOpen(false)} className="flex items-center gap-0" aria-label="Vihaanora home">
+                <img src={vMark} alt="" className="h-9 w-9 object-contain" />
+                <span className="font-serif text-lg font-semibold tracking-[0.1em] text-[var(--brand)]">IHAANORA</span>
+              </Link>
               <button onClick={() => setOpen(false)} data-testid="mobile-menu-close"><X size={22} /></button>
             </div>
             <form onSubmit={submitSearch} className="flex items-center bg-[var(--card-2)] rounded-full px-3 py-2 mb-5">

@@ -48,6 +48,8 @@ class ProductInput(BaseModel):
     stock: int = 0
     low_stock_threshold: int = 5
     images: List[str] = []
+    product_video_url: Optional[str] = None
+    product_video_filename: Optional[str] = None
     colors: List[str] = []
     color_images: Dict[str, List[str]] = {}
     weight: str = ""

@@ -16,6 +16,7 @@ LOCAL_STORAGE_DIR = Path(os.environ.get("LOCAL_STORAGE_DIR", Path(__file__).pare
 MIME_TYPES = {
     "jpg": "image/jpeg", "jpeg": "image/jpeg", "png": "image/png",
     "gif": "image/gif", "webp": "image/webp",
+    "mp4": "video/mp4", "webm": "video/webm",
 }
 
 _storage_key = None

@@ -1,6 +1,6 @@
 import { Suspense, lazy, useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Heart, Share2, Truck, ShieldCheck, RotateCcw, Star, Minus, Plus, ShoppingBag } from "lucide-react";
+import { ArrowLeft, Heart, Share2, Truck, ShieldCheck, RotateCcw, Star, Minus, Plus, ShoppingBag, Play } from "lucide-react";
 import api, { assetUrl, formatINR } from "@/lib/api";
 import { useCart } from "@/context/CartContext";
 import { Section, ProductRow, SectionHeader, GridSkeleton } from "@/components/common";
@@ -34,6 +34,8 @@ export default function ProductPage() {
 
   const p = d.product;
   const activeImages = p.color_images?.[color]?.length ? p.color_images[color] : p.images || [];
+  const mediaItems = [...activeImages, ...(p.product_video_url ? [{ video: p.product_video_url }] : [])];
+  const showingVideo = mediaItems[img]?.video;
   const selectedProduct = activeImages === p.images ? p : { ...p, images: activeImages };
   const oos = p.stock_state === "Out of Stock";
   const wished = inWishlist(p.id);
@@ -79,22 +81,24 @@ export default function ProductPage() {
                 <Suspense fallback={<div className="skeleton w-full h-full" />}>
                   <Product3D image={assetUrl(activeImages[0])} />
                 </Suspense>
+              ) : showingVideo ? (
+                <video src={assetUrl(showingVideo)} controls preload="metadata" className="w-full h-full object-contain bg-black" />
               ) : (
-                <img src={assetUrl(activeImages[img])} alt={p.name} className="w-full h-full object-cover" />
+                <img src={assetUrl(mediaItems[img])} alt={p.name} className="w-full h-full object-cover" />
               )}
               {p.discount_percent > 0 && !mode3d && (
                 <span className="absolute top-4 left-4 text-sm font-bold px-3 py-1 rounded-full bg-[var(--brand)] text-white">-{p.discount_percent}%</span>
               )}
-              <button data-testid="toggle-3d" onClick={() => setMode3d((v) => !v)}
+              <button data-testid="toggle-3d" onClick={() => setMode3d((v) => !v)} disabled={showingVideo}
                 className="absolute bottom-4 right-4 flex items-center gap-2 px-4 py-2 rounded-full bg-white/95 backdrop-blur text-sm font-medium soft-shadow hover:bg-white">
                 <RotateCcw size={15} /> {mode3d ? "View Photos" : "Rotate in 3D"}
               </button>
             </div>
-            {!mode3d && activeImages.length > 1 && (
+            {!mode3d && mediaItems.length > 1 && (
               <div className="flex gap-3 mt-4">
-                {activeImages.map((im, i) => (
-                  <button key={i} onClick={() => setImg(i)} className={`w-20 h-20 rounded-2xl overflow-hidden border-2 ${img === i ? "border-[var(--brand)]" : "border-transparent"}`}>
-                    <img src={assetUrl(im)} alt="" className="w-full h-full object-cover" />
+                {mediaItems.map((item, i) => (
+                  <button key={i} onClick={() => { setImg(i); setMode3d(false); }} className={`relative w-20 h-20 rounded-2xl overflow-hidden border-2 ${img === i ? "border-[var(--brand)]" : "border-transparent"}`}>
+                    {item.video ? <><video src={assetUrl(item.video)} preload="metadata" muted className="w-full h-full object-cover" /><span className="absolute inset-0 flex items-center justify-center bg-black/20 text-white"><Play size={20} fill="currentColor" /></span></> : <img src={assetUrl(item)} alt="" className="w-full h-full object-cover" />}
                   </button>
                 ))}
               </div>

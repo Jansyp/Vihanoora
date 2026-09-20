@@ -115,6 +115,10 @@ async def update_product(product_id: str, payload: ProductInput):
         raise HTTPException(status_code=404, detail="Product not found")
     data["sku"] = existing.get("sku") or await _next_product_sku()
     await db.products.update_one({"id": product_id}, {"$set": data})
+    old_video = existing.get("product_video_url")
+    if old_video and old_video != data.get("product_video_url") and old_video.startswith("/api/files/"):
+        old_path = old_video.removeprefix("/api/files/")
+        await db.files.update_one({"storage_path": old_path}, {"$set": {"is_deleted": True}})
     updated = await db.products.find_one({"id": product_id})
     return enrich_product(updated)
 

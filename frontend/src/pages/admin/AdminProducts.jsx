@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import { Plus, Edit, Trash2, X } from "lucide-react";
 import api, { formatINR, formatApiError } from "@/lib/api";
 import ImageUploader from "@/components/ImageUploader";
+import VideoUploader from "@/components/VideoUploader";
 import { toast } from "sonner";
 
 const BLANK = {
   name: "", group: "women", category: "Uncategorized", description: "", details: "", material: "",
-  mrp: 0, selling_price: 0, stock: 0, low_stock_threshold: 5, images: [], colors: [], color_images: {},
+  mrp: 0, selling_price: 0, stock: 0, low_stock_threshold: 5, images: [], product_video_url: "", product_video_filename: "", colors: [], color_images: {},
   weight: "", dimensions: "", trending: false, best_seller: false, new_arrival: false,
   featured: false, giftable: false, active: true, flash_price: null, flash_start: null, flash_end: null,
 };
@@ -26,7 +27,7 @@ export default function AdminProducts() {
 
   const openNew = () => { setForm(BLANK); setColorsInput(""); setEditId(null); setOpen(true); };
   const openEdit = (p) => {
-    setForm({ ...BLANK, ...p, images: p.images || [], colors: p.colors || [], color_images: p.color_images || {} });
+    setForm({ ...BLANK, ...p, images: p.images || [], product_video_url: p.product_video_url || "", product_video_filename: p.product_video_filename || "", colors: p.colors || [], color_images: p.color_images || {} });
     setColorsInput((p.colors || []).join(", "));
     setEditId(p.id); setOpen(true);
   };
@@ -111,6 +112,7 @@ export default function AdminProducts() {
               <Field label="Stock" v={form.stock} on={(x) => setForm({ ...form, stock: x })} type="number" />
               <Field label="Low Stock Alert" v={form.low_stock_threshold} on={(x) => setForm({ ...form, low_stock_threshold: x })} type="number" />
               <div className="sm:col-span-2"><ImageUploader label="Fallback Images (for products without color images)" images={form.images} onChange={(imgs) => setForm({ ...form, images: imgs })} /></div>
+              <div className="sm:col-span-2"><VideoUploader url={form.product_video_url} filename={form.product_video_filename} onChange={({ url, filename }) => setForm({ ...form, product_video_url: url, product_video_filename: filename })} /></div>
               <div className="sm:col-span-2"><Field label="Colors (comma separated)" v={colorsInput} on={setColorsInput} /></div>
               {parseColors(colorsInput).map((color) => (
                 <div className="sm:col-span-2" key={color}>
