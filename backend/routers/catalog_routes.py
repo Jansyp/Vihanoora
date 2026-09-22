@@ -1,12 +1,18 @@
 """Catalog routes: products, categories, combos, offers, reviews, search."""
+import re
 import uuid
 from fastapi import APIRouter, Query, HTTPException
 from typing import Optional
 
 from core import db, enrich_product, enrich_combo, now_iso, effective_price, discount_percent
-from models import ReviewInput, WOMEN_PRODUCT_CATEGORIES
+from models import ReviewInput
 
 router = APIRouter(prefix="/api", tags=["catalog"])
+
+
+def _slugify(text: str) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "-", (text or "").lower()).strip("-")
+    return slug or uuid.uuid4().hex[:8]
 
 
 async def _product_map(ids):
@@ -18,15 +24,21 @@ def _sort_stage(sort: str):
     return {
         "default": [("created_at", -1)],
         "newest": [("created_at", -1)],
+        "oldest": [("created_at", 1)],
         "price_asc": [("selling_price", 1)],
         "price_desc": [("selling_price", -1)],
         "best_selling": [("sold_count", -1)],
+        "name_asc": [("name", 1)],
+        "name_desc": [("name", -1)],
+        "stock_low": [("stock", 1)],
+        "stock_high": [("stock", -1)],
     }.get(sort)
 
 
 @router.get("/products")
 async def list_products(
     group: Optional[str] = None,
+    main_section: Optional[str] = None,
     category: Optional[str] = None,
     trending: Optional[bool] = None,
     best_seller: Optional[bool] = None,
@@ -41,16 +53,18 @@ async def list_products(
     page: int = 1,
     limit: int = 20,
     include_inactive: bool = False,
+    stock_status: Optional[str] = None,
 ):
     query = {}
     if not include_inactive:
         query["active"] = True
-    if group:
-        query["group"] = group
+    group_value = group or main_section
+    if group_value:
+        query["group"] = group_value
     if category:
-        query["category"] = category
-        if group == "women" and category not in WOMEN_PRODUCT_CATEGORIES:
-            query["category"] = "__no_matching_category__"
+        category_name = category.strip()
+        if category_name:
+            query["category"] = category_name
     for flag, val in [("trending", trending), ("best_seller", best_seller),
                       ("new_arrival", new_arrival), ("featured", featured), ("giftable", giftable)]:
         if val:
@@ -61,6 +75,7 @@ async def list_products(
             {"description": {"$regex": q, "$options": "i"}},
             {"category": {"$regex": q, "$options": "i"}},
             {"group": {"$regex": q, "$options": "i"}},
+            {"sku": {"$regex": q, "$options": "i"}},
         ]
     if min_price is not None or max_price is not None:
         pr = {}
@@ -69,6 +84,14 @@ async def list_products(
         if max_price is not None:
             pr["$lte"] = max_price
         query["selling_price"] = pr
+    if stock_status:
+        status = stock_status.lower()
+        if status == "in_stock":
+            query["stock"] = {"$gt": 0}
+        elif status == "low_stock":
+            query["stock"] = {"$gt": 0, "$lte": 5}
+        elif status == "out_of_stock":
+            query["stock"] = {"$lte": 0}
 
     cursor = db.products.find(query)
     sort_stage = _sort_stage(sort)
@@ -121,9 +144,28 @@ async def add_review(product_id: str, payload: ReviewInput):
 
 
 @router.get("/categories")
-async def list_categories():
+async def list_categories(include_inactive: bool = False):
     docs = await db.categories.find({}, {"_id": 0}).sort([("order", 1)]).to_list(100)
-    return docs
+    result = []
+    for doc in docs:
+        group_active = doc.get("active", True)
+        if not include_inactive and not group_active:
+            continue
+        subs = []
+        for sub in doc.get("subcategories", []):
+            if isinstance(sub, dict):
+                active = sub.get("active", True)
+                if include_inactive or active:
+                    subs.append({
+                        "id": sub.get("id") or str(sub.get("slug") or _slugify(sub.get("name", ""))),
+                        "name": sub.get("name"),
+                        "slug": sub.get("slug") or _slugify(sub.get("name", "")),
+                        "active": active,
+                    })
+        if subs or include_inactive or group_active:
+            normalized = {"id": doc.get("id"), "name": doc.get("name"), "slug": doc.get("slug"), "group": doc.get("group"), "icon": doc.get("icon", ""), "order": doc.get("order", 0), "active": group_active, "subcategories": subs}
+            result.append(normalized)
+    return result
 
 
 @router.get("/banners")

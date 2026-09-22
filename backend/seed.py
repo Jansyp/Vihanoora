@@ -3,7 +3,7 @@ import os
 import uuid
 from datetime import datetime, timezone, timedelta
 from core import db, hash_password, now_iso
-from models import LEGACY_PRODUCT_CATEGORY, WOMEN_PRODUCT_CATEGORIES
+from models import LEGACY_PRODUCT_CATEGORY
 
 IMG = {
     "bracelet": [
@@ -129,10 +129,23 @@ async def seed():
         if existing.get("role") != "admin":
             await db.users.update_one({"email": admin_email}, {"$set": {"role": "admin"}})
 
-    await db.products.update_many(
-        {"group": "women", "category": {"$nin": [*WOMEN_PRODUCT_CATEGORIES, LEGACY_PRODUCT_CATEGORY]}},
-        {"$set": {"category": LEGACY_PRODUCT_CATEGORY}},
-    )
+    category_migration_marker = await db.seed_meta.find_one({"key": "dynamic_categories_migrated"})
+    if not category_migration_marker:
+        for default in CATEGORIES:
+            group_doc = await db.categories.find_one({"group": default["group"]})
+            if not group_doc:
+                continue
+            existing_slugs = {str(sub.get("slug")) for sub in group_doc.get("subcategories", []) if isinstance(sub, dict)}
+            missing = []
+            for sub in default.get("subcategories", []):
+                if sub["slug"] not in existing_slugs:
+                    missing.append({"id": str(uuid.uuid4()), **sub, "active": True})
+            if missing:
+                await db.categories.update_one(
+                    {"id": group_doc["id"]},
+                    {"$push": {"subcategories": {"$each": missing}}},
+                )
+        await db.seed_meta.insert_one({"key": "dynamic_categories_migrated", "created_at": now_iso()})
 
     catalog_marker = await db.seed_meta.find_one({"key": "default_catalog_initialized"})
     if catalog_marker:

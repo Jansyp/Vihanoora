@@ -3,13 +3,6 @@ from pydantic import BaseModel, Field, EmailStr
 from typing import List, Optional, Dict, Any
 import uuid
 
-WOMEN_PRODUCT_CATEGORIES = [
-    "Chains",
-    "Bracelets",
-    "Earrings",
-    "Hair Accessories",
-    "Necklaces",
-]
 LEGACY_PRODUCT_CATEGORY = "Uncategorized"
 
 
@@ -42,7 +35,8 @@ class ProductInput(BaseModel):
     details: str = ""
     material: str = ""
     group: str  # women / kids / gifts
-    category: str = ""  # subcategory slug
+    category: str = ""  # category ID; legacy names/slugs are accepted during migration
+    category_id: Optional[str] = None
     mrp: float
     selling_price: float
     stock: int = 0
@@ -72,7 +66,8 @@ class CategoryInput(BaseModel):
     group: str
     icon: str = ""
     order: int = 0
-    subcategories: List[Dict[str, str]] = []
+    active: bool = True
+    subcategories: List[Dict[str, Any]] = []
 
 
 class ComboInput(BaseModel):
