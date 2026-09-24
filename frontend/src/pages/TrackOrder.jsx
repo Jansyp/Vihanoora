@@ -76,6 +76,15 @@ export default function TrackOrder() {
             </div>
           )}
 
+          <div className="mt-4 space-y-2 border-t border-[var(--line)] pt-4">
+            {result.items.map((item, index) => (
+              <div key={`${item.name}-${index}`} className="text-sm">
+                <p>{item.name} × {item.qty}</p>
+                {item.variant && <p className="text-xs text-[var(--ink-soft)]">Colour: {item.variant}</p>}
+              </div>
+            ))}
+          </div>
+
           <div className="mt-4 flex justify-between text-sm border-t border-[var(--line)] pt-3">
             <span className="text-[var(--ink-soft)] flex items-center gap-1"><Package size={15} /> {result.items.length} item(s)</span>
             <span className="font-bold text-[var(--brand)]">{formatINR(result.grand_total)}</span>

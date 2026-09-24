@@ -1,0 +1,226 @@
+* {
+  box-sizing: border-box;
+}
+
+.shipping-label-print {
+  min-height: 100vh;
+  padding: 24px;
+  background: #e5e5e5;
+  color: #111;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.shipping-label-screen-actions {
+  width: min(190mm, 100%);
+  margin: 0 auto 16px;
+  text-align: right;
+}
+
+.shipping-label-screen-actions button {
+  border: 1px solid #111;
+  background: #111;
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 4px;
+  font: 600 13px Arial, sans-serif;
+}
+
+.shipping-label-sheet {
+  width: 190mm;
+  min-height: 277mm;
+  margin: 0 auto 24px;
+  padding: 18mm 16mm;
+  background: #fff;
+  border: 1px solid #bbb;
+  box-shadow: 0 4px 18px rgb(0 0 0 / 12%);
+  break-after: page;
+  page-break-after: always;
+}
+
+.shipping-label-sheet:last-child {
+  break-after: auto;
+  page-break-after: auto;
+}
+
+.shipping-label-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.shipping-label-brand {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.shipping-label-title {
+  font: 700 12px Arial, sans-serif;
+  letter-spacing: 0.16em;
+}
+
+.shipping-label-rule {
+  border-top: 2px solid #111;
+  margin: 12px 0 24px;
+}
+
+.shipping-label-section {
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.shipping-label-section h2 {
+  margin: 0 0 10px;
+  font: 700 12px Arial, sans-serif;
+  letter-spacing: 0.16em;
+}
+
+.shipping-label-to {
+  min-height: 112mm;
+}
+
+.shipping-label-from {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid #111;
+  font-size: 14px;
+}
+
+.shipping-label-recipient {
+  margin-bottom: 4px;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.shipping-label-contact {
+  margin-top: 12px;
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+}
+
+.shipping-label-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 12px 0;
+  border-top: 1px solid #111;
+  border-bottom: 1px solid #111;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+}
+
+.shipping-label-meta div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.shipping-label-meta span {
+  font-size: 14px;
+}
+
+.shipping-label-footer {
+  margin-top: 26px;
+  padding-top: 10px;
+  border-top: 1px solid #111;
+  font: 11px Arial, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.shipping-label-items {
+  margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px solid #111;
+  font: 12px/1.45 Arial, sans-serif;
+}
+
+.shipping-label-items h2 {
+  margin: 0 0 7px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+}
+
+.shipping-label-items div + div {
+  margin-top: 4px;
+}
+
+.shipping-label-loading,
+.shipping-label-error {
+  padding: 48px;
+  font-family: Arial, sans-serif;
+}
+
+.shipping-label-error h1 {
+  font-size: 22px;
+}
+
+.shipping-label-print.thermal {
+  width: 4in;
+  min-height: 6in;
+  padding: 0;
+  background: #fff;
+}
+
+.shipping-label-print.thermal .shipping-label-sheet {
+  width: 4in;
+  min-height: 6in;
+  margin: 0;
+  padding: 0.25in;
+  border: 0;
+  box-shadow: none;
+}
+
+.shipping-label-print.thermal .shipping-label-brand {
+  font-size: 22px;
+}
+
+.shipping-label-print.thermal .shipping-label-section {
+  font-size: 14px;
+}
+
+.shipping-label-print.thermal .shipping-label-to {
+  min-height: 2.35in;
+}
+
+.shipping-label-print.thermal .shipping-label-recipient {
+  font-size: 18px;
+}
+
+@page {
+  size: A4;
+  margin: 10mm;
+}
+
+@page thermal-label {
+  size: 4in 6in;
+  margin: 0;
+}
+
+@media print {
+  .shipping-label-print {
+    padding: 0;
+    background: #fff;
+  }
+
+  .shipping-label-screen-actions {
+    display: none;
+  }
+
+  .shipping-label-sheet {
+    margin: 0;
+    border: 0;
+    box-shadow: none;
+  }
+
+  .shipping-label-print.thermal {
+    width: 4in;
+    page: thermal-label;
+  }
+
+  .shipping-label-print.thermal .shipping-label-sheet {
+    width: 4in;
+    min-height: 6in;
+  }
+}

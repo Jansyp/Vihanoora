@@ -177,6 +177,15 @@ class SettingsInput(BaseModel):
     free_shipping_threshold: Optional[float] = None
     currency: Optional[str] = None
     gst_percent: Optional[float] = None
+    sender_business_name: Optional[str] = None
+    sender_name: Optional[str] = None
+    sender_address: Optional[str] = None
+    sender_city: Optional[str] = None
+    sender_state: Optional[str] = None
+    sender_pin: Optional[str] = None
+    sender_country: Optional[str] = None
+    sender_phone: Optional[str] = None
+    sender_email: Optional[str] = None
     announcement_bar_text: Optional[str] = None
     announcement_enabled: Optional[bool] = None
     home_sections: Optional[List[Dict[str, Any]]] = None

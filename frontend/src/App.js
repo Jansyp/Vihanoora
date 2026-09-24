@@ -32,6 +32,7 @@ import AdminCategories from "@/pages/admin/AdminCategories";
 import AdminBanners from "@/pages/admin/AdminBanners";
 import AdminAnnouncements from "@/pages/admin/AdminAnnouncements";
 import AdminSettings from "@/pages/admin/AdminSettings";
+import ShippingLabelPrint from "@/pages/admin/ShippingLabelPrint";
 
 const Store = ({ children }) => <Layout>{children}</Layout>;
 
@@ -56,6 +57,7 @@ function AppRoutes() {
       <Route path="/checkout" element={<Store><CheckoutPage /></Store>} />
       <Route path="/order-success/:orderNumber" element={<Store><OrderSuccess /></Store>} />
       <Route path="/payment-return/:orderNumber" element={<Store><OrderSuccess /></Store>} />
+      <Route path="/admin/shipping-labels" element={<ShippingLabelPrint />} />
       <Route path="/track" element={<Store><TrackOrder /></Store>} />
       <Route path="/instagram" element={<Store><InstagramLanding /></Store>} />
       <Route path="/wishlist" element={<Store><Wishlist /></Store>} />

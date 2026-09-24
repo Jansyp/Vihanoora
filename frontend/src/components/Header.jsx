@@ -5,7 +5,7 @@ import api from "@/lib/api";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { useSettings } from "@/context/SettingsContext";
-import vMark from "@/assets/vihaanora-v-mark.svg";
+import wordmark from "@/assets/viaura-wordmark.png";
 
 const NAV = [
   { label: "Home", to: "/" },
@@ -55,8 +55,7 @@ export default function Header() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
           <div className="flex items-center justify-between h-16 gap-4">
             <Link to="/" data-testid="logo-link" className="flex items-center gap-0 shrink-0" aria-label="Viaura home">
-              <img src={vMark} alt="" className="h-9 w-9 object-contain sm:h-10 sm:w-10" />
-              <span className="font-serif text-[1.2rem] sm:text-2xl font-semibold tracking-[0.12em] text-[var(--brand)]">iaura</span>
+              <img src={wordmark} alt="Viaura" className="h-9 w-auto object-contain sm:h-10" />
             </Link>
 
             <nav className="hidden lg:flex items-center gap-6 flex-1 justify-center">
@@ -103,8 +102,7 @@ export default function Header() {
           <div className="absolute left-0 top-0 h-full w-72 bg-white p-6 shadow-xl fade-up">
             <div className="flex items-center justify-between mb-6">
               <Link to="/" onClick={() => setOpen(false)} className="flex items-center gap-0" aria-label="Viaura home">
-                <img src={vMark} alt="" className="h-9 w-9 object-contain" />
-                <span className="font-serif text-lg font-semibold tracking-[0.1em] text-[var(--brand)]">iaura</span>
+                <img src={wordmark} alt="Viaura" className="h-9 w-auto object-contain" />
               </Link>
               <button onClick={() => setOpen(false)} data-testid="mobile-menu-close"><X size={22} /></button>
             </div>

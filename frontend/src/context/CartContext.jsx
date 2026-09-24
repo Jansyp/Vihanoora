@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 const CartCtx = createContext(null);
@@ -8,12 +8,24 @@ const load = (k, d) => {
   try { return JSON.parse(localStorage.getItem(k)) || d; } catch { return d; }
 };
 
+export const removePurchasedQuantities = (items, purchasedItems) => items.map((item) => {
+  const purchased = purchasedItems.find((candidate) =>
+    candidate.product_id === item.product_id &&
+    Boolean(candidate.combo) === Boolean(item.combo) &&
+    (candidate.variant || null) === (item.variant || null)
+  );
+  if (!purchased) return item;
+  return { ...item, qty: item.qty - purchased.qty };
+}).filter((item) => item.qty > 0);
+
 export function CartProvider({ children }) {
   const [items, setItems] = useState(() => load("jh_cart", []));
   const [wishlist, setWishlist] = useState(() => load("jh_wishlist", []));
+  const [couponCode, setCouponCode] = useState(() => load("jh_coupon_code", ""));
 
   useEffect(() => { localStorage.setItem("jh_cart", JSON.stringify(items)); }, [items]);
   useEffect(() => { localStorage.setItem("jh_wishlist", JSON.stringify(wishlist)); }, [wishlist]);
+  useEffect(() => { localStorage.setItem("jh_coupon_code", couponCode || ""); }, [couponCode]);
 
   const addToCart = (product, qty = 1, variant = null, combo = false) => {
     setItems((prev) => {
@@ -37,6 +49,14 @@ export function CartProvider({ children }) {
 
   const removeItem = (key) => setItems((prev) => prev.filter((i) => i.key !== key));
   const clearCart = () => setItems([]);
+  const removePurchasedItems = useCallback((orderId, purchasedItems) => {
+    const storedProcessedOrders = load("jh_cart_processed_orders", []);
+    const processedOrders = Array.isArray(storedProcessedOrders) ? storedProcessedOrders : [];
+    if (processedOrders.includes(orderId)) return;
+
+    setItems((prev) => removePurchasedQuantities(prev, purchasedItems));
+    localStorage.setItem("jh_cart_processed_orders", JSON.stringify([...processedOrders, orderId]));
+  }, []);
 
   const toggleWishlist = (product) => {
     setWishlist((prev) => {
@@ -55,7 +75,8 @@ export function CartProvider({ children }) {
 
   return (
     <CartCtx.Provider value={{
-      items, count, subtotal, addToCart, updateQty, removeItem, clearCart,
+      items, count, subtotal, addToCart, updateQty, removeItem, clearCart, removePurchasedItems,
+      couponCode, setCouponCode,
       wishlist, toggleWishlist, inWishlist,
     }}>
       {children}

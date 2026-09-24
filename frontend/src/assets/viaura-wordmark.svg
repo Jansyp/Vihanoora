@@ -1,0 +1,26 @@
+<svg width="1200" height="300" viewBox="0 0 1200 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="viauraGold" x1="42" y1="32" x2="190" y2="260" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF0D0"/>
+      <stop offset="0.42" stop-color="#DDA86C"/>
+      <stop offset="1" stop-color="#A96943"/>
+    </linearGradient>
+    <linearGradient id="viauraRose" x1="195" y1="44" x2="136" y2="260" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F5C8BB"/>
+      <stop offset="0.52" stop-color="#D98582"/>
+      <stop offset="1" stop-color="#B96D68"/>
+    </linearGradient>
+    <linearGradient id="viauraType" x1="200" y1="70" x2="1120" y2="235" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C77A79"/>
+      <stop offset="0.52" stop-color="#D98C88"/>
+      <stop offset="1" stop-color="#B96868"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(16 16) scale(3.8)">
+    <path d="M8 10C17 10 25 15 30 23L38 37C39 39 38 43 35 45C32 47 29 45 27 42L15 22C12 17 10 14 8 10Z" fill="url(#viauraGold)"/>
+    <path d="M52 9C48 12 44 16 41 21L27 46C25 50 27 54 31 55C35 56 38 53 40 49L49 30C52 24 54 16 52 9Z" fill="url(#viauraRose)"/>
+    <path d="M45 17C52 15 57 11 60 6C58 16 54 23 48 27C46 24 45 21 45 17Z" fill="url(#viauraGold)"/>
+    <path d="M17 14C22 17 26 21 29 27" stroke="#FFF1D2" stroke-width="1.2" stroke-linecap="round" opacity=".7"/>
+  </g>
+  <text x="258" y="210" fill="url(#viauraType)" font-family="Bodoni 72, Didot, Georgia, Times New Roman, serif" font-size="174" font-weight="400" letter-spacing="6">iaura</text>
+</svg>

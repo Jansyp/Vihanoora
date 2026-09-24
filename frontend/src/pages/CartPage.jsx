@@ -7,11 +7,11 @@ import { Section } from "@/components/common";
 import { toast } from "sonner";
 
 export default function CartPage() {
-  const { items, updateQty, removeItem, toggleWishlist } = useCart();
+  const { items, updateQty, removeItem, toggleWishlist, couponCode, setCouponCode } = useCart();
   const nav = useNavigate();
   const [summary, setSummary] = useState(null);
-  const [coupon, setCoupon] = useState("");
-  const [applied, setApplied] = useState("");
+  const [coupon, setCoupon] = useState(couponCode || "");
+  const [applied, setApplied] = useState(couponCode || "");
 
   const validate = useCallback(async (code) => {
     if (items.length === 0) { setSummary(null); return; }
@@ -19,8 +19,18 @@ export default function CartPage() {
     try {
       const { data } = await api.post("/cart/validate", payload);
       setSummary(data);
-      if (data.coupon_error) toast.error(data.coupon_error);
-      else if (data.coupon_code) { setApplied(data.coupon_code); }
+      if (data.coupon_error) {
+        setApplied("");
+        setCouponCode("");
+        toast.error(data.coupon_error);
+      } else if (data.coupon_code) {
+        setApplied(data.coupon_code);
+        setCoupon(data.coupon_code);
+        setCouponCode(data.coupon_code);
+      } else {
+        setApplied("");
+        setCouponCode("");
+      }
     } catch (e) { toast.error(formatApiError(e.response?.data?.detail)); }
   }, [items]);
 
@@ -52,7 +62,7 @@ export default function CartPage() {
                   <Link to={`/product/${it.slug}`} className="font-semibold text-sm sm:text-base line-clamp-2 hover:text-[var(--brand)]">{it.name}</Link>
                   <button data-testid={`cart-remove-${it.product_id}`} onClick={() => removeItem(it.key)} className="text-[var(--ink-soft)] hover:text-destructive shrink-0"><Trash2 size={18} /></button>
                 </div>
-                {it.variant && <p className="text-xs text-[var(--ink-soft)] mt-0.5">{it.variant}</p>}
+                {it.variant && <p className="text-xs text-[var(--ink-soft)] mt-0.5">Colour: {it.variant}</p>}
                 <div className="flex items-center gap-2 mt-1">
                   <span className="font-bold text-[var(--brand)]">{formatINR(it.price)}</span>
                   {it.mrp > it.price && <span className="text-xs line-through text-[var(--ink-soft)]">{formatINR(it.mrp)}</span>}
@@ -79,8 +89,9 @@ export default function CartPage() {
               <Tag size={15} className="text-[var(--ink-soft)]" />
               <input data-testid="coupon-input" value={coupon} onChange={(e) => setCoupon(e.target.value.toUpperCase())} placeholder="Coupon code" className="bg-transparent outline-none text-sm px-2 flex-1 py-2.5" />
             </div>
-            <button data-testid="apply-coupon" onClick={() => validate(coupon)} className="px-4 py-2.5 rounded-full bg-[var(--ink)] text-white text-sm font-medium">Apply</button>
+            {applied ? <button data-testid="remove-coupon" onClick={() => { setCoupon(""); setApplied(""); setCouponCode(""); validate(""); }} className="px-4 py-2.5 rounded-full bg-[var(--ink)] text-white text-sm font-medium">Remove</button> : <button data-testid="apply-coupon" onClick={() => validate(coupon)} className="px-4 py-2.5 rounded-full bg-[var(--ink)] text-white text-sm font-medium">Apply</button>}
           </div>
+          {applied && <p className="text-xs text-[var(--sage-dark)] -mt-2 mb-3">Coupon {applied} ✓</p>}
           {summary && (
             <div className="space-y-2.5 text-sm">
               <Row label="Subtotal" value={formatINR(summary.subtotal)} />

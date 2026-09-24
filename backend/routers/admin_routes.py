@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from core import db, require_admin, enrich_product, now_iso
 from mailer import send_order_email
+from routers.commerce_routes import get_settings
 from models import (ProductInput, CategoryInput, ComboInput, CouponInput,
                     ShippingInput, OrderStatusInput, SettingsInput, BannerInput,
                     AnnouncementInput, LEGACY_PRODUCT_CATEGORY)
@@ -432,6 +433,58 @@ async def delete_coupon(coupon_id: str):
 
 
 # ---- Orders ----
+def _shipping_label_data(order: dict, settings: dict) -> dict:
+    customer = order.get("customer") or {}
+    required = ("name", "address", "city", "state", "pin")
+    if any(not str(customer.get(field, "")).strip() for field in required):
+        raise HTTPException(status_code=400, detail="Order does not have complete delivery information")
+    return {
+        "order_number": order.get("order_number", ""),
+        "order_date": order.get("created_at", ""),
+        "customer": {
+            "name": customer["name"],
+            "address": customer["address"],
+            "city": customer["city"],
+            "state": customer["state"],
+            "pin": customer["pin"],
+            "country": customer.get("country") or "India",
+            "mobile": customer.get("mobile", ""),
+        },
+        "sender": {
+            "business_name": settings.get("sender_business_name") or settings.get("store_name") or "VIAURA",
+            "name": settings.get("sender_name") or settings.get("store_name") or "VIAURA",
+            "address": settings.get("sender_address", ""),
+            "city": settings.get("sender_city", ""),
+            "state": settings.get("sender_state", ""),
+            "pin": settings.get("sender_pin", ""),
+            "country": settings.get("sender_country") or "India",
+            "phone": settings.get("sender_phone") or settings.get("contact_number", ""),
+            "email": settings.get("sender_email") or settings.get("email", ""),
+        },
+        "items": [
+            {"name": item.get("name", ""), "qty": item.get("qty", 0), "variant": item.get("variant")}
+            for item in order.get("items", [])
+        ],
+    }
+
+
+@router.get("/shipping-labels")
+async def shipping_labels(order_ids: str):
+    ids = list(dict.fromkeys(value.strip() for value in order_ids.split(",") if value.strip()))
+    if not ids or len(ids) > 100:
+        raise HTTPException(status_code=400, detail="Select between 1 and 100 orders")
+    orders = await db.orders.find({"id": {"$in": ids}}, {"_id": 0}).to_list(len(ids))
+    by_id = {order["id"]: order for order in orders}
+    missing = [order_id for order_id in ids if order_id not in by_id]
+    if missing:
+        raise HTTPException(status_code=404, detail="One or more orders were not found")
+    invalid_status = [order["order_number"] for order in (by_id[order_id] for order_id in ids) if order.get("order_status") != "Packed"]
+    if invalid_status:
+        raise HTTPException(status_code=400, detail="Labels are available only for packed orders")
+    settings = await get_settings()
+    return {"labels": [_shipping_label_data(by_id[order_id], settings) for order_id in ids]}
+
+
 @router.get("/orders")
 async def admin_orders(status: str | None = None, payment_status: str | None = None):
     query = {}

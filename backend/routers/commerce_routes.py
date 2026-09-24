@@ -50,6 +50,15 @@ DEFAULT_SETTINGS = {
     "free_shipping_threshold": 999,
     "currency": "INR",
     "gst_percent": 0,
+    "sender_business_name": "VIAURA",
+    "sender_name": "VIAURA",
+    "sender_address": "15/20 Chellaiah Apartment\nSadullah Street, T. Nagar",
+    "sender_city": "Chennai",
+    "sender_state": "Tamil Nadu",
+    "sender_pin": "600017",
+    "sender_country": "India",
+    "sender_phone": "+917010177567",
+    "sender_email": "hello@Viaura.com",
     "announcement_bar_text": "✨ Free shipping on orders above ₹999 • Flat ₹50 delivery • Shop the Instagram trends",
     "announcement_enabled": True,
     "home_sections": [
@@ -160,6 +169,11 @@ async def _price_items(items: list[CartItemIn]):
             p = await db.products.find_one({"id": it.product_id})
             if not p or not p.get("active"):
                 raise HTTPException(status_code=400, detail="Product unavailable")
+            available_variants = p.get("colors") or []
+            if available_variants and (not it.variant or it.variant not in available_variants):
+                raise HTTPException(status_code=400, detail="Selected colour is unavailable for this product")
+            if it.variant and not available_variants:
+                raise HTTPException(status_code=400, detail="Selected variant is unavailable for this product")
             ep = enrich_product(dict(p))
             if int(p.get("stock", 0)) < it.qty:
                 raise HTTPException(status_code=400, detail=f"'{p['name']}' is out of stock")
@@ -429,7 +443,7 @@ async def track_order(order_number: str, contact: str):
         "payment_status": order["payment_status"],
         "status_history": order.get("status_history", []),
         "shipping": order.get("shipping", {}),
-        "items": [{"name": i["name"], "qty": i["qty"], "image": i.get("image")} for i in order["items"]],
+        "items": [{"name": i["name"], "qty": i["qty"], "variant": i.get("variant"), "image": i.get("image")} for i in order["items"]],
         "grand_total": order["grand_total"],
         "created_at": order["created_at"],
     }

@@ -14,6 +14,15 @@ const FIELDS = [
   ["delivery_charge", "Delivery Charge (₹)", "number"],
   ["free_shipping_threshold", "Free Shipping Above (₹)", "number"],
   ["gst_percent", "GST %", "number"],
+  ["sender_business_name", "Sender Business Name", "text"],
+  ["sender_name", "Sender Name", "text"],
+  ["sender_address", "Sender Address", "textarea"],
+  ["sender_city", "Sender City", "text"],
+  ["sender_state", "Sender State", "text"],
+  ["sender_pin", "Sender PIN Code", "text"],
+  ["sender_country", "Sender Country", "text"],
+  ["sender_phone", "Sender Phone", "text"],
+  ["sender_email", "Sender Email", "email"],
 ];
 
 export default function AdminSettings() {
@@ -43,6 +52,9 @@ export default function AdminSettings() {
       store_name: s.store_name, tagline: s.tagline, contact_number: s.contact_number, email: s.email,
       whatsapp: s.whatsapp, instagram_url: s.instagram_url, delivery_charge: Number(s.delivery_charge),
       free_shipping_threshold: Number(s.free_shipping_threshold), gst_percent: Number(s.gst_percent),
+      sender_business_name: s.sender_business_name, sender_name: s.sender_name, sender_address: s.sender_address,
+      sender_city: s.sender_city, sender_state: s.sender_state, sender_pin: s.sender_pin,
+      sender_country: s.sender_country, sender_phone: s.sender_phone, sender_email: s.sender_email,
       home_sections: sections.map((x, idx) => ({ ...x, order: idx + 1 })),
     };
     try { await api.put("/admin/settings", payload); toast.success("Settings saved"); }
@@ -56,8 +68,9 @@ export default function AdminSettings() {
         {FIELDS.map(([k, label, type]) => (
           <div key={k}>
             <label className="text-xs font-semibold">{label}</label>
-            <input data-testid={`setting-${k}`} type={type} value={s[k] ?? ""} onChange={(e) => setS({ ...s, [k]: e.target.value })}
-              className="w-full mt-1 px-3 py-2.5 rounded-xl bg-[var(--card-2)] outline-none text-sm" />
+            {type === "textarea" ? <textarea data-testid={`setting-${k}`} value={s[k] ?? ""} onChange={(e) => setS({ ...s, [k]: e.target.value })}
+              className="w-full mt-1 px-3 py-2.5 rounded-xl bg-[var(--card-2)] outline-none text-sm min-h-20" /> : <input data-testid={`setting-${k}`} type={type} value={s[k] ?? ""} onChange={(e) => setS({ ...s, [k]: e.target.value })}
+              className="w-full mt-1 px-3 py-2.5 rounded-xl bg-[var(--card-2)] outline-none text-sm" />}
           </div>
         ))}
       </div>

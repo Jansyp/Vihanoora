@@ -77,8 +77,8 @@ export default function Account() {
                   <div><p className="font-bold">{o.order_number}</p><p className="text-xs text-[var(--ink-soft)]">{new Date(o.created_at).toLocaleDateString()}</p></div>
                   <span className="px-3 py-1 rounded-full bg-[var(--blush)] text-[var(--brand)] text-xs font-semibold h-fit">{o.order_status}</span>
                 </div>
-                <div className="mt-3 flex gap-2 overflow-x-auto no-scrollbar">
-                  {o.items.map((i, idx) => <img key={idx} src={i.image} alt="" className="w-14 h-14 rounded-xl object-cover shrink-0" />)}
+                <div className="mt-3 space-y-2">
+                  {o.items.map((i, idx) => <div key={idx} className="flex items-center gap-3 text-sm"><img src={i.image} alt="" className="w-14 h-14 rounded-xl object-cover shrink-0" /><div><p>{i.name} × {i.qty}</p>{i.variant && <p className="text-xs text-[var(--ink-soft)]">Colour: {i.variant}</p>}</div></div>)}
                 </div>
                 <div className="flex justify-between items-center mt-3 pt-3 border-t border-[var(--line)]">
                   <span className="font-bold text-[var(--brand)]">{formatINR(o.grand_total)}</span>

@@ -10,6 +10,8 @@ export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
   const [sel, setSel] = useState(null);
   const [filter, setFilter] = useState("");
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [labelFormat, setLabelFormat] = useState("a4");
   const [ship, setShip] = useState({ courier: "Professional Couriers", awb: "", tracking_url: "", shipping_date: "", expected_delivery: "" });
 
   const load = () => api.get(`/admin/orders${filter ? `?status=${encodeURIComponent(filter)}` : ""}`).then(({ data }) => setOrders(data));
@@ -32,6 +34,18 @@ export default function AdminOrders() {
     setShip({ courier: o.shipping?.courier || "Professional Couriers", awb: o.shipping?.awb || "", tracking_url: o.shipping?.tracking_url || "", shipping_date: o.shipping?.shipping_date || "", expected_delivery: o.shipping?.expected_delivery || "" });
   };
 
+  const hasDeliveryInfo = (order) => Boolean(order.customer?.name && order.customer?.address && order.customer?.city && order.customer?.state && order.customer?.pin);
+  const packedOrders = orders.filter((order) => order.order_status === "Packed" && hasDeliveryInfo(order));
+  const toggleSelected = (orderId) => setSelectedIds((current) => current.includes(orderId) ? current.filter((id) => id !== orderId) : [...current, orderId]);
+  const printLabels = (ids) => {
+    if (!ids.length) { toast.error("Select at least one packed order with delivery information."); return; }
+    const allowed = new Set(packedOrders.map((order) => order.id));
+    const invalid = ids.some((id) => !allowed.has(id));
+    if (invalid) { toast.error("Shipping labels are available only for packed orders with complete delivery information."); return; }
+    const query = new URLSearchParams({ order_ids: ids.join(","), format: labelFormat });
+    window.open(`/admin/shipping-labels?${query.toString()}`, "_blank", "noopener,noreferrer");
+  };
+
   return (
     <div>
       <h1 className="font-serif text-3xl font-semibold mb-6">Orders ({orders.length})</h1>
@@ -39,13 +53,22 @@ export default function AdminOrders() {
         <button onClick={() => setFilter("")} className={`px-3 py-1.5 rounded-full text-xs font-medium ${!filter ? "bg-[var(--ink)] text-white" : "bg-white border border-[var(--line)]"}`}>All</button>
         {STATUSES.map((s) => <button key={s} onClick={() => setFilter(s)} className={`px-3 py-1.5 rounded-full text-xs font-medium ${filter === s ? "bg-[var(--ink)] text-white" : "bg-white border border-[var(--line)]"}`}>{s}</button>)}
       </div>
+      <div className="flex items-center gap-3 mb-4 flex-wrap">
+        <select value={labelFormat} onChange={(e) => setLabelFormat(e.target.value)} className="px-3 py-2 rounded-xl bg-white border border-[var(--line)] text-sm">
+          <option value="a4">A4 Shipping Label</option>
+          <option value="thermal">4x6 inch Thermal Label</option>
+        </select>
+        <button onClick={() => printLabels(selectedIds)} className="px-4 py-2 rounded-xl bg-[var(--ink)] text-white text-sm font-medium">Print Selected Labels</button>
+        <span className="text-xs text-[var(--ink-soft)]">Select packed orders with complete delivery details.</span>
+      </div>
 
       <div className="bg-white rounded-2xl border border-[var(--line)] overflow-x-auto">
         <table className="w-full text-sm min-w-[600px]">
-          <thead className="bg-[var(--card-2)] text-left"><tr>{["Order", "Customer", "Total", "Payment", "Status", ""].map((h) => <th key={h} className="px-4 py-3 text-xs font-semibold">{h}</th>)}</tr></thead>
+          <thead className="bg-[var(--card-2)] text-left"><tr><th className="px-4 py-3"><input type="checkbox" aria-label="Select all printable packed orders" checked={packedOrders.length > 0 && packedOrders.every((order) => selectedIds.includes(order.id))} onChange={(e) => setSelectedIds(e.target.checked ? packedOrders.map((order) => order.id) : [])} /></th>{["Order", "Customer", "Total", "Payment", "Status", ""].map((h) => <th key={h} className="px-4 py-3 text-xs font-semibold">{h}</th>)}</tr></thead>
           <tbody>
             {orders.map((o) => (
               <tr key={o.id} className="border-t border-[var(--line)]">
+                <td className="px-4 py-3"><input type="checkbox" aria-label={`Select ${o.order_number} shipping label`} checked={selectedIds.includes(o.id)} disabled={o.order_status !== "Packed" || !hasDeliveryInfo(o)} onChange={() => toggleSelected(o.id)} /></td>
                 <td className="px-4 py-3 font-medium">{o.order_number}</td>
                 <td className="px-4 py-3 text-[var(--ink-soft)]">{o.customer.name}</td>
                 <td className="px-4 py-3 font-semibold">{formatINR(o.grand_total)}</td>
@@ -88,7 +111,7 @@ export default function AdminOrders() {
               {sel.items.map((i, idx) => (
                 <div key={idx} className="flex items-center gap-3 py-2 border-b border-[var(--line)] last:border-0 text-sm">
                   <img src={i.image} alt="" className="w-10 h-10 rounded-lg object-cover" />
-                  <span className="flex-1">{i.name} × {i.qty}</span>
+                  <span className="flex-1"><span className="block">{i.name} × {i.qty}</span>{i.variant && <span className="block text-xs text-[var(--ink-soft)]">Colour: {i.variant}</span>}</span>
                   <span className="font-medium">{formatINR(i.unit_price * i.qty)}</span>
                 </div>
               ))}
@@ -117,7 +140,10 @@ export default function AdminOrders() {
                 <SF label="Shipping Date" v={ship.shipping_date} on={(x) => setShip({ ...ship, shipping_date: x })} type="date" />
                 <SF label="Expected Delivery" v={ship.expected_delivery} on={(x) => setShip({ ...ship, expected_delivery: x })} type="date" />
               </div>
-              <button data-testid="save-shipping-btn" onClick={saveShipping} className="w-full mt-4 py-3 rounded-full bg-[var(--ink)] text-white font-medium text-sm">Save & Mark Shipped</button>
+              <div className="flex gap-2 mt-4">
+                {sel.order_status === "Packed" && hasDeliveryInfo(sel) && <button onClick={() => printLabels([sel.id])} className="flex-1 py-3 rounded-full bg-white border border-[var(--ink)] text-[var(--ink)] font-medium text-sm">Print Shipping Label</button>}
+                <button data-testid="save-shipping-btn" onClick={saveShipping} className="flex-1 py-3 rounded-full bg-[var(--ink)] text-white font-medium text-sm">Save & Mark Shipped</button>
+              </div>
             </div>
           </div>
         </div>

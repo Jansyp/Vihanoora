@@ -4,10 +4,12 @@ import { CheckCircle2, Package } from "lucide-react";
 import api, { formatINR } from "@/lib/api";
 import { Section } from "@/components/common";
 import GiftReveal from "@/components/GiftReveal";
+import { useCart } from "@/context/CartContext";
 
 export default function OrderSuccess() {
   const { orderNumber } = useParams();
   const location = useLocation();
+  const { removePurchasedItems, setCouponCode } = useCart();
   const [order, setOrder] = useState(null);
   const [checking, setChecking] = useState(location.pathname.startsWith("/payment-return"));
 
@@ -18,9 +20,19 @@ export default function OrderSuccess() {
         const { data } = await api.get(`/orders/${orderNumber}`);
         if (location.pathname.startsWith("/payment-return") && data.payment_status === "PENDING") {
           const result = await api.post("/payments/verify", { order_id: data.id });
-          if (active) setOrder(result.data.order);
+          if (active) {
+            setOrder(result.data.order);
+            if (result.data.order.payment_status === "PAID") {
+              removePurchasedItems(result.data.order.id, result.data.order.items);
+              setCouponCode("");
+            }
+          }
         } else if (active) {
           setOrder(data);
+          if (data.payment_status === "PAID") {
+            removePurchasedItems(data.id, data.items);
+            setCouponCode("");
+          }
         }
       } catch (e) {
         if (active) setOrder(null);
@@ -30,7 +42,7 @@ export default function OrderSuccess() {
     };
     loadOrder();
     return () => { active = false; };
-  }, [orderNumber, location.pathname]);
+  }, [orderNumber, location.pathname, removePurchasedItems, setCouponCode]);
 
   const paymentStatus = order?.payment_status;
   const isPaid = paymentStatus === "PAID";
