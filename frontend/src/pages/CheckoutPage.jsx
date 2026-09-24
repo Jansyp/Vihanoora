@@ -6,17 +6,7 @@ import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { Section } from "@/components/common";
 import { toast } from "sonner";
-
-function loadRazorpay() {
-  return new Promise((resolve) => {
-    if (window.Razorpay) return resolve(true);
-    const s = document.createElement("script");
-    s.src = "https://checkout.razorpay.com/v1/checkout.js";
-    s.onload = () => resolve(true);
-    s.onerror = () => resolve(false);
-    document.body.appendChild(s);
-  });
-}
+import { load } from "@cashfreepayments/cashfree-js";
 
 export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart();
@@ -63,35 +53,19 @@ export default function CheckoutPage() {
         return;
       }
 
-      const ok = await loadRazorpay();
-      if (!ok) { toast.error("Could not load payment gateway."); setBusy(false); return; }
-      const rzp = new window.Razorpay({
-        key: data.razorpay_key_id,
-        amount: data.amount,
-        currency: order.currency,
-        name: "Viaura",
-        description: `Order ${order.order_number}`,
-        order_id: data.razorpay_order_id,
-        prefill: { name: form.name, email: form.email, contact: form.mobile },
-        theme: { color: "#D9777F" },
-        handler: async (resp) => {
-          try {
-            await api.post("/payments/verify", {
-              order_id: order.id,
-              razorpay_order_id: resp.razorpay_order_id,
-              razorpay_payment_id: resp.razorpay_payment_id,
-              razorpay_signature: resp.razorpay_signature,
-            });
-            nav(`/order-success/${order.order_number}`);
-            clearCart();
-          } catch (e) {
-            toast.error("Payment verification failed. Contact support with your order number.");
-          }
-        },
-        modal: { ondismiss: () => { setBusy(false); setSubmitted(false); } },
-      });
-      rzp.on("payment.failed", () => { toast.error("Payment failed. Please try again."); setBusy(false); setSubmitted(false); });
-      rzp.open();
+      const cashfree = await load({ mode: data.environment === "production" ? "production" : "sandbox" });
+      if (!cashfree || !data.payment_session_id) {
+        toast.error("Could not load Cashfree Checkout.");
+        setBusy(false);
+        setSubmitted(false);
+        return;
+      }
+      const result = await cashfree.checkout({ paymentSessionId: data.payment_session_id, redirectTarget: "_self" });
+      if (result?.error) {
+        toast.error("Payment was not completed. You can try again.");
+        setBusy(false);
+        setSubmitted(false);
+      }
     } catch (e) {
       toast.error(formatApiError(e.response?.data?.detail));
       setBusy(false);
@@ -149,7 +123,7 @@ export default function CheckoutPage() {
           )}
           <button data-testid="place-order-btn" disabled={busy} onClick={placeOrder}
             className="w-full mt-5 py-4 rounded-full bg-[var(--brand)] text-white font-medium hover:bg-[var(--brand-hover)] transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
-            <Lock size={16} /> {busy ? "Processing..." : "Pay & Place Order"}
+            <Lock size={16} /> {busy ? "Processing..." : "Pay Now"}
           </button>
           <p className="text-xs text-center text-[var(--ink-soft)] mt-3">Payments are server-verified. Order confirmed only after payment succeeds.</p>
         </div>

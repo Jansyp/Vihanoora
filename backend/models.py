@@ -128,9 +128,6 @@ class CreateOrderInput(BaseModel):
 
 class VerifyPaymentInput(BaseModel):
     order_id: str
-    razorpay_order_id: Optional[str] = None
-    razorpay_payment_id: Optional[str] = None
-    razorpay_signature: Optional[str] = None
 
 
 class ShippingInput(BaseModel):

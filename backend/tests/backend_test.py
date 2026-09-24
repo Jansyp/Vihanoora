@@ -250,17 +250,9 @@ class TestOrderFlow:
         r = s.post(f"{API}/orders", json=body)
         assert r.status_code == 400
 
-    def test_webhook_idempotency(self, s):
-        # Since RAZORPAY_WEBHOOK_SECRET is unset, signature check is skipped
-        event_id = f"evt_test_{uuid.uuid4().hex[:8]}"
-        payload = {"event": "payment.captured", "payload": {"payment": {"entity": {"id": "pay_x", "order_id": "rp_none"}}}}
-        headers = {"X-Razorpay-Event-Id": event_id, "Content-Type": "application/json"}
-        r1 = s.post(f"{API}/payments/webhook", json=payload, headers=headers)
-        assert r1.status_code == 200
-        assert r1.json()["status"] in ("processed", "duplicate_ignored")
-        r2 = s.post(f"{API}/payments/webhook", json=payload, headers=headers)
-        assert r2.status_code == 200
-        assert r2.json()["status"] == "duplicate_ignored"
+    def test_legacy_razorpay_webhook_is_disabled(self, s):
+        r = s.post(f"{API}/payments/webhook", json={})
+        assert r.status_code == 410
 
 
 # ---------------- Auth ----------------

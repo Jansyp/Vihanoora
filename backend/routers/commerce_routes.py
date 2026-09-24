@@ -1,10 +1,14 @@
 """Commerce routes: settings, cart, coupons, orders, payments, tracking, wishlist, addresses."""
 import os
 import uuid
+import base64
 import hmac
 import hashlib
+import json
+from decimal import Decimal
 from datetime import datetime, timezone
 from fastapi import APIRouter, Request, Depends, HTTPException
+import httpx
 
 from core import (db, enrich_product, next_order_number, now_iso,
                   get_current_user, get_optional_user)
@@ -14,10 +18,17 @@ from models import (ValidateCartInput, CreateOrderInput, VerifyPaymentInput,
 
 router = APIRouter(prefix="/api", tags=["commerce"])
 
-RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID", "")
-RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET", "")
-RAZORPAY_WEBHOOK_SECRET = os.environ.get("RAZORPAY_WEBHOOK_SECRET", "")
-PAYMENT_MODE = "razorpay" if (RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET) else "mock"
+CASHFREE_APP_ID = os.environ.get("CASHFREE_APP_ID", "")
+CASHFREE_SECRET_KEY = os.environ.get("CASHFREE_SECRET_KEY", "")
+CASHFREE_ENVIRONMENT = os.environ.get("CASHFREE_ENVIRONMENT", "sandbox").lower()
+CASHFREE_API_VERSION = os.environ.get("CASHFREE_API_VERSION", "2026-01-01")
+CASHFREE_API_BASE = os.environ.get(
+    "CASHFREE_API_BASE",
+    "https://api.cashfree.com/pg" if CASHFREE_ENVIRONMENT == "production" else "https://sandbox.cashfree.com/pg",
+).rstrip("/")
+FRONTEND_BASE_URL = os.environ.get("FRONTEND_BASE_URL", "http://localhost:3000").rstrip("/")
+CASHFREE_WEBHOOK_URL = os.environ.get("CASHFREE_WEBHOOK_URL", "")
+PAYMENT_MODE = "cashfree" if (CASHFREE_APP_ID and CASHFREE_SECRET_KEY) else "mock"
 
 
 def _product_image_for_variant(product: dict, variant: str | None) -> str:
@@ -85,7 +96,44 @@ async def public_announcements():
 
 @router.get("/payment-config")
 async def payment_config():
-    return {"mode": PAYMENT_MODE, "key_id": RAZORPAY_KEY_ID}
+    return {"mode": PAYMENT_MODE, "environment": CASHFREE_ENVIRONMENT}
+
+
+def _cashfree_headers() -> dict[str, str]:
+    return {
+        "x-client-id": CASHFREE_APP_ID,
+        "x-client-secret": CASHFREE_SECRET_KEY,
+        "x-api-version": CASHFREE_API_VERSION,
+        "accept": "application/json",
+        "content-type": "application/json",
+    }
+
+
+async def _cashfree_request(method: str, path: str, **kwargs):
+    request_headers = {**_cashfree_headers(), **kwargs.pop("headers", {})}
+    try:
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            response = await client.request(method, f"{CASHFREE_API_BASE}{path}", headers=request_headers, **kwargs)
+    except httpx.HTTPError as exc:
+        raise HTTPException(status_code=502, detail="Cashfree payment service is unavailable") from exc
+    if response.is_error:
+        raise HTTPException(status_code=502, detail="Cashfree payment service rejected the request")
+    return response.json()
+
+
+def _amount_matches(left, right) -> bool:
+    try:
+        return Decimal(str(left)).quantize(Decimal("0.01")) == Decimal(str(right)).quantize(Decimal("0.01"))
+    except Exception:
+        return False
+
+
+def _cashfree_signature_is_valid(raw_body: bytes, timestamp: str, signature: str) -> bool:
+    if not CASHFREE_SECRET_KEY or not timestamp or not signature:
+        return False
+    signed = timestamp.encode() + raw_body
+    expected = base64.b64encode(hmac.new(CASHFREE_SECRET_KEY.encode(), signed, hashlib.sha256).digest()).decode()
+    return hmac.compare_digest(expected, signature)
 
 
 async def _price_items(items: list[CartItemIn]):
@@ -210,40 +258,72 @@ async def create_order(payload: CreateOrderInput, request: Request, user: dict =
         "created_at": now_iso(),
     }
 
-    razorpay_order = None
-    if PAYMENT_MODE == "razorpay":
-        import razorpay
-        rp = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
-        razorpay_order = rp.order.create({
-            "amount": int(round(grand_total * 100)),
-            "currency": settings["currency"],
-            "receipt": order_number,
-            "payment_capture": 1,
+    cashfree_order = None
+    if PAYMENT_MODE == "cashfree":
+        cashfree_payload = {
+            "order_id": order_number,
+            "order_amount": grand_total,
+            "order_currency": settings["currency"],
+            "customer_details": {
+                "customer_id": order_id.replace("-", "")[:50],
+                "customer_name": payload.customer.name,
+                "customer_email": payload.customer.email,
+                "customer_phone": payload.customer.mobile,
+            },
+            "order_meta": {"return_url": f"{FRONTEND_BASE_URL}/payment-return/{order_number}?order_id={order_number}"},
+        }
+        if CASHFREE_WEBHOOK_URL:
+            cashfree_payload["order_meta"]["notify_url"] = CASHFREE_WEBHOOK_URL
+        cashfree_order = await _cashfree_request(
+            "POST", "/orders", json=cashfree_payload, headers={**_cashfree_headers(), "x-idempotency-key": order_id}
+        )
+        if not cashfree_order.get("payment_session_id") or cashfree_order.get("order_id") != order_number:
+            raise HTTPException(status_code=502, detail="Cashfree returned an invalid payment session")
+        order["payment"].update({
+            "provider": "cashfree",
+            "cashfree_order_id": cashfree_order["order_id"],
+            "cashfree_payment_session_id": cashfree_order["payment_session_id"],
         })
-        order["payment"]["razorpay_order_id"] = razorpay_order["id"]
 
     await db.orders.insert_one(dict(order))
     order.pop("_id", None)
     return {
         "order": order,
         "payment_mode": PAYMENT_MODE,
-        "razorpay_key_id": RAZORPAY_KEY_ID,
-        "razorpay_order_id": razorpay_order["id"] if razorpay_order else None,
+        "payment_session_id": cashfree_order.get("payment_session_id") if cashfree_order else None,
+        "cashfree_order_id": cashfree_order.get("order_id") if cashfree_order else None,
         "amount": int(round(grand_total * 100)),
     }
 
 
-async def _finalize_paid(order: dict, payment_id: str, method: str = "razorpay"):
+async def _finalize_paid(order: dict, payment_id: str, method: str = "cashfree"):
     """Decrement stock, record coupon usage, mark order paid. Idempotent."""
     if order.get("payment_status") == "PAID":
-        return
+        return True
+    claim = await db.orders.update_one(
+        {"id": order["id"], "payment_status": {"$ne": "PAID"}, "payment.finalizing": {"$ne": True}},
+        {"$set": {"payment.finalizing": True}},
+    )
+    if claim.matched_count != 1:
+        return False
+    decremented = []
     for it in order["items"]:
-        if it.get("combo"):
-            await db.combos.update_one({"id": it["product_id"]},
-                                       {"$inc": {"stock": -it["qty"], "sold_count": it["qty"]}})
-        else:
-            await db.products.update_one({"id": it["product_id"]},
-                                         {"$inc": {"stock": -it["qty"], "sold_count": it["qty"]}})
+        collection = db.combos if it.get("combo") else db.products
+        query = {"id": it["product_id"], "stock": {"$gte": it["qty"]}}
+        update = {"$inc": {"stock": -it["qty"], "sold_count": it["qty"]}}
+        result = await collection.update_one(query, update)
+        if result.matched_count != 1:
+            for previous_collection, previous_item in decremented:
+                await previous_collection.update_one(
+                    {"id": previous_item["product_id"]},
+                    {"$inc": {"stock": previous_item["qty"], "sold_count": -previous_item["qty"]}},
+                )
+            await db.orders.update_one(
+                {"id": order["id"]},
+                {"$set": {"payment_status": "FAILED"}, "$unset": {"payment.finalizing": ""}},
+            )
+            return False
+        decremented.append((collection, it))
     if order.get("coupon_code"):
         await db.coupons.update_one({"code": order["coupon_code"]}, {"$inc": {"used_count": 1}})
         await db.coupon_usage.insert_one({
@@ -251,16 +331,21 @@ async def _finalize_paid(order: dict, payment_id: str, method: str = "razorpay")
             "email": order["customer"]["email"].lower(), "order_id": order["id"],
             "at": now_iso(),
         })
+    payment_updates = {"payment.provider_payment_id": payment_id, "payment.method": method}
+    if method == "cashfree":
+        payment_updates["payment.cashfree_payment_id"] = payment_id
     await db.orders.update_one(
         {"id": order["id"]},
         {"$set": {"payment_status": "PAID", "order_status": "Paid",
-                  "payment.razorpay_payment_id": payment_id, "payment.method": method,
-                  "paid_at": now_iso()},
+                  **payment_updates,
+                   "paid_at": now_iso()},
+            "$unset": {"payment.finalizing": ""},
          "$push": {"status_history": {"status": "Payment Confirmed", "at": now_iso()}}},
     )
     fresh = await db.orders.find_one({"id": order["id"]}, {"_id": 0})
     if fresh:
         await send_order_email("paid", fresh)
+    return True
 
 
 @router.post("/payments/verify")
@@ -268,14 +353,24 @@ async def verify_payment(payload: VerifyPaymentInput):
     order = await db.orders.find_one({"id": payload.order_id})
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
-    if PAYMENT_MODE == "razorpay":
-        body = f"{payload.razorpay_order_id}|{payload.razorpay_payment_id}"
-        expected = hmac.new(RAZORPAY_KEY_SECRET.encode(), body.encode(), hashlib.sha256).hexdigest()
-        if not hmac.compare_digest(expected, payload.razorpay_signature or ""):
-            await db.orders.update_one({"id": order["id"]},
-                                       {"$set": {"payment_status": "FAILED"}})
-            raise HTTPException(status_code=400, detail="Payment signature verification failed")
-        await _finalize_paid(order, payload.razorpay_payment_id, "razorpay")
+    if PAYMENT_MODE == "cashfree":
+        cf_order_id = order.get("payment", {}).get("cashfree_order_id")
+        if not cf_order_id:
+            raise HTTPException(status_code=400, detail="Cashfree order reference is missing")
+        provider_order = await _cashfree_request("GET", f"/orders/{cf_order_id}")
+        if (
+            provider_order.get("order_id") != cf_order_id
+            or not _amount_matches(provider_order.get("order_amount"), order["grand_total"])
+            or provider_order.get("order_currency") != order["currency"]
+        ):
+            raise HTTPException(status_code=400, detail="Cashfree order validation failed")
+        provider_status = provider_order.get("order_status")
+        if provider_status == "PAID":
+            await _finalize_paid(order, cf_order_id, "cashfree")
+        elif provider_status in {"EXPIRED", "TERMINATED"}:
+            await db.orders.update_one({"id": order["id"], "payment_status": {"$ne": "PAID"}}, {"$set": {"payment_status": "FAILED"}})
+        updated = await db.orders.find_one({"id": order["id"]}, {"_id": 0})
+        return {"status": updated["payment_status"].lower(), "order": updated}
     else:
         # Mock mode: accept and mark paid
         await _finalize_paid(order, f"mock_{uuid.uuid4().hex[:12]}", "mock")
@@ -283,31 +378,41 @@ async def verify_payment(payload: VerifyPaymentInput):
     return {"status": "success", "order": updated}
 
 
-@router.post("/payments/webhook")
-async def payment_webhook(request: Request):
+@router.post("/payments/cashfree/webhook")
+async def cashfree_webhook(request: Request):
     body = await request.body()
-    signature = request.headers.get("X-Razorpay-Signature", "")
-    if RAZORPAY_WEBHOOK_SECRET:
-        expected = hmac.new(RAZORPAY_WEBHOOK_SECRET.encode(), body, hashlib.sha256).hexdigest()
-        if not hmac.compare_digest(expected, signature):
-            raise HTTPException(status_code=400, detail="Invalid webhook signature")
-    import json
-    payload = json.loads(body.decode())
-    event_id = request.headers.get("X-Razorpay-Event-Id", str(uuid.uuid4()))
+    timestamp = request.headers.get("x-webhook-timestamp", "")
+    signature = request.headers.get("x-webhook-signature", "")
+    if not _cashfree_signature_is_valid(body, timestamp, signature):
+        raise HTTPException(status_code=400, detail="Invalid Cashfree webhook signature")
+    try:
+        payload = json.loads(body.decode())
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise HTTPException(status_code=400, detail="Invalid webhook payload") from exc
+    event_id = request.headers.get("x-webhook-id") or hashlib.sha256(body).hexdigest()
     if await db.webhook_events.find_one({"event_id": event_id}):
         return {"status": "duplicate_ignored"}
     await db.webhook_events.insert_one({"event_id": event_id, "at": now_iso(), "event": payload.get("event")})
-    event = payload.get("event")
-    entity = payload.get("payload", {}).get("payment", {}).get("entity", {})
-    rp_order_id = entity.get("order_id")
-    if rp_order_id:
-        order = await db.orders.find_one({"payment.razorpay_order_id": rp_order_id})
+    event = payload.get("type", "")
+    data = payload.get("data", {})
+    provider_order = data.get("order", {})
+    provider_payment = data.get("payment", {})
+    cf_order_id = provider_order.get("order_id") or provider_payment.get("order_id")
+    if cf_order_id:
+        order = await db.orders.find_one({"payment.cashfree_order_id": cf_order_id})
         if order:
-            if event in ("payment.captured", "order.paid"):
-                await _finalize_paid(order, entity.get("id", "webhook"), "razorpay")
-            elif event == "payment.failed":
-                await db.orders.update_one({"id": order["id"]}, {"$set": {"payment_status": "FAILED"}})
+            payment_status = provider_payment.get("payment_status", "")
+            if payment_status == "SUCCESS" or (event == "PAYMENT_SUCCESS_WEBHOOK" and not payment_status):
+                if _amount_matches(provider_order.get("order_amount"), order["grand_total"]):
+                    await _finalize_paid(order, provider_payment.get("cf_payment_id", cf_order_id), "cashfree")
+            elif payment_status in {"FAILED", "USER_DROPPED", "CANCELLED", "VOID"}:
+                await db.orders.update_one({"id": order["id"], "payment_status": {"$ne": "PAID"}}, {"$set": {"payment_status": "FAILED"}})
     return {"status": "processed"}
+
+
+@router.post("/payments/webhook")
+async def legacy_payment_webhook():
+    raise HTTPException(status_code=410, detail="Razorpay webhooks are no longer supported")
 
 
 @router.get("/orders/track")

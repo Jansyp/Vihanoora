@@ -55,6 +55,7 @@ function AppRoutes() {
       <Route path="/cart" element={<Store><CartPage /></Store>} />
       <Route path="/checkout" element={<Store><CheckoutPage /></Store>} />
       <Route path="/order-success/:orderNumber" element={<Store><OrderSuccess /></Store>} />
+      <Route path="/payment-return/:orderNumber" element={<Store><OrderSuccess /></Store>} />
       <Route path="/track" element={<Store><TrackOrder /></Store>} />
       <Route path="/instagram" element={<Store><InstagramLanding /></Store>} />
       <Route path="/wishlist" element={<Store><Wishlist /></Store>} />

@@ -23,7 +23,7 @@ const CONTENT = {
   ]},
   privacy: { title: "Privacy Policy", body: [
     "Your privacy matters. We only collect the information needed to process your orders and improve your experience.",
-    "We never store card data. Payments are processed securely via Razorpay.",
+    "We never store card data. Payments are processed securely via Cashfree.",
     "We do not sell your personal information to third parties.",
   ]},
   terms: { title: "Terms & Conditions", body: [
@@ -34,7 +34,7 @@ const CONTENT = {
   faq: { title: "Frequently Asked Questions", body: [
     "Q: Do I need an account to order? — No! Guest checkout is always available.",
     "Q: How do I track my order? — Use the Track Order page with your Order ID + mobile/email.",
-    "Q: What payment methods are accepted? — UPI, cards, net banking and more via Razorpay.",
+    "Q: What payment methods are accepted? — UPI, cards, net banking and more via Cashfree.",
     "Q: Is the delivery charge fixed? — Delivery starts at ₹50 and is free above our threshold.",
   ]},
 };
