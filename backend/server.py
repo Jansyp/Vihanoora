@@ -12,9 +12,9 @@ from seed import seed
 from routers import auth_routes, catalog_routes, commerce_routes, admin_routes, upload_routes
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("vihaanora")
+logger = logging.getLogger("Viaura")
 
-app = FastAPI(title="Vihaanora API")
+app = FastAPI(title="Viaura API")
 
 app.include_router(auth_routes.router)
 app.include_router(catalog_routes.router)
@@ -25,7 +25,7 @@ app.include_router(upload_routes.router)
 
 @app.get("/api/")
 async def root():
-    return {"message": "Vihaanora API", "status": "ok"}
+    return {"message": "Viaura API", "status": "ok"}
 
 
 @app.on_event("startup")
@@ -44,7 +44,7 @@ async def startup():
         logger.info("Object storage initialized")
     except Exception as e:
         logger.error(f"Storage init failed: {e}")
-    logger.info("Vihaanora startup complete")
+    logger.info("Viaura startup complete")
 
 
 @app.on_event("shutdown")

@@ -55,7 +55,7 @@ export default function Home() {
   const sections = {
     trending: (c) => (
       <Section key="trending">
-        <SectionHeader subtitle={c.subtitle || "#Vihaanora"} title={c.title || "Trending on Instagram"} to="/trending" />
+        <SectionHeader subtitle={c.subtitle || "#Viaura"} title={c.title || "Trending on Instagram"} to="/trending" />
         <ProductRow products={data.trend || []} />
       </Section>
     ),
@@ -121,7 +121,7 @@ export default function Home() {
     ),
     instagram: (c) => (
       <Section key="instagram">
-        <SectionHeader subtitle={c.subtitle || "@vihaanora"} title={c.title || "Vihaanora on Instagram"} to="/instagram" cta="Follow us" />
+        <SectionHeader subtitle={c.subtitle || "@Viaura"} title={c.title || "Viaura on Instagram"} to="/instagram" cta="Follow us" />
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {(offer.items || []).concat(data.trend || []).slice(0, 6).map((p, i) => (
             <Link key={i} to={`/product/${p.slug}`} className="relative aspect-square rounded-2xl overflow-hidden group">
@@ -155,7 +155,7 @@ export default function Home() {
     newsletter: (c) => (
       <Section key="newsletter">
         <div className="rounded-[2rem] bg-[var(--ink)] text-white p-10 sm:p-14 text-center">
-          <h3 className="font-serif text-3xl sm:text-4xl font-semibold">{c.title || "Join the JAVE fam ✨"}</h3>
+          <h3 className="font-serif text-3xl sm:text-4xl font-semibold">{c.title || "Join the Viaura fam ✨"}</h3>
           <p className="mt-3 text-white/70 max-w-md mx-auto">{c.subtitle || "Get early access to drops, flash deals & gifting inspo on WhatsApp."}</p>
           <form onSubmit={(e) => e.preventDefault()} className="mt-6 flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
             <input data-testid="newsletter-email" placeholder="your@email.com" className="flex-1 px-5 py-3.5 rounded-full text-[var(--ink)] outline-none" />

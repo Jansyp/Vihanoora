@@ -4,12 +4,12 @@ import logging
 from pathlib import Path
 import requests
 
-logger = logging.getLogger("vihaanora.storage")
+logger = logging.getLogger("Viaura.storage")
 
 STORAGE_BASE = (os.environ.get("INTEGRATION_PROXY_URL") or "").strip() or "https://integrations.emergentagent.com"
 STORAGE_URL = STORAGE_BASE.rstrip("/") + "/objstore/api/v1/storage"
 EMERGENT_KEY = os.environ.get("EMERGENT_LLM_KEY")
-APP_NAME = "vihaanora"
+APP_NAME = "Viaura"
 STORAGE_MODE = os.environ.get("STORAGE_MODE", "emergent").strip().lower()
 LOCAL_STORAGE_DIR = Path(os.environ.get("LOCAL_STORAGE_DIR", Path(__file__).parent / "uploads"))
 
@@ -71,10 +71,14 @@ def put_object(path: str, data: bytes, content_type: str) -> dict:
 def get_object(path: str):
     if STORAGE_MODE == "local":
         target = _local_path(path)
-        if not target.exists() and path.startswith(f"{APP_NAME}/"):
-            legacy_target = _local_path(path.replace(f"{APP_NAME}/", "javehouse/", 1))
-            if legacy_target.exists():
-                target = legacy_target
+        if not target.exists():
+            namespace, separator, suffix = path.partition("/")
+            legacy_namespaces = {"vihaanora": "javehouse", "viaura": "javehouse"}
+            legacy_namespace = legacy_namespaces.get(namespace.lower())
+            if separator and legacy_namespace:
+                legacy_target = _local_path(f"{legacy_namespace}/{suffix}")
+                if legacy_target.exists():
+                    target = legacy_target
         return target.read_bytes(), MIME_TYPES.get(target.suffix.lstrip(".").lower(), "application/octet-stream")
 
     key = init_storage()

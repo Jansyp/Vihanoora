@@ -27,7 +27,7 @@
     "/app/backend/tests/test_banners_upload.py (new)"
   ],
   "success_rate": {"backend": "100% (7/7 new + regression)", "frontend": "100% (all requested flows verified)"},
-  "test_credentials": "admin@javehouse.com / Admin@123 (from /app/memory/test_credentials.md)",
+  "test_credentials": "admin@Viaurahouse.com / Admin@123 (from /app/memory/test_credentials.md)",
   "seed_data_creation": "Created + deleted 1 test banner (TEST_PW_Banner_Zzz) via UI. Created 1 test product (TEST PW Product <ts>) via UI Add Product with uploaded image; delete triggered via trash icon (browser confirm auto-accepted, though verify in DB if leftover). Uploaded 2 small 1x1 PNGs to object storage.",
   "retest_needed": false,
   "main_agent_can_self_test": true,

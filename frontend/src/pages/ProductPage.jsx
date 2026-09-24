@@ -44,7 +44,7 @@ export default function ProductPage() {
   const buyNow = () => { addToCart(selectedProduct, qty, color); nav("/checkout"); };
   const share = () => {
     const url = window.location.href;
-    const text = `Check out ${p.name} on Vihaanora — ${url}`;
+    const text = `Check out ${p.name} on Viaura — ${url}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
   };
   const goBack = () => {

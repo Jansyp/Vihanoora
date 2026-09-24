@@ -54,9 +54,9 @@ export default function Header() {
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-[var(--line)]" style={{ boxShadow: "0 4px 20px rgba(42,36,33,0.05)" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
           <div className="flex items-center justify-between h-16 gap-4">
-            <Link to="/" data-testid="logo-link" className="flex items-center gap-0 shrink-0" aria-label="Vihaanora home">
+            <Link to="/" data-testid="logo-link" className="flex items-center gap-0 shrink-0" aria-label="Viaura home">
               <img src={vMark} alt="" className="h-9 w-9 object-contain sm:h-10 sm:w-10" />
-              <span className="font-serif text-[1.2rem] sm:text-2xl font-semibold tracking-[0.12em] text-[var(--brand)]">IHAANORA</span>
+              <span className="font-serif text-[1.2rem] sm:text-2xl font-semibold tracking-[0.12em] text-[var(--brand)]">iaura</span>
             </Link>
 
             <nav className="hidden lg:flex items-center gap-6 flex-1 justify-center">
@@ -102,9 +102,9 @@ export default function Header() {
           <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
           <div className="absolute left-0 top-0 h-full w-72 bg-white p-6 shadow-xl fade-up">
             <div className="flex items-center justify-between mb-6">
-              <Link to="/" onClick={() => setOpen(false)} className="flex items-center gap-0" aria-label="Vihaanora home">
+              <Link to="/" onClick={() => setOpen(false)} className="flex items-center gap-0" aria-label="Viaura home">
                 <img src={vMark} alt="" className="h-9 w-9 object-contain" />
-                <span className="font-serif text-lg font-semibold tracking-[0.1em] text-[var(--brand)]">IHAANORA</span>
+                <span className="font-serif text-lg font-semibold tracking-[0.1em] text-[var(--brand)]">iaura</span>
               </Link>
               <button onClick={() => setOpen(false)} data-testid="mobile-menu-close"><X size={22} /></button>
             </div>

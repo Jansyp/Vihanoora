@@ -113,12 +113,12 @@ SEED_WOMEN_CATEGORY_MAP = {
 
 async def seed():
     # Admin
-    admin_email = os.environ.get("ADMIN_EMAIL", "admin@vihaanora.com")
+    admin_email = os.environ.get("ADMIN_EMAIL", "admin@Viaura.com")
     admin_pw = os.environ.get("ADMIN_PASSWORD", "Admin@123")
     existing = await db.users.find_one({"email": admin_email})
     if not existing:
         await db.users.insert_one({
-            "id": str(uuid.uuid4()), "name": "JAVE Admin", "email": admin_email,
+            "id": str(uuid.uuid4()), "name": "Viaura Admin", "email": admin_email,
             "password_hash": hash_password(admin_pw), "role": "admin", "picture": "",
             "auth_provider": "password", "created_at": now_iso(),
         })
@@ -173,7 +173,7 @@ async def seed():
         sku = f"JH-{group[:2].upper()}-{i+1:03d}"
         doc = {
             "id": str(uuid.uuid4()), "name": name, "slug": slug, "sku": sku,
-            "description": f"{name} — a beautifully curated piece from Vihaanora. Perfect for gifting or treating yourself.",
+            "description": f"{name} — a beautifully curated piece from Viaura. Perfect for gifting or treating yourself.",
             "details": "Premium quality, thoughtfully packaged. Handpicked to match Instagram-trending aesthetics.",
             "material": "Skin-friendly, high-grade materials.",
             "group": group, "category": SEED_WOMEN_CATEGORY_MAP.get(cat, cat) if group == "women" else cat,

@@ -36,7 +36,7 @@
     "/app/backend/tests/test_announcements_and_sections.py (new)"
   ],
   "success_rate": {"backend": "100% (2/2 new)", "frontend": "100% (all requested flows verified)"},
-  "test_credentials": "admin@javehouse.com / Admin@123 (from /app/memory/test_credentials.md)",
+  "test_credentials": "admin@Viaurahouse.com / Admin@123 (from /app/memory/test_credentials.md)",
   "seed_data_creation": "Created + deleted 1 test announcement 'TEST_UI_LIVE_MSG_zzz' via UI. Backend pytest created and deleted 3 announcements (LIVE/SCHEDULED/EXPIRED TEST_ prefixed). Home sections restored to all-enabled defaults via admin API at end.",
   "retest_needed": false,
   "main_agent_can_self_test": true,

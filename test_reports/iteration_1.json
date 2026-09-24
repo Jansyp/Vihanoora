@@ -1,5 +1,5 @@
 {
-  "summary": "First full test run of JAVE HOUSE. Wrote pytest backend suite (27 tests) covering catalog, offer zone, combos, categories, settings, cart validation with coupons (valid/invalid/min-order), guest order + mock payment flow, stock decrement, out-of-stock protection, order tracking (email/mobile/wrong contact), webhook idempotency, register/login/me/logout, admin RBAC (anon+customer rejected), admin dashboard, product/coupon/combo CRUD, order status flow + shipping, and settings propagation. ALL 27 backend tests PASS (100%). Frontend Playwright walked home → category → product detail → cart+coupon → checkout → admin login → admin dashboard/products/orders. Found ONE HIGH-priority frontend bug: guest checkout `Pay & Place Order` never reaches the order-success page — after mock payment succeeds server-side (order IS created, verified & marked PAID in DB), the SPA redirects the user to /cart instead of /order-success/{order_number}.",
+  "summary": "First full test run of Viaura HOUSE. Wrote pytest backend suite (27 tests) covering catalog, offer zone, combos, categories, settings, cart validation with coupons (valid/invalid/min-order), guest order + mock payment flow, stock decrement, out-of-stock protection, order tracking (email/mobile/wrong contact), webhook idempotency, register/login/me/logout, admin RBAC (anon+customer rejected), admin dashboard, product/coupon/combo CRUD, order status flow + shipping, and settings propagation. ALL 27 backend tests PASS (100%). Frontend Playwright walked home → category → product detail → cart+coupon → checkout → admin login → admin dashboard/products/orders. Found ONE HIGH-priority frontend bug: guest checkout `Pay & Place Order` never reaches the order-success page — after mock payment succeeds server-side (order IS created, verified & marked PAID in DB), the SPA redirects the user to /cart instead of /order-success/{order_number}.",
   "backend_issues": {
     "critical": [],
     "minor": []
@@ -45,7 +45,7 @@
     "backend": "100% (27/27)",
     "frontend": "~80% — 1 high-priority checkout redirect bug blocks the order-success step"
   },
-  "test_credentials": "Admin: admin@javehouse.com / Admin@123 (working). Registered many test customers with prefix TEST_/test_ prefixes.",
+  "test_credentials": "Admin: admin@Viaurahouse.com / Admin@123 (working). Registered many test customers with prefix TEST_/test_ prefixes.",
   "seed_data_creation": "Backend seed already populates 24 products, 4 combos, 3 coupons (WELCOME10, GIFT100, FESTIVE20), admin user. Tests created ~6 guest orders (JH202600001..006) and a few test customers — leaves DB with realistic paid/shipped orders which is convenient for admin panel testing.",
   "retest_needed": true,
   "should_main_agent_self_test": true,

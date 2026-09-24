@@ -1,7 +1,7 @@
-# Vihaanora — PRD & Build Log
+# Viaura — PRD & Build Log
 
 ## Original Problem
-Production-ready, mobile-first e-commerce + gifting platform for "Vihaanora" (tagline: *Little Things. Beautiful Moments.*). Product universe: Women (jewellery, crystal bracelets, hair accessories, scrunchies), Kids (toys, giftables), Gifts (birthday/couple/return/festival/hampers), Combo Offers. Instagram-native, gift-first vibe with a 3D progressive-enhancement layer.
+Production-ready, mobile-first e-commerce + gifting platform for "Viaura" (tagline: *Little Things. Beautiful Moments.*). Product universe: Women (jewellery, crystal bracelets, hair accessories, scrunchies), Kids (toys, giftables), Gifts (birthday/couple/return/festival/hampers), Combo Offers. Instagram-native, gift-first vibe with a 3D progressive-enhancement layer.
 
 ## Stack (as built)
 - Frontend: React 19 + React Router 7 + Tailwind + Framer Motion + react-three-fiber/drei (3D)
@@ -38,7 +38,7 @@ React/FastAPI/Mongo · Razorpay · build everything · JWT + Google auth · 3D e
 - Abandoned cart, loyalty/referrals, GST invoices
 
 ## Credentials
-See /app/memory/test_credentials.md — Admin: admin@vihaanora.com / Admin@123
+See /app/memory/test_credentials.md — Admin: admin@Viaura.com / Admin@123
 
 ## Feature Batch 2 (2026-06) — DONE
 - **Image Uploads**: Admin uploads product & combo images via built-in Emergent object storage (`/api/admin/upload` → `/api/files/{path}`); ImageUploader UI with thumbnails. Verified 100%.

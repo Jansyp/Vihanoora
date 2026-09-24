@@ -14,7 +14,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-14">
         <div className="grid md:grid-cols-4 gap-10">
           <div>
-            <div className="font-serif text-2xl font-semibold text-white mb-3">Vihaanora</div>
+            <div className="font-serif text-2xl font-semibold text-white mb-3">Viaura</div>
             <p className="text-sm text-white/60 max-w-xs">{settings?.tagline || "Little Things. Beautiful Moments."} Curated gifting & Instagram-trending finds.</p>
             <div className="flex gap-3 mt-5">
               <a href={settings?.instagram_url || "#"} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-[var(--brand)] transition-colors"><Instagram size={18} /></a>
@@ -34,7 +34,7 @@ export default function Footer() {
           ))}
         </div>
         <div className="mt-12 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-white/50">© {new Date().getFullYear()} Vihaanora. All rights reserved.</p>
+          <p className="text-xs text-white/50">© {new Date().getFullYear()} Viaura. All rights reserved.</p>
           <label className="flex items-center gap-2 text-xs text-white/60 cursor-pointer" data-testid="reduce-motion-toggle">
             <input type="checkbox" checked={reduceMotion} onChange={(e) => setReduceMotion(e.target.checked)} className="accent-[var(--brand)]" />
             Reduce motion

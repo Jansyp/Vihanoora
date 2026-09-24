@@ -17,7 +17,7 @@ if not BASE_URL:
     except Exception:
         pass
 
-ADMIN_EMAIL = "admin@vihaanora.com"
+ADMIN_EMAIL = "admin@Viaura.com"
 ADMIN_PASS = "Admin@123"
 
 

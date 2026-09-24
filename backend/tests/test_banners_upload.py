@@ -7,7 +7,7 @@ import pytest
 
 BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/")
 API = f"{BASE_URL}/api"
-ADMIN_EMAIL = "admin@vihaanora.com"
+ADMIN_EMAIL = "admin@Viaura.com"
 ADMIN_PASSWORD = "Admin@123"
 
 
@@ -58,7 +58,7 @@ class TestUpload:
         assert r.status_code == 400
 
     def test_serve_missing_returns_404(self):
-        r = requests.get(f"{BASE_URL}/api/files/vihaanora/products/does-not-exist-xyz.png")
+        r = requests.get(f"{BASE_URL}/api/files/Viaura/products/does-not-exist-xyz.png")
         assert r.status_code == 404
 
 

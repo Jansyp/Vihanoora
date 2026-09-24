@@ -69,7 +69,7 @@ export default function CheckoutPage() {
         key: data.razorpay_key_id,
         amount: data.amount,
         currency: order.currency,
-        name: "Vihaanora",
+        name: "Viaura",
         description: `Order ${order.order_number}`,
         order_id: data.razorpay_order_id,
         prefill: { name: form.name, email: form.email, contact: form.mobile },

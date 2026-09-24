@@ -110,7 +110,7 @@ export default function FeaturedProductHero() {
   const productMrp = product?.mrp || product?.original_price;
   const productLink = product?.href || `/product/${product?.slug}`;
   const productDiscount = productMrp && productPrice ? Math.round((1 - productPrice / productMrp) * 100) : 0;
-  const productAlt = useMemo(() => product?.name || "Featured Vihaanora product", [product?.name]);
+  const productAlt = useMemo(() => product?.name || "Featured Viaura product", [product?.name]);
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-[#FCEEE9] via-[#FAF7F2] to-[#FAF7F2]">

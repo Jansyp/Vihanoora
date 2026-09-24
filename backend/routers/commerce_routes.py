@@ -28,13 +28,13 @@ def _product_image_for_variant(product: dict, variant: str | None) -> str:
 
 
 DEFAULT_SETTINGS = {
-    "store_name": "Vihaanora",
+    "store_name": "Viaura",
     "tagline": "Little Things. Beautiful Moments.",
     "logo": "",
-    "contact_number": "+91 90000 00000",
-    "email": "hello@vihaanora.com",
+    "contact_number": "+917010177567",
+    "email": "hello@Viaura.com",
     "whatsapp": "919000000000",
-    "instagram_url": "https://instagram.com/vihaanora",
+    "instagram_url": "https://instagram.com/Viaura",
     "delivery_charge": 50,
     "free_shipping_threshold": 999,
     "currency": "INR",
@@ -42,15 +42,15 @@ DEFAULT_SETTINGS = {
     "announcement_bar_text": "✨ Free shipping on orders above ₹999 • Flat ₹50 delivery • Shop the Instagram trends",
     "announcement_enabled": True,
     "home_sections": [
-        {"key": "trending", "label": "Trending on Instagram", "enabled": True, "order": 1, "theme": "white", "subtitle": "#Vihaanora", "title": "Trending on Instagram"},
+        {"key": "trending", "label": "Trending on Instagram", "enabled": True, "order": 1, "theme": "white", "subtitle": "#Viaura", "title": "Trending on Instagram"},
         {"key": "best_sellers", "label": "Best Sellers", "enabled": True, "order": 2, "theme": "cream", "subtitle": "Loved by many", "title": "Best Sellers"},
         {"key": "offer_banner", "label": "Offer Zone Banner", "enabled": True, "order": 3, "theme": "cream", "subtitle": "Flash & Everyday Deals", "title": ""},
         {"key": "new_arrivals", "label": "New Arrivals", "enabled": True, "order": 4, "theme": "cream", "subtitle": "Fresh drops", "title": "New Arrivals"},
         {"key": "gift_picks", "label": "Gift Picks", "enabled": True, "order": 5, "theme": "blush", "subtitle": "For someone special", "title": "Gift Picks"},
         {"key": "combos", "label": "Combo Offers", "enabled": True, "order": 6, "theme": "cream", "subtitle": "Bundle & save", "title": "Combo Offers"},
-        {"key": "instagram", "label": "Instagram Gallery", "enabled": True, "order": 7, "theme": "white", "subtitle": "@vihaanora", "title": "Vihaanora on Instagram"},
+        {"key": "instagram", "label": "Instagram Gallery", "enabled": True, "order": 7, "theme": "white", "subtitle": "@Viaura", "title": "Viaura on Instagram"},
         {"key": "reviews", "label": "Customer Reviews", "enabled": True, "order": 8, "theme": "sage", "subtitle": "Kind words", "title": "Customer Reviews"},
-        {"key": "newsletter", "label": "Newsletter", "enabled": True, "order": 9, "theme": "cream", "subtitle": "", "title": "Join the JAVE fam ✨"},
+        {"key": "newsletter", "label": "Newsletter", "enabled": True, "order": 9, "theme": "cream", "subtitle": "", "title": "Join the Viaura fam ✨"},
     ],
 }
 

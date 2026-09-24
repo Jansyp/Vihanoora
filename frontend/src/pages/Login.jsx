@@ -19,7 +19,7 @@ export default function Login() {
     try {
       if (mode === "login") await login(form.email, form.password);
       else await register(form.name, form.email, form.password);
-      toast.success("Welcome to Vihaanora!");
+      toast.success("Welcome to Viaura!");
       nav("/account");
     } catch (e2) { setErr(formatApiError(e2.response?.data?.detail)); }
     finally { setBusy(false); }
@@ -35,7 +35,7 @@ export default function Login() {
     <Section className="max-w-md">
       <div className="bg-white rounded-[2rem] border border-[var(--line)] p-8 soft-shadow">
         <h1 className="font-serif text-3xl font-semibold text-center">{mode === "login" ? "Welcome back" : "Create account"}</h1>
-        <p className="text-center text-[var(--ink-soft)] text-sm mt-1">{mode === "login" ? "Login to track orders & save favourites" : "Join the JAVE fam"}</p>
+        <p className="text-center text-[var(--ink-soft)] text-sm mt-1">{mode === "login" ? "Login to track orders & save favourites" : "Join the Viaura fam"}</p>
 
         <button data-testid="google-login-btn" onClick={googleLogin} className="w-full mt-6 flex items-center justify-center gap-3 py-3.5 rounded-full border border-[var(--line)] font-medium hover:bg-[var(--card-2)] transition-colors">
           <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="" className="w-5 h-5" /> Continue with Google

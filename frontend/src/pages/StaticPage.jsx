@@ -3,8 +3,8 @@ import { Section } from "@/components/common";
 import { useSettings } from "@/context/SettingsContext";
 
 const CONTENT = {
-  about: { title: "About Vihaanora", body: [
-    "Vihaanora is a curated lifestyle & gifting brand built for little things that make beautiful moments.",
+  about: { title: "About Viaura", body: [
+    "Viaura is a curated lifestyle & gifting brand built for little things that make beautiful moments.",
     "We handpick Instagram-trending jewellery, crystal bracelets, hair accessories, cute kids' toys and thoughtful gift hampers — all at premium-but-affordable prices.",
     "Every order is packed with love and delivered across India with flat, transparent shipping.",
   ]},
@@ -27,7 +27,7 @@ const CONTENT = {
     "We do not sell your personal information to third parties.",
   ]},
   terms: { title: "Terms & Conditions", body: [
-    "By using Vihaanora, you agree to our terms of service.",
+    "By using Viaura, you agree to our terms of service.",
     "All prices are in INR and inclusive of applicable taxes unless stated otherwise.",
     "Discounts are auto-calculated from MRP and selling price. Offers may change or expire without prior notice.",
   ]},
@@ -53,7 +53,7 @@ export default function StaticPage() {
             <p><b>Phone:</b> {settings.contact_number}</p>
             <p><b>Email:</b> {settings.email}</p>
             <p><b>WhatsApp:</b> +{settings.whatsapp}</p>
-            <p><b>Instagram:</b> <a href={settings.instagram_url} className="text-[var(--brand)]">@vihaanora</a></p>
+            <p><b>Instagram:</b> <a href={settings.instagram_url} className="text-[var(--brand)]">@Viaura</a></p>
           </div>
         )}
       </div>
