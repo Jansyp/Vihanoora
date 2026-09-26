@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ShoppingBag, Check } from "lucide-react";
-import api, { formatINR } from "@/lib/api";
+import api, { assetUrl, formatINR } from "@/lib/api";
 import { useCart } from "@/context/CartContext";
 import { Section, GridSkeleton } from "@/components/common";
 import ProductCard from "@/components/ProductCard";
@@ -17,7 +17,7 @@ export default function ComboDetail() {
     <Section>
       <div className="grid lg:grid-cols-2 gap-10">
         <div className="aspect-square rounded-3xl overflow-hidden bg-[var(--card-2)] soft-shadow">
-          <img src={c.images?.[0]} alt={c.name} className="w-full h-full object-cover" />
+          <img src={assetUrl(c.images?.[0])} alt={c.name} className="w-full h-full object-cover" />
         </div>
         <div>
           <span className="text-xs font-semibold tracking-widest uppercase text-[var(--brand)]">{c.item_count}-Piece Combo</span>
@@ -32,7 +32,7 @@ export default function ComboDetail() {
             <p className="font-semibold text-sm">This combo includes:</p>
             {c.products?.map((p) => (
               <Link key={p.id} to={`/product/${p.slug}`} className="flex items-center gap-3 bg-white rounded-2xl p-3 border border-[var(--line)] hover:border-[var(--brand)]">
-                <img src={p.images?.[0]} alt={p.name} className="w-12 h-12 rounded-xl object-cover" />
+                <img src={assetUrl(p.images?.[0])} alt={p.name} className="w-12 h-12 rounded-xl object-cover" />
                 <span className="text-sm font-medium flex-1">{p.name}</span>
                 <Check size={16} className="text-[var(--sage-dark)]" />
               </Link>

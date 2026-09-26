@@ -162,7 +162,7 @@ export default function Home() {
               <Link to={`/combo/${c.slug}`} data-testid={`combo-card-${c.id}`}
                 className="block bg-white rounded-3xl overflow-hidden border border-[var(--line)] soft-shadow hover-shadow group">
                 <div className="relative aspect-square overflow-hidden bg-[var(--card-2)]">
-                  <img src={c.images?.[0]} alt={c.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  <img src={assetUrl(c.images?.[0])} alt={c.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                   <span className="absolute top-3 left-3 text-xs font-bold px-2.5 py-1 rounded-full bg-[var(--brand)] text-white">Save {formatINR(c.savings)}</span>
                 </div>
                 <div className="p-4">
