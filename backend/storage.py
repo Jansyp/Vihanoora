@@ -70,6 +70,7 @@ def _local_path(path: str) -> Path:
 
 
 def init_storage(force: bool = False):
+    """Initialize the selected storage backend."""
     global _storage_key
 
     if STORAGE_MODE == "local":
@@ -80,15 +81,6 @@ def init_storage(force: bool = False):
         return "local"
 
     if STORAGE_MODE == "cloudinary":
-        if not (
-            CLOUDINARY_CLOUD_NAME
-            and CLOUDINARY_API_KEY
-            and CLOUDINARY_API_SECRET
-        ):
-            raise RuntimeError(
-                "Cloudinary credentials are not configured"
-            )
-
         return "cloudinary"
 
     if _storage_key and not force:
@@ -183,15 +175,26 @@ def put_object(path: str, data: bytes, content_type: str) -> dict:
 
 
 def get_object(path: str):
-       # Cloudinary storage
+    """Retrieve an object from storage."""
+
+    # Cloudinary storage
     if STORAGE_MODE == "cloudinary":
         init_storage()
 
+        # Original database path
         paths_to_try = [path]
 
-        # Support legacy product paths
+        # Support old namespaces stored in MongoDB.
+        # Example:
+        # vihaanora/products/file.png
+        # -> Viaura/products/file.png
         namespace, separator, suffix = path.partition("/")
-        if separator and namespace.lower() == "vihaanora":
+
+        if separator and namespace.lower() in {
+            "vihaanora",
+            "viaura",
+            "javehouse",
+        }:
             paths_to_try.append(f"Viaura/{suffix}")
 
         for cloudinary_path in paths_to_try:
@@ -203,32 +206,101 @@ def get_object(path: str):
 
             resource_type = (
                 "video"
-                if extension in {".mp4", ".webm"}
+                if extension in {".mp4", ".webm", ".mov"}
                 else "image"
             )
 
-            url, _ = cloudinary_url(
-                public_id,
-                resource_type=resource_type,
-                secure=True,
-                format=(
-                    extension.lstrip(".")
-                    if extension
-                    else None
-                ),
-            )
+            try:
+                url, _ = cloudinary_url(
+                    public_id,
+                    resource_type=resource_type,
+                    secure=True,
+                )
 
-            resp = requests.get(url, timeout=60)
+                logger.info(
+                    "Trying Cloudinary object: %s",
+                    cloudinary_path,
+                )
+                logger.info(
+                    "Cloudinary URL: %s",
+                    url,
+                )
 
-            if resp.status_code == 200:
-                return (
-                    resp.content,
-                    resp.headers.get(
-                        "Content-Type",
-                        "application/octet-stream",
-                    ),
+                resp = requests.get(
+                    url,
+                    timeout=60,
+                )
+
+                logger.info(
+                    "Cloudinary response: %s",
+                    resp.status_code,
+                )
+
+                if resp.status_code == 200:
+                    return (
+                        resp.content,
+                        resp.headers.get(
+                            "Content-Type",
+                            "application/octet-stream",
+                        ),
+                    )
+
+            except Exception as exc:
+                logger.warning(
+                    "Cloudinary lookup failed for %s: %s",
+                    cloudinary_path,
+                    exc,
                 )
 
         raise requests.HTTPError(
             f"Cloudinary object not found: {path}"
         )
+
+    # Local filesystem storage
+    if STORAGE_MODE == "local":
+        target = _local_path(path)
+
+        if not target.exists():
+            raise FileNotFoundError(path)
+
+        extension = target.suffix.lower().lstrip(".")
+
+        return (
+            target.read_bytes(),
+            MIME_TYPES.get(
+                extension,
+                "application/octet-stream",
+            ),
+        )
+
+    # Existing Emergent object storage
+    key = init_storage()
+
+    resp = requests.get(
+        f"{STORAGE_URL}/objects/{path}",
+        headers={
+            "X-Storage-Key": key,
+        },
+        timeout=60,
+    )
+
+    if resp.status_code == 404:
+        key = init_storage(force=True)
+
+        resp = requests.get(
+            f"{STORAGE_URL}/objects/{path}",
+            headers={
+                "X-Storage-Key": key,
+            },
+            timeout=60,
+        )
+
+    resp.raise_for_status()
+
+    return (
+        resp.content,
+        resp.headers.get(
+            "Content-Type",
+            "application/octet-stream",
+        ),
+    )
