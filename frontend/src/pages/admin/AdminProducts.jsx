@@ -4,6 +4,7 @@ import api, { formatINR, formatApiError } from "@/lib/api";
 import ImageUploader from "@/components/ImageUploader";
 import VideoUploader from "@/components/VideoUploader";
 import { toast } from "sonner";
+import { assetUrl } from "../lib/api";
 
 const BLANK = {
   name: "", group: "women", category: "Uncategorized", description: "", details: "", material: "",
@@ -107,7 +108,7 @@ export default function AdminProducts() {
           <tbody>
             {products.map((p) => (
               <tr key={p.id} className="border-t border-[var(--line)]">
-                <td className="px-4 py-3"><div className="flex items-center gap-2"><img src={p.images?.[0]} alt="" className="w-9 h-9 rounded-lg object-cover" /><span className="font-medium line-clamp-1">{p.name}</span></div></td>
+                <td className="px-4 py-3"><div className="flex items-center gap-2"><img src={assetUrl(product.images?.[0])} alt="" className="w-9 h-9 rounded-lg object-cover" /><span className="font-medium line-clamp-1">{p.name}</span></div></td>
                 <td className="px-4 py-3 text-[var(--ink-soft)] text-xs">{p.sku}</td>
                 <td className="px-4 py-3 capitalize">{p.group} · {p.category}</td>
                 <td className="px-4 py-3">{formatINR(p.effective_price)}</td>
