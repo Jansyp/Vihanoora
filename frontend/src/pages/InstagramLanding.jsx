@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Instagram } from "lucide-react";
 import api from "@/lib/api";
-import { Section, SectionHeader, ProductRow, GridSkeleton } from "@/components/common";
+import { Section, SectionHeader, ProductRow, GridSkeleton, PRODUCT_PAGE_SIZE } from "@/components/common";
 import { useSettings } from "@/context/SettingsContext";
 
 export default function InstagramLanding() {
@@ -10,11 +10,11 @@ export default function InstagramLanding() {
   useEffect(() => {
     (async () => {
       const [t, b, o, c, n] = await Promise.all([
-        api.get("/products?trending=true&limit=10"),
-        api.get("/products?best_seller=true&limit=10"),
-        api.get("/offer-zone?limit=10"),
+        api.get(`/products?trending=true&limit=${PRODUCT_PAGE_SIZE}`),
+        api.get(`/products?best_seller=true&limit=${PRODUCT_PAGE_SIZE}`),
+        api.get(`/offer-zone?limit=${PRODUCT_PAGE_SIZE}`),
         api.get("/combos"),
-        api.get("/products?new_arrival=true&limit=10"),
+        api.get(`/products?new_arrival=true&limit=${PRODUCT_PAGE_SIZE}`),
       ]);
       setD({ trend: t.data.items, best: b.data.items, offer: o.data.items, combos: c.data, arr: n.data.items });
     })();

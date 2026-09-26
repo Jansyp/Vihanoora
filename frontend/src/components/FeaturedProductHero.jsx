@@ -4,6 +4,7 @@ import { ArrowUpRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useSettings } from "@/context/SettingsContext";
 import api, { assetUrl, formatINR } from "@/lib/api";
+import { PRODUCT_PAGE_SIZE } from "@/components/common";
 
 const ROTATION_MS = 5000;
 
@@ -78,9 +79,9 @@ export default function FeaturedProductHero() {
   useEffect(() => {
     Promise.all([
       api.get("/banners"),
-      api.get("/products?limit=200&sort=best_selling"),
+      api.get(`/products?limit=${PRODUCT_PAGE_SIZE}&sort=best_selling`),
       api.get("/combos"),
-      api.get("/offer-zone?limit=40"),
+      api.get(`/offer-zone?limit=${PRODUCT_PAGE_SIZE}`),
     ]).then(([bannerResponse, productResponse, comboResponse, offerResponse]) => {
       setBanners(bannerResponse.data || []);
       setShowcase(selectShowcaseProducts(productResponse.data?.items || [], comboResponse.data || [], offerResponse.data?.items || []));

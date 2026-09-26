@@ -1,6 +1,7 @@
 """Catalog routes: products, categories, combos, offers, reviews, search."""
 import re
 import uuid
+from datetime import datetime, timezone
 from fastapi import APIRouter, Query, HTTPException
 from typing import Optional
 
@@ -8,6 +9,7 @@ from core import db, enrich_product, enrich_combo, now_iso, effective_price, dis
 from models import ReviewInput
 
 router = APIRouter(prefix="/api", tags=["catalog"])
+PRODUCT_PAGE_SIZE = 12
 
 
 def _slugify(text: str) -> str:
@@ -35,6 +37,91 @@ def _sort_stage(sort: str):
     }.get(sort)
 
 
+def _discount_fields_stage(now: str):
+    effective_price = {
+        "$cond": [
+            {"$and": [
+                {"$ne": [{"$ifNull": ["$flash_price", None]}, None]},
+                {"$lte": ["$flash_start", now]},
+                {"$gte": ["$flash_end", now]},
+                {"$lt": ["$flash_price", {"$ifNull": ["$mrp", 0]}]},
+            ]},
+            "$flash_price",
+            {"$ifNull": ["$selling_price", {"$ifNull": ["$mrp", 0]}]},
+        ]
+    }
+    return {
+        "$addFields": {
+            "_page_effective_price": effective_price,
+            "_page_discount": {
+                "$cond": [
+                    {"$or": [
+                        {"$lte": [{"$ifNull": ["$mrp", 0]}, 0]},
+                        {"$gte": [effective_price, "$mrp"]},
+                    ]},
+                    0,
+                    {"$round": [{"$multiply": [
+                        {"$divide": [
+                            {"$subtract": ["$mrp", effective_price]}, "$mrp"
+                        ]},
+                        100,
+                    ]}, 0]},
+                ]
+            },
+        }
+    }
+
+
+async def _product_page(query, page, limit, sort, min_discount=0, discount_only=False, sort_by_effective_price=False):
+    page = max(int(page), 1)
+    limit = min(max(int(limit), 1), PRODUCT_PAGE_SIZE)
+    skip = (page - 1) * limit
+    uses_computed_discount = bool(min_discount or discount_only or sort == "biggest_discount" or sort_by_effective_price)
+
+    if uses_computed_discount:
+        base_pipeline = [{"$match": query}, _discount_fields_stage(datetime.now(timezone.utc).isoformat())]
+        if discount_only:
+            base_pipeline.append({"$match": {"_page_discount": {"$gt": 0}}})
+        if min_discount:
+            base_pipeline.append({"$match": {"_page_discount": {"$gte": min_discount}}})
+
+        stats = await db.products.aggregate(base_pipeline + [{"$group": {
+            "_id": None,
+            "total": {"$sum": 1},
+            "max_discount": {"$max": "$_page_discount"},
+        }}]).to_list(1)
+        total = stats[0]["total"] if stats else 0
+        max_discount = stats[0]["max_discount"] if stats else 0
+
+        if sort == "biggest_discount":
+            sort_stage = {"_page_discount": -1}
+        elif sort_by_effective_price and sort in ("price_asc", "price_desc"):
+            sort_stage = {"_page_effective_price": 1 if sort == "price_asc" else -1}
+        else:
+            sort_stage = dict(_sort_stage(sort) or [("created_at", -1)])
+
+        docs = await db.products.aggregate(base_pipeline + [
+            {"$sort": sort_stage},
+            {"$skip": skip},
+            {"$limit": limit},
+        ]).to_list(limit)
+    else:
+        total = await db.products.count_documents(query)
+        max_discount = 0
+        sort_stage = _sort_stage(sort) or [("created_at", -1)]
+        docs = await db.products.find(query).sort(sort_stage).skip(skip).limit(limit).to_list(limit)
+
+    items = []
+    for doc in docs:
+        doc.pop("_page_effective_price", None)
+        doc.pop("_page_discount", None)
+        items.append(enrich_product(doc))
+    result = {"total": total, "page": page, "limit": limit, "items": items}
+    if discount_only:
+        result["max_discount"] = max_discount
+    return result
+
+
 @router.get("/products")
 async def list_products(
     group: Optional[str] = None,
@@ -51,7 +138,7 @@ async def list_products(
     min_discount: Optional[int] = None,
     sort: str = "newest",
     page: int = 1,
-    limit: int = 20,
+    limit: int = PRODUCT_PAGE_SIZE,
     include_inactive: bool = False,
     stock_status: Optional[str] = None,
 ):
@@ -93,19 +180,7 @@ async def list_products(
         elif status == "out_of_stock":
             query["stock"] = {"$lte": 0}
 
-    cursor = db.products.find(query)
-    sort_stage = _sort_stage(sort)
-    if sort_stage and sort not in ("biggest_discount",):
-        cursor = cursor.sort(sort_stage)
-    docs = await cursor.to_list(2000)
-    items = [enrich_product(d) for d in docs]
-    if min_discount:
-        items = [p for p in items if p["discount_percent"] >= min_discount]
-    if sort == "biggest_discount":
-        items.sort(key=lambda p: p["discount_percent"], reverse=True)
-    total = len(items)
-    start = (page - 1) * limit
-    return {"total": total, "page": page, "limit": limit, "items": items[start:start + limit]}
+    return await _product_page(query, page, limit, sort, min_discount)
 
 
 @router.get("/products/{id_or_slug}")
@@ -174,22 +249,11 @@ async def list_banners():
 
 
 @router.get("/offer-zone")
-async def offer_zone(min_discount: int = 0, sort: str = "biggest_discount", page: int = 1, limit: int = 20):
-    docs = await db.products.find({"active": True}).to_list(2000)
-    items = [enrich_product(d) for d in docs]
-    items = [p for p in items if p["discount_percent"] > 0 and p["discount_percent"] >= min_discount]
-    if sort == "biggest_discount":
-        items.sort(key=lambda p: p["discount_percent"], reverse=True)
-    elif sort == "price_asc":
-        items.sort(key=lambda p: p["effective_price"])
-    elif sort == "price_desc":
-        items.sort(key=lambda p: p["effective_price"], reverse=True)
-    elif sort == "newest":
-        items.sort(key=lambda p: p.get("created_at", ""), reverse=True)
-    max_disc = max([p["discount_percent"] for p in items], default=0)
-    total = len(items)
-    start = (page - 1) * limit
-    return {"total": total, "max_discount": max_disc, "items": items[start:start + limit]}
+async def offer_zone(min_discount: int = 0, sort: str = "biggest_discount", page: int = 1, limit: int = PRODUCT_PAGE_SIZE):
+    return await _product_page(
+        {"active": True}, page, limit, sort, min_discount,
+        discount_only=True, sort_by_effective_price=True,
+    )
 
 
 @router.get("/combos")

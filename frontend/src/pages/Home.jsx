@@ -7,7 +7,7 @@ import FeaturedProductHero from "@/components/FeaturedProductHero";
 import CategoryTiles from "@/components/CategoryTiles";
 import { useSettings } from "@/context/SettingsContext";
 import { themeBg } from "@/lib/themes";
-import { Section, SectionHeader, ProductRow, ProductGrid, GridSkeleton, Reveal } from "@/components/common";
+import { Section, SectionHeader, ProductRow, ProductGrid, GridSkeleton, Reveal, PRODUCT_PAGE_SIZE } from "@/components/common";
 
 const REVIEWS = [
   { name: "Ananya R.", text: "The crystal bracelet is even prettier in person. Packaging felt so premium!", rating: 5 },
@@ -98,12 +98,12 @@ export default function Home() {
     (async () => {
       try {
         const [best, trend, arr, gift, cmb, oz] = await Promise.all([
-          api.get("/products?best_seller=true&limit=8"),
-          api.get("/products?trending=true&limit=8"),
-          api.get("/products?new_arrival=true&limit=8"),
-          api.get("/products?giftable=true&limit=8"),
+          api.get(`/products?best_seller=true&limit=${PRODUCT_PAGE_SIZE}`),
+          api.get(`/products?trending=true&limit=${PRODUCT_PAGE_SIZE}`),
+          api.get(`/products?new_arrival=true&limit=${PRODUCT_PAGE_SIZE}`),
+          api.get(`/products?giftable=true&limit=${PRODUCT_PAGE_SIZE}`),
           api.get("/combos"),
-          api.get("/offer-zone?limit=8"),
+          api.get(`/offer-zone?limit=${PRODUCT_PAGE_SIZE}`),
         ]);
         setData({ best: best.data.items, trend: trend.data.items, arr: arr.data.items, gift: gift.data.items });
         setCombos(cmb.data);
@@ -122,7 +122,7 @@ export default function Home() {
     best_sellers: (c) => (
       <Section key="best_sellers">
         <SectionHeader subtitle={c.subtitle || "Loved by many"} title={c.title || "Best Sellers"} to="/women" />
-        <ProductGrid products={(data.best || []).slice(0, 8)} />
+        <ProductGrid products={data.best || []} />
       </Section>
     ),
     offer_banner: (c) => (
@@ -150,7 +150,7 @@ export default function Home() {
     gift_picks: (c) => (
       <Section key="gift_picks">
         <SectionHeader subtitle={c.subtitle || "For someone special"} title={c.title || "Gift Picks"} to="/gifts" />
-        <ProductGrid products={(data.gift || []).slice(0, 8)} />
+        <ProductGrid products={data.gift || []} />
       </Section>
     ),
     combos: (c) => (

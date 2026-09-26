@@ -63,9 +63,37 @@ class TestCatalog:
         assert r.status_code == 200
         data = r.json()
         assert data["total"] >= 1
+        assert data["page"] == 1
+        assert data["limit"] == 12
+        assert len(data["items"]) <= 12
         for p in data["items"]:
             assert p["group"] == "women"
             assert "effective_price" in p and "discount_percent" in p and "stock_state" in p
+
+    def test_product_pagination_applies_category_before_page(self, s):
+        params = {"group": "women", "category": "Bracelets", "limit": 12, "sort": "newest"}
+        first = s.get(f"{API}/products", params={**params, "page": 1})
+        second = s.get(f"{API}/products", params={**params, "page": 2})
+        assert first.status_code == second.status_code == 200
+        first_data, second_data = first.json(), second.json()
+        assert first_data["total"] == second_data["total"]
+        assert first_data["page"] == 1 and second_data["page"] == 2
+        assert first_data["limit"] == second_data["limit"] == 12
+        assert len(first_data["items"]) <= 12 and len(second_data["items"]) <= 12
+        for product in first_data["items"] + second_data["items"]:
+            assert product["group"] == "women"
+            assert product["category"] == "Bracelets"
+        assert not ({product["id"] for product in first_data["items"]} & {product["id"] for product in second_data["items"]})
+
+    def test_biggest_discount_sort_continues_across_pages(self, s):
+        params = {"group": "women", "sort": "biggest_discount", "min_discount": 10, "limit": 12}
+        first = s.get(f"{API}/products", params={**params, "page": 1})
+        second = s.get(f"{API}/products", params={**params, "page": 2})
+        assert first.status_code == second.status_code == 200
+        first_data, second_data = first.json(), second.json()
+        assert first_data["limit"] == second_data["limit"] == 12
+        discounts = [product["discount_percent"] for product in first_data["items"] + second_data["items"]]
+        assert discounts == sorted(discounts, reverse=True)
 
     def test_min_discount_filter(self, s):
         r = s.get(f"{API}/products", params={"min_discount": 20, "limit": 50})
@@ -101,6 +129,9 @@ class TestCatalog:
         r = s.get(f"{API}/offer-zone", params={"min_discount": 10})
         assert r.status_code == 200
         data = r.json()
+        assert data["page"] == 1
+        assert data["limit"] == 12
+        assert len(data["items"]) <= 12
         assert data["max_discount"] >= 10
         for p in data["items"]:
             assert p["discount_percent"] >= 10

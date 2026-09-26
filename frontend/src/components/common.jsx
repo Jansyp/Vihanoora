@@ -2,6 +2,8 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import ProductCard from "@/components/ProductCard";
 
+export const PRODUCT_PAGE_SIZE = 12;
+
 export function SectionHeader({ title, subtitle, to, cta = "View all" }) {
   return (
     <div className="flex items-end justify-between mb-6 sm:mb-8">
@@ -35,6 +37,35 @@ export function ProductGrid({ products = [] }) {
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
       {products.map((p, i) => <ProductCard key={p.id} product={p} index={i} />)}
     </div>
+  );
+}
+
+export function Pagination({ page, total, pageSize = PRODUCT_PAGE_SIZE, onPageChange }) {
+  const totalPages = Math.ceil(total / pageSize);
+  if (totalPages <= 1) return null;
+
+  let pages;
+  if (totalPages <= 7) pages = Array.from({ length: totalPages }, (_, index) => index + 1);
+  else if (page <= 4) pages = [1, 2, 3, 4, 5, totalPages];
+  else if (page >= totalPages - 3) pages = [1, totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+  else pages = [1, page - 1, page, page + 1, totalPages];
+
+  return (
+    <nav aria-label="Product pages" className="flex items-center justify-center gap-2 mt-8">
+      <button type="button" onClick={() => onPageChange(page - 1)} disabled={page <= 1}
+        className="px-3 py-2 rounded-full border border-[var(--line)] text-sm disabled:opacity-40">Previous</button>
+      {pages.map((number, index) => (
+        <span key={number} className="contents">
+          {index > 0 && number - pages[index - 1] > 1 && <span className="px-1 text-[var(--ink-soft)]" aria-hidden="true">…</span>}
+          <button type="button" onClick={() => onPageChange(number)} aria-current={page === number ? "page" : undefined}
+            className={`w-10 h-10 rounded-full text-sm font-medium ${page === number ? "bg-[var(--ink)] text-white" : "border border-[var(--line)] text-[var(--ink)]"}`}>
+            {number}
+          </button>
+        </span>
+      ))}
+      <button type="button" onClick={() => onPageChange(page + 1)} disabled={page >= totalPages}
+        className="px-3 py-2 rounded-full border border-[var(--line)] text-sm disabled:opacity-40">Next</button>
+    </nav>
   );
 }
 

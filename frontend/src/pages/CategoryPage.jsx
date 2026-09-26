@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigationType, useParams, useSearchParams } from "react-router-dom";
 import { SlidersHorizontal, X } from "lucide-react";
 import api from "@/lib/api";
-import { Section, ProductGrid, GridSkeleton } from "@/components/common";
+import { Section, ProductGrid, GridSkeleton, Pagination, PRODUCT_PAGE_SIZE } from "@/components/common";
 
 const GROUP_TITLE = {
   women: ["Women", "Jewellery, bracelets, hair accessories & more"],
@@ -33,6 +33,7 @@ export default function CategoryPage({ type, group: groupProp }) {
   const [title, subtitle] = GROUP_TITLE[key] || [key, ""];
 
   const [items, setItems] = useState([]);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
   const [categories, setCategories] = useState([]);
@@ -42,7 +43,10 @@ export default function CategoryPage({ type, group: groupProp }) {
   const sort = sp.get("sort") || defaultSort;
   const minDiscount = Number(sp.get("min_discount") || 0);
   const maxPrice = Number(sp.get("max_price") || 5000);
+  const minPrice = sp.get("min_price") || "";
   const subcat = sp.get("category") || "";
+  const stockStatus = sp.get("stock_status") || "";
+  const page = Math.max(1, parseInt(sp.get("page") || "1", 10) || 1);
   const scrollKey = `viaura:listing-scroll:${location.pathname}${location.search}`;
   const savedScrollPosition = Number(sessionStorage.getItem(scrollKey));
   const shouldRestoreScroll = navigationType === "POP" && Number.isFinite(savedScrollPosition) && savedScrollPosition > 0;
@@ -114,32 +118,61 @@ export default function CategoryPage({ type, group: groupProp }) {
   }, [categories, group]);
   const selectedCategory = subcats.find((category) => category.slug === subcat || category.name === subcat);
   const categoryQuery = selectedCategory?.name || subcat;
+  const searchParamsKey = sp.toString();
 
   useEffect(() => {
     if (!categoriesLoaded) return undefined;
     setLoading(true);
+    setItems([]);
+    setTotal(0);
+    const requestParams = new URLSearchParams({ page: String(page), limit: String(PRODUCT_PAGE_SIZE), sort });
+    const currentParams = new URLSearchParams(searchParamsKey);
+    const flags = ["trending", "best_seller", "new_arrival", "featured", "giftable"];
+    flags.forEach((flag) => {
+      if (currentParams.get(flag) === "true") requestParams.set(flag, "true");
+    });
     let url;
     if (type === "offer-zone") {
-      url = `/offer-zone?limit=60&sort=${sort}&min_discount=${minDiscount}`;
+      requestParams.set("min_discount", String(minDiscount));
+      url = `/offer-zone?${requestParams.toString()}`;
     } else {
-      const parts = [`limit=60`, `sort=${sort}`];
-      if (group) parts.push(`group=${group}`);
-      if (type === "trending") parts.push("trending=true");
-      if (type === "search" && q) parts.push(`q=${encodeURIComponent(q)}`);
-      if (categoryQuery) parts.push(`category=${encodeURIComponent(categoryQuery)}`);
-      if (minDiscount) parts.push(`min_discount=${minDiscount}`);
-      parts.push(`max_price=${maxPrice}`);
-      url = `/products?${parts.join("&")}`;
+      if (group) requestParams.set("group", group);
+      if (type === "trending") requestParams.set("trending", "true");
+      if (type === "search" && q) requestParams.set("q", q);
+      if (categoryQuery) requestParams.set("category", categoryQuery);
+      if (minDiscount) requestParams.set("min_discount", String(minDiscount));
+      if (minPrice) requestParams.set("min_price", minPrice);
+      requestParams.set("max_price", String(maxPrice));
+      if (stockStatus) requestParams.set("stock_status", stockStatus);
+      url = `/products?${requestParams.toString()}`;
     }
-    api.get(url).then(({ data }) => setItems(data.items || [])).finally(() => setLoading(false));
-  }, [categoriesLoaded, type, group, q, sort, minDiscount, maxPrice, categoryQuery]);
+    let active = true;
+    api.get(url).then(({ data }) => {
+      if (!active) return;
+      setItems(data.items || []);
+      setTotal(data.total || 0);
+    }).catch(() => {
+      if (!active) return;
+      setItems([]);
+      setTotal(0);
+    }).finally(() => {
+      if (active) setLoading(false);
+    });
+    return () => { active = false; };
+  }, [categoriesLoaded, type, group, q, sort, minDiscount, maxPrice, minPrice, categoryQuery, stockStatus, page, searchParamsKey]);
 
   const updateParam = (name, value, defaultValue = "") => {
     const next = new URLSearchParams(sp);
     if (value && value !== defaultValue) next.set(name, value); else next.delete(name);
+    if (name !== "page") next.delete("page");
     setSp(next, { replace: true });
   };
   const selectCategory = (value) => updateParam("category", value);
+  const changePage = (nextPage) => {
+    const next = new URLSearchParams(sp);
+    next.set("page", String(nextPage));
+    setSp(next, { replace: true });
+  };
 
   return (
     <Section>
@@ -147,7 +180,7 @@ export default function CategoryPage({ type, group: groupProp }) {
       <div className="mb-6">
         <h1 className="font-serif text-3xl sm:text-4xl font-semibold text-[var(--ink)]">{type === "search" ? `Search: "${q}"` : title}</h1>
         {subtitle && <p className="text-[var(--ink-soft)] mt-1">{subtitle}</p>}
-        {!loading && <p className="text-sm text-[var(--ink-soft)] mt-1">{items.length} products</p>}
+        {!loading && <p className="text-sm text-[var(--ink-soft)] mt-1">{total} products</p>}
       </div>
 
       {group && subcats.length > 0 && (
@@ -213,12 +246,13 @@ export default function CategoryPage({ type, group: groupProp }) {
         </div>
       )}
 
-      {loading ? <GridSkeleton /> : items.length === 0 ? (
+      {loading ? <GridSkeleton n={PRODUCT_PAGE_SIZE} /> : items.length === 0 ? (
         <div className="text-center py-20 text-[var(--ink-soft)]">
           <p className="text-lg">No products found.</p>
           <p className="text-sm mt-1">Try adjusting your filters.</p>
         </div>
       ) : <ProductGrid products={items} />}
+      {!loading && items.length > 0 && <Pagination page={page} total={total} onPageChange={changePage} />}
       </div>
     </Section>
   );
