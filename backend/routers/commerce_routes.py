@@ -5,6 +5,7 @@ import base64
 import hmac
 import hashlib
 import json
+import re
 from decimal import Decimal
 from datetime import datetime, timezone
 from fastapi import APIRouter, Request, Depends, HTTPException
@@ -13,7 +14,7 @@ import httpx
 from core import (db, enrich_product, next_order_number, now_iso,
                   get_current_user, get_optional_user)
 from mailer import send_order_email
-from models import (ValidateCartInput, CreateOrderInput, VerifyPaymentInput,
+from models import (ValidateCartInput, CreateOrderInput, VerifyPaymentInput, NewsletterSubscribeInput,
                     TrackInput, AddressInput, CartItemIn)
 
 router = APIRouter(prefix="/api", tags=["commerce"])
@@ -29,6 +30,7 @@ CASHFREE_API_BASE = os.environ.get(
 FRONTEND_BASE_URL = os.environ.get("FRONTEND_BASE_URL", "http://localhost:3000").rstrip("/")
 CASHFREE_WEBHOOK_URL = os.environ.get("CASHFREE_WEBHOOK_URL", "")
 PAYMENT_MODE = "cashfree" if (CASHFREE_APP_ID and CASHFREE_SECRET_KEY) else "mock"
+CASHFREE_FAILED_PAYMENT_STATUSES = {"FAILURE", "FAILED", "USER_DROPPED", "CANCELLED", "VOID", "EXPIRED", "TERMINATED"}
 
 
 def _product_image_for_variant(product: dict, variant: str | None) -> str:
@@ -89,6 +91,29 @@ async def public_settings():
     return await get_settings()
 
 
+@router.post("/newsletter/subscribe")
+async def subscribe_to_newsletter(payload: NewsletterSubscribeInput):
+    email = str(payload.email).strip().lower()
+    subscriber = {
+        "email": email,
+        "subscribed_at": now_iso(),
+        "status": "active",
+    }
+    try:
+        result = await db.newsletter_subscribers.update_one(
+            {"email": email},
+            {"$setOnInsert": subscriber},
+            upsert=True,
+        )
+    except Exception as exc:
+        if exc.__class__.__name__ != "DuplicateKeyError":
+            raise HTTPException(status_code=500, detail="Unable to save newsletter subscription") from exc
+        result = None
+    if result is not None and result.upserted_id is not None:
+        return {"status": "subscribed", "message": "You're subscribed! 🎉 You'll be the first to know about new drops, offers & gifting ideas."}
+    return {"status": "already_subscribed", "message": "You're already subscribed! 💕"}
+
+
 @router.get("/announcements")
 async def public_announcements():
     now = datetime.now(timezone.utc).isoformat()
@@ -145,6 +170,12 @@ def _cashfree_signature_is_valid(raw_body: bytes, timestamp: str, signature: str
     return hmac.compare_digest(expected, signature)
 
 
+def _latest_cashfree_payment(payments: list[dict]) -> dict | None:
+    if not payments:
+        return None
+    return max(payments, key=lambda payment: payment.get("payment_time") or "")
+
+
 async def _price_items(items: list[CartItemIn]):
     """Re-price items from DB. Returns (line_items, subtotal, total_mrp)."""
     line_items = []
@@ -170,9 +201,12 @@ async def _price_items(items: list[CartItemIn]):
             if not p or not p.get("active"):
                 raise HTTPException(status_code=400, detail="Product unavailable")
             available_variants = p.get("colors") or []
-            if available_variants and (not it.variant or it.variant not in available_variants):
+            selected_variant = it.variant
+            if available_variants and selected_variant and selected_variant not in available_variants:
                 raise HTTPException(status_code=400, detail="Selected colour is unavailable for this product")
-            if it.variant and not available_variants:
+            if available_variants:
+                selected_variant = selected_variant or available_variants[0]
+            elif selected_variant:
                 raise HTTPException(status_code=400, detail="Selected variant is unavailable for this product")
             ep = enrich_product(dict(p))
             if int(p.get("stock", 0)) < it.qty:
@@ -181,7 +215,7 @@ async def _price_items(items: list[CartItemIn]):
             mrp = float(p["mrp"])
             line_items.append({
                 "product_id": it.product_id, "name": p["name"],
-                "image": _product_image_for_variant(p, it.variant), "variant": it.variant,
+                "image": _product_image_for_variant(p, selected_variant), "variant": selected_variant,
                 "qty": it.qty, "mrp": mrp, "unit_price": price,
                 "discount": round((mrp - price)), "combo": False,
             })
@@ -190,25 +224,43 @@ async def _price_items(items: list[CartItemIn]):
     return line_items, round(subtotal, 2), round(total_mrp, 2)
 
 
-async def _apply_coupon(code: str, subtotal: float, email: str | None):
+def _coupon_error(code: str, message: str) -> HTTPException:
+    return HTTPException(status_code=400, detail={"valid": False, "code": code, "message": message})
+
+
+async def _apply_coupon(code: str, subtotal: float, email: str | None, user: dict | None = None):
     if not code:
         return 0.0, None
-    coupon = await db.coupons.find_one({"code": code.upper(), "active": True})
+    normalized_code = code.strip().upper()
+    coupon = await db.coupons.find_one({"code": normalized_code})
     if not coupon:
-        raise HTTPException(status_code=400, detail="Invalid coupon code")
+        raise _coupon_error("COUPON_NOT_FOUND", "Invalid coupon code.")
+    if not coupon.get("active", False):
+        raise _coupon_error("COUPON_INACTIVE", "This coupon is no longer active.")
     now = datetime.now(timezone.utc).isoformat()
     if coupon.get("valid_from") and now < coupon["valid_from"]:
-        raise HTTPException(status_code=400, detail="Coupon not yet active")
+        raise _coupon_error("COUPON_INACTIVE", "This coupon is not active yet.")
     if coupon.get("valid_to") and now > coupon["valid_to"]:
-        raise HTTPException(status_code=400, detail="Coupon has expired")
+        raise _coupon_error("COUPON_EXPIRED", "This coupon has expired.")
     if subtotal < float(coupon.get("min_order", 0)):
-        raise HTTPException(status_code=400, detail=f"Minimum order ₹{coupon['min_order']} required for this coupon")
+        remaining = round(float(coupon["min_order"]) - subtotal, 2)
+        raise _coupon_error("COUPON_MINIMUM_ORDER_NOT_MET", f"Add ₹{remaining:g} more to use this coupon.")
     if coupon.get("total_usage_limit") is not None and coupon.get("used_count", 0) >= coupon["total_usage_limit"]:
-        raise HTTPException(status_code=400, detail="Coupon usage limit reached")
-    if email and coupon.get("per_customer_limit") is not None:
-        used = await db.coupon_usage.count_documents({"code": coupon["code"], "email": email.lower()})
+        raise _coupon_error("COUPON_USAGE_LIMIT_REACHED", "This coupon is no longer available.")
+    if coupon.get("per_customer_limit") is not None:
+        identity_filters = []
+        if user and user.get("id"):
+            identity_filters.append({"user_id": user["id"]})
+        if email:
+            normalized_email = email.strip().lower()
+            identity_filters.append({
+                "customer.email": {"$regex": f"^{re.escape(normalized_email)}$", "$options": "i"}
+            })
+        used = await db.orders.count_documents({
+            "coupon_code": coupon["code"], "payment_status": "PAID", "$or": identity_filters
+        }) if identity_filters else 0
         if used >= coupon["per_customer_limit"]:
-            raise HTTPException(status_code=400, detail="You have already used this coupon")
+            raise _coupon_error("COUPON_ALREADY_USED", "This coupon has already been used on a previous order.")
     if coupon["type"] == "percentage":
         disc = subtotal * float(coupon["value"]) / 100
         if coupon.get("max_discount"):
@@ -220,14 +272,14 @@ async def _apply_coupon(code: str, subtotal: float, email: str | None):
 
 
 @router.post("/cart/validate")
-async def validate_cart(payload: ValidateCartInput):
+async def validate_cart(payload: ValidateCartInput, user: dict = Depends(get_optional_user)):
     settings = await get_settings()
     line_items, subtotal, total_mrp = await _price_items(payload.items)
     coupon_discount, applied = 0.0, None
     coupon_error = None
     if payload.coupon_code:
         try:
-            coupon_discount, applied = await _apply_coupon(payload.coupon_code, subtotal, payload.email)
+            coupon_discount, applied = await _apply_coupon(payload.coupon_code, subtotal, payload.email, user)
         except HTTPException as e:
             coupon_error = e.detail
     delivery = 0 if subtotal >= float(settings["free_shipping_threshold"]) else float(settings["delivery_charge"])
@@ -237,6 +289,7 @@ async def validate_cart(payload: ValidateCartInput):
         "product_discount": round(total_mrp - subtotal, 2),
         "delivery_charge": delivery, "coupon_discount": coupon_discount,
         "coupon_code": applied, "coupon_error": coupon_error,
+        "coupon_validation": coupon_error or ({"valid": True, "code": "COUPON_VALID"} if applied else None),
         "grand_total": grand_total, "currency": settings["currency"],
     }
 
@@ -245,7 +298,7 @@ async def validate_cart(payload: ValidateCartInput):
 async def create_order(payload: CreateOrderInput, request: Request, user: dict = Depends(get_optional_user)):
     settings = await get_settings()
     line_items, subtotal, total_mrp = await _price_items(payload.items)
-    coupon_discount, applied = await _apply_coupon(payload.coupon_code, subtotal, payload.customer.email) if payload.coupon_code else (0.0, None)
+    coupon_discount, applied = await _apply_coupon(payload.coupon_code, subtotal, payload.customer.email, user) if payload.coupon_code else (0.0, None)
     delivery = 0 if subtotal >= float(settings["free_shipping_threshold"]) else float(settings["delivery_charge"])
     grand_total = round(subtotal + delivery - coupon_discount, 2)
 
@@ -320,6 +373,22 @@ async def _finalize_paid(order: dict, payment_id: str, method: str = "cashfree")
     )
     if claim.matched_count != 1:
         return False
+    if order.get("coupon_code"):
+        try:
+            coupon_discount, applied = await _apply_coupon(
+                order["coupon_code"], order["subtotal"], order["customer"].get("email"),
+                {"id": order["user_id"]} if order.get("user_id") else None,
+            )
+            if applied != order["coupon_code"] or abs(coupon_discount - order.get("coupon_discount", 0)) > 0.005:
+                raise _coupon_error("COUPON_INVALID_AT_FINALIZATION", "The coupon is no longer valid for this order.")
+        except HTTPException as exc:
+            await db.orders.update_one(
+                {"id": order["id"], "payment_status": {"$ne": "PAID"}},
+                {"$set": {"payment_status": "FAILED", "order_status": "Payment Failed",
+                          "payment.coupon_validation_error": exc.detail},
+                 "$unset": {"payment.finalizing": ""}},
+            )
+            return False
     decremented = []
     for it in order["items"]:
         collection = db.combos if it.get("combo") else db.products
@@ -340,11 +409,16 @@ async def _finalize_paid(order: dict, payment_id: str, method: str = "cashfree")
         decremented.append((collection, it))
     if order.get("coupon_code"):
         await db.coupons.update_one({"code": order["coupon_code"]}, {"$inc": {"used_count": 1}})
-        await db.coupon_usage.insert_one({
-            "id": str(uuid.uuid4()), "code": order["coupon_code"],
-            "email": order["customer"]["email"].lower(), "order_id": order["id"],
-            "at": now_iso(),
-        })
+        try:
+            await db.coupon_usage.insert_one({
+                "id": str(uuid.uuid4()), "code": order["coupon_code"],
+                "user_id": order.get("user_id"),
+                "email": order["customer"]["email"].lower(), "order_id": order["id"],
+                "at": now_iso(),
+            })
+        except Exception as exc:
+            if exc.__class__.__name__ != "DuplicateKeyError":
+                raise
     payment_updates = {"payment.provider_payment_id": payment_id, "payment.method": method}
     if method == "cashfree":
         payment_updates["payment.cashfree_payment_id"] = payment_id
@@ -362,6 +436,73 @@ async def _finalize_paid(order: dict, payment_id: str, method: str = "cashfree")
     return True
 
 
+async def apply_verified_cashfree_payment_status(
+    order: dict, payment_status: str, payment_id: str | None = None
+):
+    """Apply a server-verified Cashfree result without allowing a paid order to regress."""
+    status = (payment_status or "").upper()
+    if status in {"SUCCESS", "PAID"}:
+        await _finalize_paid(order, payment_id or order["payment"]["cashfree_order_id"], "cashfree")
+        return
+
+    if status in CASHFREE_FAILED_PAYMENT_STATUSES:
+        internal_status, order_status = "FAILED", "Payment Failed"
+    else:
+        internal_status, order_status = "PENDING", "Payment Pending"
+
+    await db.orders.update_one(
+        {"id": order["id"], "payment_status": {"$nin": ["PAID", internal_status]}},
+        {"$set": {"payment_status": internal_status, "order_status": order_status},
+         "$push": {"status_history": {"status": order_status, "at": now_iso()}}},
+    )
+
+
+async def _verify_cashfree_order(cf_order_id: str):
+    order = await db.orders.find_one({"payment.cashfree_order_id": cf_order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="VIAURA order not found for Cashfree order")
+
+    provider_order = await _cashfree_request("GET", f"/orders/{cf_order_id}")
+    if (
+        provider_order.get("order_id") != cf_order_id
+        or not _amount_matches(provider_order.get("order_amount"), order["grand_total"])
+        or provider_order.get("order_currency") != order["currency"]
+    ):
+        raise HTTPException(status_code=400, detail="Cashfree order validation failed")
+
+    payment_response = await _cashfree_request("GET", f"/orders/{cf_order_id}/payments")
+    payments = payment_response if isinstance(payment_response, list) else payment_response.get("payments", [])
+    payment = _latest_cashfree_payment(payments)
+    payment_status = (payment or {}).get("payment_status", "").upper()
+    provider_status = provider_order.get("order_status", "").upper()
+
+    if payment_status in {"SUCCESS", "PAID"}:
+        payment_amount = payment.get("payment_amount", provider_order.get("order_amount"))
+        payment_currency = payment.get("payment_currency", provider_order.get("order_currency"))
+        if not _amount_matches(payment_amount, order["grand_total"]) or payment_currency != order["currency"]:
+            raise HTTPException(status_code=400, detail="Cashfree payment validation failed")
+        verified_status = payment_status
+    elif payment_status in CASHFREE_FAILED_PAYMENT_STATUSES:
+        verified_status = payment_status
+    elif not payment and provider_status in {"PAID", "EXPIRED", "TERMINATED"}:
+        verified_status = provider_status
+    else:
+        verified_status = payment_status or provider_status
+
+    await apply_verified_cashfree_payment_status(
+        order, verified_status, (payment or {}).get("cf_payment_id")
+    )
+    updated = await db.orders.find_one({"id": order["id"]}, {"_id": 0})
+    return {"status": updated["payment_status"].lower(), "order": updated}
+
+
+@router.post("/payments/cashfree/return")
+async def cashfree_return(payload: VerifyPaymentInput):
+    if not payload.order_id:
+        raise HTTPException(status_code=400, detail="Cashfree order reference is missing")
+    return await _verify_cashfree_order(payload.order_id)
+
+
 @router.post("/payments/verify")
 async def verify_payment(payload: VerifyPaymentInput):
     order = await db.orders.find_one({"id": payload.order_id})
@@ -371,23 +512,10 @@ async def verify_payment(payload: VerifyPaymentInput):
         cf_order_id = order.get("payment", {}).get("cashfree_order_id")
         if not cf_order_id:
             raise HTTPException(status_code=400, detail="Cashfree order reference is missing")
-        provider_order = await _cashfree_request("GET", f"/orders/{cf_order_id}")
-        if (
-            provider_order.get("order_id") != cf_order_id
-            or not _amount_matches(provider_order.get("order_amount"), order["grand_total"])
-            or provider_order.get("order_currency") != order["currency"]
-        ):
-            raise HTTPException(status_code=400, detail="Cashfree order validation failed")
-        provider_status = provider_order.get("order_status")
-        if provider_status == "PAID":
-            await _finalize_paid(order, cf_order_id, "cashfree")
-        elif provider_status in {"EXPIRED", "TERMINATED"}:
-            await db.orders.update_one({"id": order["id"], "payment_status": {"$ne": "PAID"}}, {"$set": {"payment_status": "FAILED"}})
-        updated = await db.orders.find_one({"id": order["id"]}, {"_id": 0})
-        return {"status": updated["payment_status"].lower(), "order": updated}
-    else:
-        # Mock mode: accept and mark paid
-        await _finalize_paid(order, f"mock_{uuid.uuid4().hex[:12]}", "mock")
+        return await _verify_cashfree_order(cf_order_id)
+
+    # Mock mode: accept and mark paid.
+    await _finalize_paid(order, f"mock_{uuid.uuid4().hex[:12]}", "mock")
     updated = await db.orders.find_one({"id": order["id"]}, {"_id": 0})
     return {"status": "success", "order": updated}
 
@@ -406,7 +534,6 @@ async def cashfree_webhook(request: Request):
     event_id = request.headers.get("x-webhook-id") or hashlib.sha256(body).hexdigest()
     if await db.webhook_events.find_one({"event_id": event_id}):
         return {"status": "duplicate_ignored"}
-    await db.webhook_events.insert_one({"event_id": event_id, "at": now_iso(), "event": payload.get("event")})
     event = payload.get("type", "")
     data = payload.get("data", {})
     provider_order = data.get("order", {})
@@ -414,13 +541,25 @@ async def cashfree_webhook(request: Request):
     cf_order_id = provider_order.get("order_id") or provider_payment.get("order_id")
     if cf_order_id:
         order = await db.orders.find_one({"payment.cashfree_order_id": cf_order_id})
-        if order:
-            payment_status = provider_payment.get("payment_status", "")
-            if payment_status == "SUCCESS" or (event == "PAYMENT_SUCCESS_WEBHOOK" and not payment_status):
-                if _amount_matches(provider_order.get("order_amount"), order["grand_total"]):
-                    await _finalize_paid(order, provider_payment.get("cf_payment_id", cf_order_id), "cashfree")
-            elif payment_status in {"FAILED", "USER_DROPPED", "CANCELLED", "VOID"}:
-                await db.orders.update_one({"id": order["id"], "payment_status": {"$ne": "PAID"}}, {"$set": {"payment_status": "FAILED"}})
+        if not order:
+            raise HTTPException(status_code=503, detail="VIAURA order is not available yet")
+
+        payment_status = provider_payment.get("payment_status", "").upper()
+        if payment_status in {"SUCCESS", "PAID"} or (event == "PAYMENT_SUCCESS_WEBHOOK" and not payment_status):
+            payment_amount = provider_payment.get("payment_amount", provider_order.get("order_amount"))
+            payment_currency = provider_payment.get("payment_currency", provider_order.get("order_currency"))
+            if (
+                not _amount_matches(payment_amount, order["grand_total"])
+                or (payment_currency and payment_currency != order["currency"])
+            ):
+                raise HTTPException(status_code=400, detail="Cashfree payment validation failed")
+            await apply_verified_cashfree_payment_status(
+                order, "SUCCESS", provider_payment.get("cf_payment_id", cf_order_id)
+            )
+        else:
+            await apply_verified_cashfree_payment_status(order, payment_status)
+
+        await db.webhook_events.insert_one({"event_id": event_id, "at": now_iso(), "event": payload.get("event")})
     return {"status": "processed"}
 
 

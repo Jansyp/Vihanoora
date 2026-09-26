@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Star, Truck, ShieldCheck, RefreshCw, Instagram } from "lucide-react";
-import api, { formatINR } from "@/lib/api";
+import { Star, Truck, ShieldCheck, RefreshCw, Instagram, CheckCircle2, CircleAlert, X } from "lucide-react";
+import { toast } from "sonner";
+import api, { formatINR, subscribeToNewsletter } from "@/lib/api";
 import FeaturedProductHero from "@/components/FeaturedProductHero";
 import CategoryTiles from "@/components/CategoryTiles";
 import { useSettings } from "@/context/SettingsContext";
@@ -27,8 +28,64 @@ const DEFAULT_ORDER = [
   { key: "newsletter", enabled: true, order: 9 },
 ];
 
+const currentBrandCopy = (value, fallback) => (value || fallback)
+  .replace(/\bJAVE(?: HOUSE)?\b/gi, "Viaura")
+  .replace(/\bVIHAANORA\b/gi, "Viaura");
+
+const showNewsletterToast = (message, type = "success") => {
+  toast.custom((toastId) => (
+    <div
+      role={type === "error" ? "alert" : "status"}
+      aria-live="polite"
+      className="flex w-[min(calc(100vw-2rem),28rem)] items-start gap-3 rounded-2xl border border-[var(--brand)]/25 bg-[#fffaf7] p-4 text-[var(--ink)] shadow-[0_16px_45px_rgba(73,45,48,0.2)]"
+    >
+      {type === "success" ? (
+        <CheckCircle2 className="mt-0.5 shrink-0 text-[var(--brand)]" size={22} aria-hidden="true" />
+      ) : (
+        <CircleAlert className="mt-0.5 shrink-0 text-[var(--brand)]" size={22} aria-hidden="true" />
+      )}
+      <p className="flex-1 text-left text-sm leading-relaxed">{message}</p>
+      <button
+        type="button"
+        onClick={() => toast.dismiss(toastId)}
+        aria-label="Close notification"
+        className="shrink-0 rounded-full p-1 text-[var(--ink-soft)] transition-colors hover:bg-[var(--brand)]/10 hover:text-[var(--ink)]"
+      >
+        <X size={17} aria-hidden="true" />
+      </button>
+    </div>
+  ), { duration: 4500, position: "top-center" });
+};
+
 export default function Home() {
   const { settings } = useSettings();
+  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [newsletterSubmitting, setNewsletterSubmitting] = useState(false);
+
+  const submitNewsletter = async (event) => {
+    event.preventDefault();
+    const email = newsletterEmail.trim();
+
+    if (!email) {
+      showNewsletterToast("Please enter your email address.", "error");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showNewsletterToast("Please enter a valid email address.", "error");
+      return;
+    }
+
+    setNewsletterSubmitting(true);
+    try {
+      const { data } = await subscribeToNewsletter(email);
+      showNewsletterToast(data.message, "success");
+      setNewsletterEmail("");
+    } catch {
+      showNewsletterToast("Something went wrong. Please try again.", "error");
+    } finally {
+      setNewsletterSubmitting(false);
+    }
+  };
   const [data, setData] = useState({});
   const [combos, setCombos] = useState([]);
   const [offer, setOffer] = useState({ items: [], max_discount: 0 });
@@ -155,11 +212,26 @@ export default function Home() {
     newsletter: (c) => (
       <Section key="newsletter">
         <div className="rounded-[2rem] bg-[var(--ink)] text-white p-10 sm:p-14 text-center">
-          <h3 className="font-serif text-3xl sm:text-4xl font-semibold">{c.title || "Join the Viaura fam ✨"}</h3>
+          <h3 className="font-serif text-3xl sm:text-4xl font-semibold">{currentBrandCopy(c.title, "Join the Viaura fam ✨")}</h3>
           <p className="mt-3 text-white/70 max-w-md mx-auto">{c.subtitle || "Get early access to drops, flash deals & gifting inspo on WhatsApp."}</p>
-          <form onSubmit={(e) => e.preventDefault()} className="mt-6 flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-            <input data-testid="newsletter-email" placeholder="your@email.com" className="flex-1 px-5 py-3.5 rounded-full text-[var(--ink)] outline-none" />
-            <button className="px-7 py-3.5 rounded-full bg-[var(--brand)] font-medium hover:bg-[var(--brand-hover)] transition-colors">Subscribe</button>
+          <form onSubmit={submitNewsletter} className="mt-6 flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+            <input
+              data-testid="newsletter-email"
+              type="text"
+              inputMode="email"
+              autoComplete="email"
+              value={newsletterEmail}
+              onChange={(event) => setNewsletterEmail(event.target.value)}
+              placeholder="your@email.com"
+              className="flex-1 px-5 py-3.5 rounded-full text-[var(--ink)] outline-none"
+            />
+            <button
+              type="submit"
+              disabled={newsletterSubmitting}
+              className="px-7 py-3.5 rounded-full bg-[var(--brand)] font-medium hover:bg-[var(--brand-hover)] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {newsletterSubmitting ? "Subscribing..." : "Subscribe"}
+            </button>
           </form>
         </div>
       </Section>

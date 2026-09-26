@@ -11,7 +11,7 @@ export default function CartPage() {
   const nav = useNavigate();
   const [summary, setSummary] = useState(null);
   const [coupon, setCoupon] = useState(couponCode || "");
-  const [applied, setApplied] = useState(couponCode || "");
+  const [applied, setApplied] = useState("");
 
   const validate = useCallback(async (code) => {
     if (items.length === 0) { setSummary(null); return; }
@@ -21,8 +21,9 @@ export default function CartPage() {
       setSummary(data);
       if (data.coupon_error) {
         setApplied("");
+        setCoupon("");
         setCouponCode("");
-        toast.error(data.coupon_error);
+        toast.error(formatApiError(data.coupon_error));
       } else if (data.coupon_code) {
         setApplied(data.coupon_code);
         setCoupon(data.coupon_code);
@@ -32,9 +33,9 @@ export default function CartPage() {
         setCouponCode("");
       }
     } catch (e) { toast.error(formatApiError(e.response?.data?.detail)); }
-  }, [items]);
+  }, [items, setCouponCode]);
 
-  useEffect(() => { validate(applied); }, [validate]); // eslint-disable-line
+  useEffect(() => { validate(couponCode); }, [validate, couponCode]);
 
   if (items.length === 0) {
     return (

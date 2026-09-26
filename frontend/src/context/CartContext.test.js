@@ -1,4 +1,20 @@
-import { removePurchasedQuantities } from "./CartContext";
+import { removePurchasedQuantities, resolveCartVariant } from "./CartContext";
+
+describe("resolveCartVariant", () => {
+  test("uses the first available colour by default", () => {
+    expect(resolveCartVariant({ colors: ["Pink", "Blue", "Green"] })).toBe("Pink");
+  });
+
+  test("preserves an explicitly selected colour", () => {
+    expect(resolveCartVariant({ colors: ["Pink", "Blue"] }, "Blue")).toBe("Blue");
+  });
+
+  test("uses the sole colour and leaves colourless products unset", () => {
+    expect(resolveCartVariant({ colors: ["Black"] })).toBe("Black");
+    expect(resolveCartVariant({ colors: [] })).toBeNull();
+    expect(resolveCartVariant({})).toBeNull();
+  });
+});
 
 describe("removePurchasedQuantities", () => {
   test("removes purchased items while preserving unrelated cart items", () => {

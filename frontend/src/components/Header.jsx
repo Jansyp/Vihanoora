@@ -42,6 +42,11 @@ export default function Header() {
     if (q.trim()) { nav(`/search?q=${encodeURIComponent(q.trim())}`); setOpen(false); }
   };
 
+  const goToAccount = (e) => {
+    e.preventDefault();
+    nav(user ? "/account" : "/login");
+  };
+
   const announce = anns.length > 0 ? anns[annIdx % anns.length]?.text : null;
 
   return (
@@ -84,7 +89,7 @@ export default function Header() {
                 <ShoppingBag size={20} />
                 {count > 0 && <Badge>{count}</Badge>}
               </Link>
-              <Link to={user ? "/account" : "/login"} data-testid="account-nav" className="p-2" aria-label="account">
+              <Link to={user ? "/account" : "/login"} onClick={goToAccount} data-testid="account-nav" className="p-2" aria-label="account">
                 <User size={20} />
               </Link>
               <button className="lg:hidden p-2" onClick={() => setOpen(true)} data-testid="mobile-menu-btn" aria-label="menu">
@@ -119,7 +124,7 @@ export default function Header() {
                 </Link>
               ))}
               <Link to="/track" onClick={() => setOpen(false)} className="py-3 px-3 rounded-xl text-[var(--ink)] font-medium hover:bg-[var(--blush)]">Track Order</Link>
-              <Link to={user ? "/account" : "/login"} onClick={() => setOpen(false)} className="py-3 px-3 rounded-xl text-[var(--ink)] font-medium hover:bg-[var(--blush)]">
+              <Link to={user ? "/account" : "/login"} onClick={(e) => { goToAccount(e); setOpen(false); }} className="py-3 px-3 rounded-xl text-[var(--ink)] font-medium hover:bg-[var(--blush)]">
                 {user ? "My Account" : "Login / Register"}
               </Link>
             </nav>

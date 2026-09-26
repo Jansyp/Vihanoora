@@ -478,9 +478,10 @@ async def shipping_labels(order_ids: str):
     missing = [order_id for order_id in ids if order_id not in by_id]
     if missing:
         raise HTTPException(status_code=404, detail="One or more orders were not found")
-    invalid_status = [order["order_number"] for order in (by_id[order_id] for order_id in ids) if order.get("order_status") != "Packed"]
+    invalid_status = [order["order_number"] for order in (by_id[order_id] for order_id in ids)
+                      if order.get("order_status") != "Packed" or order.get("payment_status") != "PAID"]
     if invalid_status:
-        raise HTTPException(status_code=400, detail="Labels are available only for packed orders")
+        raise HTTPException(status_code=400, detail="Labels are available only for paid, packed orders")
     settings = await get_settings()
     return {"labels": [_shipping_label_data(by_id[order_id], settings) for order_id in ids]}
 
@@ -507,6 +508,11 @@ async def admin_order(order_id: str):
 async def update_order_status(order_id: str, payload: OrderStatusInput):
     if payload.order_status not in ORDER_FLOW:
         raise HTTPException(status_code=400, detail="Invalid status")
+    order = await db.orders.find_one({"id": order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    if order.get("payment_status") != "PAID" and payload.order_status in {"Processing", "Packed", "Shipped", "Out for Delivery", "Delivered"}:
+        raise HTTPException(status_code=400, detail="Unpaid orders cannot be fulfilled")
     await db.orders.update_one(
         {"id": order_id},
         {"$set": {"order_status": payload.order_status},
@@ -524,6 +530,8 @@ async def add_shipping(order_id: str, payload: ShippingInput):
     order = await db.orders.find_one({"id": order_id})
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
+    if order.get("payment_status") != "PAID":
+        raise HTTPException(status_code=400, detail="Unpaid orders cannot be shipped")
     shipping = {"courier": payload.courier, "awb": payload.awb, "tracking_url": payload.tracking_url,
                 "shipping_date": payload.shipping_date, "expected_delivery": payload.expected_delivery}
     await db.orders.update_one(

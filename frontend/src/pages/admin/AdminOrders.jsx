@@ -35,7 +35,7 @@ export default function AdminOrders() {
   };
 
   const hasDeliveryInfo = (order) => Boolean(order.customer?.name && order.customer?.address && order.customer?.city && order.customer?.state && order.customer?.pin);
-  const packedOrders = orders.filter((order) => order.order_status === "Packed" && hasDeliveryInfo(order));
+  const packedOrders = orders.filter((order) => order.payment_status === "PAID" && order.order_status === "Packed" && hasDeliveryInfo(order));
   const toggleSelected = (orderId) => setSelectedIds((current) => current.includes(orderId) ? current.filter((id) => id !== orderId) : [...current, orderId]);
   const printLabels = (ids) => {
     if (!ids.length) { toast.error("Select at least one packed order with delivery information."); return; }
@@ -122,6 +122,7 @@ export default function AdminOrders() {
               <div className="flex flex-wrap gap-2">
                 {STATUSES.map((s) => (
                   <button key={s} data-testid={`set-status-${s.replace(/\s/g, "-")}`} onClick={() => updateStatus(s)}
+                    disabled={sel.payment_status !== "PAID" && ["Processing", "Packed", "Shipped", "Out for Delivery", "Delivered"].includes(s)}
                     className={`px-3 py-1.5 rounded-full text-xs font-medium ${sel.order_status === s ? "bg-[var(--brand)] text-white" : "bg-[var(--card-2)]"}`}>{s}</button>
                 ))}
               </div>
@@ -142,7 +143,7 @@ export default function AdminOrders() {
               </div>
               <div className="flex gap-2 mt-4">
                 {sel.order_status === "Packed" && hasDeliveryInfo(sel) && <button onClick={() => printLabels([sel.id])} className="flex-1 py-3 rounded-full bg-white border border-[var(--ink)] text-[var(--ink)] font-medium text-sm">Print Shipping Label</button>}
-                <button data-testid="save-shipping-btn" onClick={saveShipping} className="flex-1 py-3 rounded-full bg-[var(--ink)] text-white font-medium text-sm">Save & Mark Shipped</button>
+                <button data-testid="save-shipping-btn" disabled={sel.payment_status !== "PAID"} onClick={saveShipping} className="flex-1 py-3 rounded-full bg-[var(--ink)] text-white font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed">Save & Mark Shipped</button>
               </div>
             </div>
           </div>

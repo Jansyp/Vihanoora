@@ -36,7 +36,10 @@ async def startup():
     await db.products.create_index("sku", unique=True)
     await db.products.create_index("group")
     await db.orders.create_index("order_number", unique=True)
+    await db.newsletter_subscribers.create_index("email", unique=True)
     await db.combos.create_index("slug")
+    await db.coupon_usage.create_index("order_id", unique=True, sparse=True)
+    await db.orders.create_index("payment.cashfree_order_id", unique=True, sparse=True)
     await seed()
     try:
         from storage import init_storage

@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigationType, useParams, useSearchParams } from "react-router-dom";
 import { SlidersHorizontal, X } from "lucide-react";
 import api from "@/lib/api";
 import { Section, ProductGrid, GridSkeleton } from "@/components/common";
@@ -24,6 +24,8 @@ const SORTS = [
 const DISCOUNTS = [0, 10, 20, 30, 40, 50];
 export default function CategoryPage({ type, group: groupProp }) {
   const params = useParams();
+  const location = useLocation();
+  const navigationType = useNavigationType();
   const [sp, setSp] = useSearchParams();
   const q = sp.get("q") || "";
   const group = type === "group" ? (groupProp || params.group) : null;
@@ -41,6 +43,63 @@ export default function CategoryPage({ type, group: groupProp }) {
   const minDiscount = Number(sp.get("min_discount") || 0);
   const maxPrice = Number(sp.get("max_price") || 5000);
   const subcat = sp.get("category") || "";
+  const scrollKey = `viaura:listing-scroll:${location.pathname}${location.search}`;
+  const savedScrollPosition = Number(sessionStorage.getItem(scrollKey));
+  const shouldRestoreScroll = navigationType === "POP" && Number.isFinite(savedScrollPosition) && savedScrollPosition > 0;
+  const [reserveRestoreSpace, setReserveRestoreSpace] = useState(shouldRestoreScroll);
+  const restoredKey = useRef(null);
+  const suppressScrollSave = useRef(shouldRestoreScroll);
+  const suppressionKey = useRef(scrollKey);
+
+  if (suppressionKey.current !== scrollKey) {
+    suppressionKey.current = scrollKey;
+    suppressScrollSave.current = shouldRestoreScroll;
+  }
+
+  useLayoutEffect(() => {
+    if (!shouldRestoreScroll) setReserveRestoreSpace(false);
+  }, [scrollKey, shouldRestoreScroll]);
+
+  useEffect(() => {
+    const saveScrollPosition = () => {
+      if (suppressScrollSave.current) return;
+      sessionStorage.setItem(scrollKey, String(window.scrollY));
+    };
+    window.addEventListener("scroll", saveScrollPosition, { passive: true });
+    return () => window.removeEventListener("scroll", saveScrollPosition);
+  }, [scrollKey]);
+
+  useLayoutEffect(() => {
+    if (!shouldRestoreScroll || loading || restoredKey.current === scrollKey) return undefined;
+
+    let frame;
+    let attempts = 0;
+    let lastHeight = 0;
+    let stableFrames = 0;
+
+    const restore = () => {
+      const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+      if (maxScroll >= savedScrollPosition || stableFrames >= 5 || attempts >= 60) {
+        window.scrollTo(0, Math.min(savedScrollPosition, maxScroll));
+        if (!loading) {
+          sessionStorage.setItem(scrollKey, String(Math.min(savedScrollPosition, maxScroll)));
+          suppressScrollSave.current = false;
+          restoredKey.current = scrollKey;
+          setReserveRestoreSpace(false);
+        }
+        return;
+      }
+
+      const currentHeight = document.documentElement.scrollHeight;
+      stableFrames = currentHeight === lastHeight ? stableFrames + 1 : 0;
+      lastHeight = currentHeight;
+      attempts += 1;
+      frame = requestAnimationFrame(restore);
+    };
+
+    frame = requestAnimationFrame(restore);
+    return () => cancelAnimationFrame(frame);
+  }, [loading, savedScrollPosition, scrollKey, shouldRestoreScroll]);
 
   useEffect(() => {
     api.get("/categories")
@@ -84,6 +143,7 @@ export default function CategoryPage({ type, group: groupProp }) {
 
   return (
     <Section>
+      <div style={reserveRestoreSpace ? { minHeight: `calc(${savedScrollPosition}px + 100vh)` } : undefined}>
       <div className="mb-6">
         <h1 className="font-serif text-3xl sm:text-4xl font-semibold text-[var(--ink)]">{type === "search" ? `Search: "${q}"` : title}</h1>
         {subtitle && <p className="text-[var(--ink-soft)] mt-1">{subtitle}</p>}
@@ -159,6 +219,7 @@ export default function CategoryPage({ type, group: groupProp }) {
           <p className="text-sm mt-1">Try adjusting your filters.</p>
         </div>
       ) : <ProductGrid products={items} />}
+      </div>
     </Section>
   );
 }

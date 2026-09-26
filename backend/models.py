@@ -165,6 +165,10 @@ class AddressInput(BaseModel):
     is_default: bool = False
 
 
+class NewsletterSubscribeInput(BaseModel):
+    email: EmailStr
+
+
 class SettingsInput(BaseModel):
     store_name: Optional[str] = None
     tagline: Optional[str] = None

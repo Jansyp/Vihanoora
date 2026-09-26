@@ -165,6 +165,7 @@ class TestCart:
             assert d["coupon_discount"] > 0
             assert d["coupon_discount"] <= 150  # max cap
             assert d["coupon_error"] is None
+            assert d["coupon_validation"] == {"valid": True, "code": "COUPON_VALID"}
 
     def test_coupon_invalid(self, s, a_product):
         body = {"items": [{"product_id": a_product["id"], "qty": 1}],
@@ -186,7 +187,8 @@ class TestCart:
         d = r2.json()
         if d["subtotal"] < 1499:
             assert d["coupon_error"] is not None
-            assert "Minimum" in d["coupon_error"] or "minimum" in d["coupon_error"].lower()
+            assert d["coupon_error"]["code"] == "COUPON_MINIMUM_ORDER_NOT_MET"
+            assert "Add ₹" in d["coupon_error"]["message"]
 
 
 # ---------------- Guest order + mock payment ----------------

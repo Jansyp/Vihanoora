@@ -18,6 +18,8 @@ export const removePurchasedQuantities = (items, purchasedItems) => items.map((i
   return { ...item, qty: item.qty - purchased.qty };
 }).filter((item) => item.qty > 0);
 
+export const resolveCartVariant = (product, variant = null) => variant || product.colors?.[0] || null;
+
 export function CartProvider({ children }) {
   const [items, setItems] = useState(() => load("jh_cart", []));
   const [wishlist, setWishlist] = useState(() => load("jh_wishlist", []));
@@ -28,14 +30,19 @@ export function CartProvider({ children }) {
   useEffect(() => { localStorage.setItem("jh_coupon_code", couponCode || ""); }, [couponCode]);
 
   const addToCart = (product, qty = 1, variant = null, combo = false) => {
+    const selectedVariant = resolveCartVariant(product, variant);
     setItems((prev) => {
-      const key = product.id + (variant || "");
-      const exists = prev.find((i) => i.key === key);
+      const exists = prev.find((i) =>
+        i.product_id === product.id &&
+        Boolean(i.combo) === Boolean(combo) &&
+        (i.variant || null) === selectedVariant
+      );
       if (exists) {
-        return prev.map((i) => (i.key === key ? { ...i, qty: i.qty + qty } : i));
+        return prev.map((i) => (i.key === exists.key ? { ...i, qty: i.qty + qty } : i));
       }
+      const key = `${product.id}:${combo ? "combo" : "product"}:${selectedVariant || ""}`;
       return [...prev, {
-        key, product_id: product.id, name: product.name, variant, combo, qty,
+        key, product_id: product.id, name: product.name, variant: selectedVariant, combo, qty,
         image: (product.images || [])[0] || product.image,
         mrp: product.mrp, price: combo ? product.combo_price : product.effective_price,
         slug: product.slug,

@@ -42,7 +42,7 @@ export default function CheckoutPage() {
     if (data.coupon_error) {
       setCoupon("");
       setCouponCode("");
-      toast.error(data.coupon_error);
+      toast.error(formatApiError(data.coupon_error));
     } else if (data.coupon_code) {
       setCoupon(data.coupon_code);
       setCouponCode(data.coupon_code);
@@ -148,7 +148,7 @@ export default function CheckoutPage() {
               </div>
             ))}
           </div>
-          {couponCode ? <div className="flex items-center justify-between gap-3 mb-4 px-3 py-2.5 rounded-full bg-[var(--card-2)] text-sm"><span>Coupon <b>{couponCode}</b> ✓</span><button onClick={() => { setCoupon(""); setCouponCode(""); revalidate(""); }} className="text-[var(--ink-soft)] underline">Remove</button></div> : <div className="flex gap-2 mb-4"><input data-testid="checkout-coupon" value={coupon} onChange={(e) => setCoupon(e.target.value.toUpperCase())} placeholder="Coupon" className="flex-1 px-3 py-2.5 rounded-full bg-[var(--card-2)] outline-none text-sm" /><button onClick={() => revalidate(coupon)} className="px-4 py-2.5 rounded-full bg-[var(--ink)] text-white text-sm">Apply</button></div>}
+          {summary?.coupon_code ? <div className="flex items-center justify-between gap-3 mb-4 px-3 py-2.5 rounded-full bg-[var(--card-2)] text-sm"><span>Coupon <b>{summary.coupon_code}</b> ✓</span><button onClick={() => { setCoupon(""); setCouponCode(""); revalidate(""); }} className="text-[var(--ink-soft)] underline">Remove</button></div> : <div className="flex gap-2 mb-4"><input data-testid="checkout-coupon" value={coupon} onChange={(e) => setCoupon(e.target.value.toUpperCase())} placeholder="Coupon" className="flex-1 px-3 py-2.5 rounded-full bg-[var(--card-2)] outline-none text-sm" /><button onClick={() => revalidate(coupon)} className="px-4 py-2.5 rounded-full bg-[var(--ink)] text-white text-sm">Apply</button></div>}
           {summary && (
             <div className="space-y-2 text-sm border-t border-[var(--line)] pt-3">
               <div className="flex justify-between"><span className="text-[var(--ink-soft)]">Subtotal</span><span>{formatINR(summary.subtotal)}</span></div>

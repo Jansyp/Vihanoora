@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Heart, ShoppingBag, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import { assetUrl, formatINR } from "@/lib/api";
@@ -7,6 +7,7 @@ import { useCart } from "@/context/CartContext";
 
 export default function ProductCard({ product, index = 0 }) {
   const nav = useNavigate();
+  const location = useLocation();
   const { addToCart, toggleWishlist, inWishlist } = useCart();
   const ref = useRef(null);
   const [tilt, setTilt] = useState({ rx: 0, ry: 0 });
@@ -23,6 +24,10 @@ export default function ProductCard({ product, index = 0 }) {
   const disc = product.discount_percent || 0;
   const wished = inWishlist(product.id);
   const oos = product.stock_state === "Out of Stock";
+  const rememberListingScroll = () => {
+    if (!["/women", "/kids", "/gifts", "/trending", "/offer-zone", "/search"].includes(location.pathname)) return;
+    sessionStorage.setItem(`viaura:listing-scroll:${location.pathname}${location.search}`, String(window.scrollY));
+  };
 
   return (
     <motion.div
@@ -37,7 +42,7 @@ export default function ProductCard({ product, index = 0 }) {
       style={{ transform: `perspective(900px) rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg)` }}
       className="tilt-card group relative bg-white rounded-3xl soft-shadow hover-shadow overflow-hidden border border-[var(--line)]"
     >
-      <Link to={`/product/${product.slug}`} className="block">
+      <Link to={`/product/${product.slug}`} onClick={rememberListingScroll} className="block">
         <div className="relative aspect-square overflow-hidden bg-[var(--card-2)]">
             <img
             src={assetUrl(product.images?.[0])}
@@ -87,7 +92,7 @@ export default function ProductCard({ product, index = 0 }) {
             <span className="text-xs font-medium text-[var(--ink-soft)]">{product.rating} ({product.review_count})</span>
           </div>
         )}
-        <Link to={`/product/${product.slug}`}>
+        <Link to={`/product/${product.slug}`} onClick={rememberListingScroll}>
           <h3 className="text-sm font-semibold text-[var(--ink)] leading-snug line-clamp-2 min-h-[2.5rem] hover:text-[var(--brand)] transition-colors">
             {product.name}
           </h3>
