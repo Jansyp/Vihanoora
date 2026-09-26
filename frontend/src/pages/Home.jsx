@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Star, Truck, ShieldCheck, RefreshCw, Instagram, CheckCircle2, CircleAlert, X } from "lucide-react";
 import { toast } from "sonner";
-import api, { formatINR, subscribeToNewsletter } from "@/lib/api";
+import api, { assetUrl, formatINR, subscribeToNewsletter } from "@/lib/api";
 import FeaturedProductHero from "@/components/FeaturedProductHero";
 import CategoryTiles from "@/components/CategoryTiles";
 import { useSettings } from "@/context/SettingsContext";
@@ -31,6 +31,9 @@ const DEFAULT_ORDER = [
 const currentBrandCopy = (value, fallback) => (value || fallback)
   .replace(/\bJAVE(?: HOUSE)?\b/gi, "Viaura")
   .replace(/\bVIHAANORA\b/gi, "Viaura");
+
+const instagramBrandCopy = (value, fallback) => (value || fallback)
+  .replace(/\bVIHH?AANORA\b/gi, "VIAURA");
 
 const showNewsletterToast = (message, type = "success") => {
   toast.custom((toastId) => (
@@ -178,11 +181,11 @@ export default function Home() {
     ),
     instagram: (c) => (
       <Section key="instagram">
-        <SectionHeader subtitle={c.subtitle || "@Viaura"} title={c.title || "Viaura on Instagram"} to="/instagram" cta="Follow us" />
+        <SectionHeader subtitle={instagramBrandCopy(c.subtitle, "@VIAURA")} title={instagramBrandCopy(c.title, "VIAURA on Instagram")} to="/instagram" cta="Follow us" />
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {(offer.items || []).concat(data.trend || []).slice(0, 6).map((p, i) => (
             <Link key={i} to={`/product/${p.slug}`} className="relative aspect-square rounded-2xl overflow-hidden group">
-              <img src={p.images?.[0]} alt={p.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+              <img src={assetUrl(p.images?.[0])} alt={p.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
                 <Instagram size={22} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
