@@ -7,7 +7,7 @@ import { toast } from "sonner";
 
 const BLANK = {
   name: "", group: "women", category: "Uncategorized", description: "", details: "", material: "",
-  mrp: 0, selling_price: 0, stock: 0, low_stock_threshold: 5, images: [], product_video_url: "", product_video_filename: "", colors: [], color_images: {},
+  mrp: 0, selling_price: 0, buying_price: "", stock: 0, low_stock_threshold: 5, images: [], product_video_url: "", product_video_filename: "", colors: [], color_images: {},
   weight: "", dimensions: "", trending: false, best_seller: false, new_arrival: false,
   featured: false, giftable: false, active: true, flash_price: null, flash_start: null, flash_end: null,
 };
@@ -68,6 +68,7 @@ export default function AdminProducts() {
       colors,
       color_images: Object.fromEntries(colors.map((color) => [color, form.color_images?.[color] || []])),
       mrp: Number(form.mrp), selling_price: Number(form.selling_price), stock: Number(form.stock), low_stock_threshold: Number(form.low_stock_threshold),
+      buying_price: form.buying_price === "" || form.buying_price == null ? null : Number(form.buying_price),
     };
     delete payload.sku;
     if (!payload.flash_price) { payload.flash_price = null; payload.flash_start = null; payload.flash_end = null; }
@@ -100,9 +101,9 @@ export default function AdminProducts() {
       </div>
 
       <div className="bg-white rounded-2xl border border-[var(--line)] overflow-hidden overflow-x-auto">
-        <table className="w-full text-sm min-w-[640px]">
+        <table className="w-full text-sm min-w-[1120px]">
           <thead className="bg-[var(--card-2)] text-left">
-            <tr>{["Product", "SKU", "Group", "Price", "Stock", "Disc", ""].map((h) => <th key={h} className="px-4 py-3 font-semibold text-xs">{h}</th>)}</tr>
+            <tr>{["Product", "SKU", "Group", "Buying Price", "MRP", "Selling Price", "Unit Profit", "Sold", "Stock", "Disc", ""].map((h) => <th key={h} className="px-4 py-3 font-semibold text-xs">{h}</th>)}</tr>
           </thead>
           <tbody>
             {products.map((p) => (
@@ -110,7 +111,11 @@ export default function AdminProducts() {
                 <td className="px-4 py-3"><div className="flex items-center gap-2"><img src={assetUrl(p.images?.[0])} alt="" className="w-9 h-9 rounded-lg object-cover" /><span className="font-medium line-clamp-1">{p.name}</span></div></td>
                 <td className="px-4 py-3 text-[var(--ink-soft)] text-xs">{p.sku}</td>
                 <td className="px-4 py-3 capitalize">{p.group} · {p.category}</td>
-                <td className="px-4 py-3">{formatINR(p.effective_price)}</td>
+                <td className="px-4 py-3">{p.buying_price == null ? "—" : formatINR(p.buying_price)}</td>
+                <td className="px-4 py-3">{formatINR(p.mrp)}</td>
+                <td className="px-4 py-3">{formatINR(p.selling_price)}{p.flash_active && <span className="block text-xs text-[var(--brand)]">Flash: {formatINR(p.effective_price)}</span>}</td>
+                <td className="px-4 py-3 font-medium">{p.buying_price == null ? "—" : formatINR(p.effective_price - p.buying_price)}</td>
+                <td className="px-4 py-3">{p.sold_count || 0}</td>
                 <td className="px-4 py-3"><span className={p.stock === 0 ? "text-destructive font-semibold" : p.stock <= p.low_stock_threshold ? "text-[var(--amber)] font-semibold" : ""}>{p.stock}</span></td>
                 <td className="px-4 py-3">{p.discount_percent}%</td>
                 <td className="px-4 py-3"><div className="flex gap-2">
@@ -153,6 +158,13 @@ export default function AdminProducts() {
               </div>
               <Field label="MRP" v={form.mrp} on={(x) => setForm({ ...form, mrp: x })} type="number" />
               <Field label="Selling Price" v={form.selling_price} on={(x) => setForm({ ...form, selling_price: x })} type="number" />
+              <div>
+                <label className="text-xs font-semibold">Buying Price</label>
+                <input type="number" min="0" step="0.01" value={form.buying_price ?? ""}
+                  onChange={(e) => setForm({ ...form, buying_price: e.target.value })}
+                  className="w-full mt-1 px-3 py-2.5 rounded-xl bg-[var(--card-2)] outline-none text-sm" />
+                <p className="text-xs text-[var(--ink-soft)] mt-1">Private — supplier/purchase cost.</p>
+              </div>
               <Field label="Stock" v={form.stock} on={(x) => setForm({ ...form, stock: x })} type="number" />
               <Field label="Low Stock Alert" v={form.low_stock_threshold} on={(x) => setForm({ ...form, low_stock_threshold: x })} type="number" />
               <div className="sm:col-span-2"><ImageUploader label="Fallback Images (for products without color images)" images={form.images} onChange={(imgs) => setForm({ ...form, images: imgs })} /></div>

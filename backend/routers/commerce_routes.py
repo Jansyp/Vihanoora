@@ -176,7 +176,101 @@ def _latest_cashfree_payment(payments: list[dict]) -> dict | None:
     return max(payments, key=lambda payment: payment.get("payment_time") or "")
 
 
-async def _price_items(items: list[CartItemIn]):
+def _cost_or_none(value):
+    if value is None:
+        return None
+    try:
+        cost = float(value)
+    except (TypeError, ValueError):
+        return None
+    return cost if cost >= 0 else None
+
+
+async def _combo_cost_snapshot(combo: dict):
+    product_ids = combo.get("product_ids") or []
+    if not product_ids:
+        return None, []
+    products = await db.products.find(
+        {"id": {"$in": product_ids}}, {"_id": 0, "id": 1, "name": 1, "buying_price": 1}
+    ).to_list(len(product_ids))
+    product_map = {product["id"]: product for product in products}
+    components = []
+    for product_id in product_ids:
+        product = product_map.get(product_id) or {}
+        components.append({
+            "product_id": product_id,
+            "name": product.get("name", "Product unavailable"),
+            "buying_price_at_purchase": _cost_or_none(product.get("buying_price")),
+        })
+    if any(component["buying_price_at_purchase"] is None for component in components):
+        return None, components
+    return round(sum(component["buying_price_at_purchase"] for component in components), 2), components
+
+
+def _snapshot_order_profit(line_items: list[dict], coupon_discount: float) -> dict:
+    line_revenues = [round(float(item["unit_price"]) * int(item["qty"]), 2) for item in line_items]
+    revenue_before_coupon = round(sum(line_revenues), 2)
+    discount_to_allocate = min(max(round(float(coupon_discount or 0), 2), 0), revenue_before_coupon)
+    allocated = 0.0
+    for index, (item, item_revenue) in enumerate(zip(line_items, line_revenues)):
+        if index == len(line_items) - 1:
+            item_coupon_discount = round(discount_to_allocate - allocated, 2)
+        elif revenue_before_coupon > 0:
+            item_coupon_discount = round(discount_to_allocate * item_revenue / revenue_before_coupon, 2)
+        else:
+            item_coupon_discount = 0.0
+        item_coupon_discount = min(max(item_coupon_discount, 0), discount_to_allocate - allocated)
+        allocated = round(allocated + item_coupon_discount, 2)
+        actual_item_revenue = round(item_revenue - item_coupon_discount, 2)
+        unit_cost = _cost_or_none(item.get("buying_price_at_purchase"))
+        item_cost = round(unit_cost * int(item["qty"]), 2) if unit_cost is not None else None
+        item.update({
+            "item_revenue": item_revenue,
+            "product_discount_total": round(max(0, float(item.get("mrp", 0)) - float(item["unit_price"])) * int(item["qty"]), 2),
+            "coupon_discount_allocated": item_coupon_discount,
+            "actual_item_revenue": actual_item_revenue,
+            "item_cost": item_cost,
+            "item_gross_profit": round(actual_item_revenue - item_cost, 2) if item_cost is not None else None,
+            "item_profit_margin_percent": round((actual_item_revenue - item_cost) / actual_item_revenue * 100, 2)
+            if item_cost is not None and actual_item_revenue > 0 else None,
+        })
+
+    costs_complete = bool(line_items) and all(item.get("item_cost") is not None for item in line_items)
+    actual_revenue = round(sum(item["actual_item_revenue"] for item in line_items), 2)
+    product_cost_total = round(sum(item["item_cost"] for item in line_items), 2) if costs_complete else None
+    gross_profit = round(actual_revenue - product_cost_total, 2) if product_cost_total is not None else None
+    return {
+        "actual_revenue": actual_revenue,
+        "product_cost_total": product_cost_total,
+        "gross_profit": gross_profit,
+        "profit_margin_percent": round(gross_profit / actual_revenue * 100, 2)
+        if gross_profit is not None and actual_revenue > 0 else None,
+        "profit_cost_complete": costs_complete,
+        "uncosted_item_count": sum(1 for item in line_items if item.get("item_cost") is None),
+    }
+
+
+_PRIVATE_ORDER_ITEM_FIELDS = {
+    "buying_price_at_purchase", "combo_cost_components", "item_revenue", "product_discount_total",
+    "coupon_discount_allocated", "actual_item_revenue", "item_cost", "item_gross_profit",
+    "item_profit_margin_percent",
+}
+_PRIVATE_ORDER_FIELDS = {
+    "actual_revenue", "product_cost_total", "gross_profit", "profit_margin_percent",
+    "profit_cost_complete", "uncosted_item_count",
+}
+
+
+def _public_order(order: dict) -> dict:
+    public_order = {key: value for key, value in order.items() if key not in _PRIVATE_ORDER_FIELDS}
+    public_order["items"] = [
+        {key: value for key, value in item.items() if key not in _PRIVATE_ORDER_ITEM_FIELDS}
+        for item in order.get("items", [])
+    ]
+    return public_order
+
+
+async def _price_items(items: list[CartItemIn], include_cost_snapshots: bool = False):
     """Re-price items from DB. Returns (line_items, subtotal, total_mrp)."""
     line_items = []
     subtotal = 0.0
@@ -196,6 +290,10 @@ async def _price_items(items: list[CartItemIn]):
                 "qty": it.qty, "mrp": mrp, "unit_price": price,
                 "discount": round((mrp - price)), "combo": True,
             })
+            if include_cost_snapshots:
+                combo_cost, components = await _combo_cost_snapshot(c)
+                line_items[-1]["buying_price_at_purchase"] = combo_cost
+                line_items[-1]["combo_cost_components"] = components
         else:
             p = await db.products.find_one({"id": it.product_id})
             if not p or not p.get("active"):
@@ -219,6 +317,8 @@ async def _price_items(items: list[CartItemIn]):
                 "qty": it.qty, "mrp": mrp, "unit_price": price,
                 "discount": round((mrp - price)), "combo": False,
             })
+            if include_cost_snapshots:
+                line_items[-1]["buying_price_at_purchase"] = _cost_or_none(p.get("buying_price"))
         subtotal += price * it.qty
         total_mrp += mrp * it.qty
     return line_items, round(subtotal, 2), round(total_mrp, 2)
@@ -297,8 +397,9 @@ async def validate_cart(payload: ValidateCartInput, user: dict = Depends(get_opt
 @router.post("/orders")
 async def create_order(payload: CreateOrderInput, request: Request, user: dict = Depends(get_optional_user)):
     settings = await get_settings()
-    line_items, subtotal, total_mrp = await _price_items(payload.items)
+    line_items, subtotal, total_mrp = await _price_items(payload.items, include_cost_snapshots=True)
     coupon_discount, applied = await _apply_coupon(payload.coupon_code, subtotal, payload.customer.email, user) if payload.coupon_code else (0.0, None)
+    profit_snapshot = _snapshot_order_profit(line_items, coupon_discount)
     delivery = 0 if subtotal >= float(settings["free_shipping_threshold"]) else float(settings["delivery_charge"])
     grand_total = round(subtotal + delivery - coupon_discount, 2)
 
@@ -315,6 +416,7 @@ async def create_order(payload: CreateOrderInput, request: Request, user: dict =
         "delivery_charge": delivery,
         "coupon_code": applied,
         "coupon_discount": coupon_discount,
+        **profit_snapshot,
         "grand_total": grand_total,
         "currency": settings["currency"],
         "order_status": "Payment Pending",
@@ -355,7 +457,7 @@ async def create_order(payload: CreateOrderInput, request: Request, user: dict =
     await db.orders.insert_one(dict(order))
     order.pop("_id", None)
     return {
-        "order": order,
+        "order": _public_order(order),
         "payment_mode": PAYMENT_MODE,
         "payment_session_id": cashfree_order.get("payment_session_id") if cashfree_order else None,
         "cashfree_order_id": cashfree_order.get("order_id") if cashfree_order else None,
@@ -493,7 +595,7 @@ async def _verify_cashfree_order(cf_order_id: str):
         order, verified_status, (payment or {}).get("cf_payment_id")
     )
     updated = await db.orders.find_one({"id": order["id"]}, {"_id": 0})
-    return {"status": updated["payment_status"].lower(), "order": updated}
+    return {"status": updated["payment_status"].lower(), "order": _public_order(updated)}
 
 
 @router.post("/payments/cashfree/return")
@@ -517,7 +619,7 @@ async def verify_payment(payload: VerifyPaymentInput):
     # Mock mode: accept and mark paid.
     await _finalize_paid(order, f"mock_{uuid.uuid4().hex[:12]}", "mock")
     updated = await db.orders.find_one({"id": order["id"]}, {"_id": 0})
-    return {"status": "success", "order": updated}
+    return {"status": "success", "order": _public_order(updated)}
 
 
 @router.post("/payments/cashfree/webhook")
@@ -593,13 +695,13 @@ async def get_order(order_id: str):
     order = await db.orders.find_one({"$or": [{"id": order_id}, {"order_number": order_id}]}, {"_id": 0})
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
-    return order
+    return _public_order(order)
 
 
 @router.get("/my/orders")
 async def my_orders(user: dict = Depends(get_current_user)):
     orders = await db.orders.find({"user_id": user["id"]}, {"_id": 0}).sort([("created_at", -1)]).to_list(200)
-    return orders
+    return [_public_order(order) for order in orders]
 
 
 # ---- Wishlist ----

@@ -39,6 +39,7 @@ class ProductInput(BaseModel):
     category_id: Optional[str] = None
     mrp: float
     selling_price: float
+    buying_price: Optional[float] = Field(default=None, ge=0)
     stock: int = 0
     low_stock_threshold: int = 5
     images: List[str] = []

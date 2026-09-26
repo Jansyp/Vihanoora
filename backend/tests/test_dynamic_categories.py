@@ -136,3 +136,60 @@ def test_dynamic_category_is_valid_for_product_create_update_and_rejects_wrong_c
             client.delete(f"/api/admin/products/{product_id}")
         for category in created_categories:
             client.delete(f"/api/admin/categories/{category['id']}")
+
+
+def test_buying_price_is_admin_only_and_preserved_by_older_updates(client):
+    suffix = uuid.uuid4().hex[:8]
+    payload = {
+        "name": f"Cost Snapshot Product {suffix}",
+        "group": "women",
+        "category": "Uncategorized",
+        "mrp": 300,
+        "selling_price": 250,
+        "buying_price": 100,
+        "stock": 3,
+    }
+    product_id = None
+    try:
+        created = client.post("/api/admin/products", json=payload)
+        assert created.status_code == 200, created.text
+        product_id = created.json()["id"]
+        assert created.json()["buying_price"] == 100
+        admin_listing = client.get("/api/admin/products", params={"product_ids": product_id})
+        assert admin_listing.status_code == 200
+        assert admin_listing.json()["items"][0]["buying_price"] == 100
+
+        public = client.get(f"/api/products/{product_id}")
+        assert public.status_code == 200
+        assert "buying_price" not in public.json()["product"]
+
+        invalid = client.post("/api/admin/products", json={**payload, "name": f"Negative Cost {suffix}", "buying_price": -1})
+        assert invalid.status_code == 422
+
+        updated = client.put(f"/api/admin/products/{product_id}", json={**payload, "buying_price": 120})
+        assert updated.status_code == 200, updated.text
+        assert updated.json()["buying_price"] == 120
+
+        legacy_update = dict(payload)
+        legacy_update.pop("buying_price")
+        legacy_update["selling_price"] = 240
+        preserved = client.put(f"/api/admin/products/{product_id}", json=legacy_update)
+        assert preserved.status_code == 200, preserved.text
+        assert preserved.json()["buying_price"] == 120
+        admin_updated = client.get("/api/admin/products", params={"product_ids": product_id})
+        assert admin_updated.json()["items"][0]["buying_price"] == 120
+
+        public_after_edit = client.get(f"/api/products/{product_id}")
+        assert "buying_price" not in public_after_edit.json()["product"]
+    finally:
+        if product_id:
+            client.delete(f"/api/admin/products/{product_id}")
+
+
+def test_admin_dashboard_includes_profit_report(client):
+    response = client.get("/api/admin/dashboard")
+    assert response.status_code == 200, response.text
+    report = response.json()["profit_report"]
+    for field in ("total_revenue", "total_product_cost", "gross_profit", "profit_margin_percent",
+                  "cost_complete", "uncosted_item_count", "quantity_sold", "average_profit_per_item", "products"):
+        assert field in report

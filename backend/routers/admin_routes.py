@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, Depends, HTTPException
 
-from core import db, require_admin, enrich_product, now_iso
+from core import db, require_admin, enrich_product, enrich_admin_product, now_iso
 from mailer import send_order_email
 from routers.commerce_routes import get_settings
 from models import (ProductInput, CategoryInput, ComboInput, CouponInput,
@@ -24,6 +24,109 @@ def slugify(text: str) -> str:
 
 def _subcategory_id(subcategory: dict) -> str:
     return str(subcategory.get("id") or subcategory.get("slug") or slugify(subcategory.get("name", "")))
+
+
+def _profit_report(orders: list[dict]) -> dict:
+    total_revenue = 0.0
+    known_product_cost = 0.0
+    known_gross_profit = 0.0
+    quantity_sold = 0
+    known_profit_quantity = 0
+    uncosted_item_count = 0
+    orders_with_unknown_cost = 0
+    products = {}
+
+    for order in orders:
+        if order.get("payment_status") != "PAID":
+            continue
+        items = order.get("items", [])
+        order_revenue = order.get("actual_revenue")
+        if order_revenue is None:
+            order_revenue = max(0, float(order.get("subtotal", 0)) - float(order.get("coupon_discount", 0)))
+        total_revenue += float(order_revenue)
+        order_has_unknown_cost = not bool(items)
+        if not items:
+            uncosted_item_count += 1
+
+        for item in items:
+            qty = int(item.get("qty", 0))
+            quantity_sold += qty
+            item_revenue = item.get("actual_item_revenue")
+            if item_revenue is None:
+                item_revenue = float(item.get("unit_price", 0)) * qty
+                coupon_discount = float(order.get("coupon_discount", 0))
+                subtotal = float(order.get("subtotal", 0))
+                if subtotal > 0:
+                    item_revenue -= coupon_discount * item_revenue / subtotal
+            item_revenue = round(max(0, float(item_revenue)), 2)
+
+            item_cost = item.get("item_cost")
+            if item_cost is None and item.get("buying_price_at_purchase") is not None:
+                item_cost = float(item["buying_price_at_purchase"]) * qty
+            cost_known = item_cost is not None
+            item_profit = item.get("item_gross_profit")
+            if item_profit is None and cost_known:
+                item_profit = item_revenue - float(item_cost)
+
+            product_key = f"{bool(item.get('combo'))}:{item.get('product_id') or item.get('name', 'unknown')}"
+            product = products.setdefault(product_key, {
+                "product_id": item.get("product_id"), "name": item.get("name", "Unknown item"),
+                "combo": bool(item.get("combo")), "quantity_sold": 0, "actual_revenue": 0.0,
+                "known_product_cost": 0.0, "gross_profit": 0.0, "cost_complete": True,
+                "known_profit_quantity": 0,
+            })
+            product["quantity_sold"] += qty
+            product["actual_revenue"] += item_revenue
+            if cost_known:
+                item_cost = round(float(item_cost), 2)
+                known_product_cost += item_cost
+                product["known_product_cost"] += item_cost
+                if item_profit is not None:
+                    item_profit = round(float(item_profit), 2)
+                    known_gross_profit += item_profit
+                    product["gross_profit"] += item_profit
+                    known_profit_quantity += qty
+                    product["known_profit_quantity"] += qty
+            else:
+                order_has_unknown_cost = True
+                product["cost_complete"] = False
+                uncosted_item_count += 1
+
+        if order_has_unknown_cost:
+            orders_with_unknown_cost += 1
+
+    product_rows = []
+    for product in products.values():
+        complete = product["cost_complete"]
+        revenue = round(product["actual_revenue"], 2)
+        product_rows.append({
+            **product,
+            "actual_revenue": revenue,
+            "known_product_cost": round(product["known_product_cost"], 2),
+            "gross_profit": round(product["gross_profit"], 2) if product["known_profit_quantity"] else None,
+            "profit_margin_percent": round(product["gross_profit"] / revenue * 100, 2)
+            if complete and revenue > 0 else None,
+        })
+    product_rows.sort(key=lambda product: product["gross_profit"] or 0, reverse=True)
+
+    complete = uncosted_item_count == 0
+    total_revenue = round(total_revenue, 2)
+    known_product_cost = round(known_product_cost, 2)
+    known_gross_profit = round(known_gross_profit, 2)
+    return {
+        "total_revenue": total_revenue,
+        "total_product_cost": known_product_cost,
+        "gross_profit": known_gross_profit,
+        "profit_margin_percent": round(known_gross_profit / total_revenue * 100, 2)
+        if complete and total_revenue > 0 else None,
+        "cost_complete": complete,
+        "uncosted_item_count": uncosted_item_count,
+        "orders_with_unknown_cost": orders_with_unknown_cost,
+        "quantity_sold": quantity_sold,
+        "average_profit_per_item": round(known_gross_profit / known_profit_quantity, 2)
+        if known_profit_quantity else None,
+        "products": product_rows[:10],
+    }
 
 
 # ---- Dashboard ----
@@ -57,6 +160,7 @@ async def dashboard():
         "recent_customers": recent_customers,
         "active_offers": active_offers,
         "total_products": len(products),
+        "profit_report": _profit_report(all_orders),
     }
 
 
@@ -123,7 +227,7 @@ async def admin_products(
     total = await db.products.count_documents(query)
     skip = (page - 1) * limit
     docs = await cursor.skip(skip).limit(limit).to_list(length=limit)
-    items = [enrich_product(d) for d in docs]
+    items = [enrich_admin_product(d) for d in docs]
     payload = {"items": items, "total": total, "page": page, "limit": limit, "pages": max(1, (total + limit - 1) // limit) if total else 1}
     if not any([main_section, category, search, product_ids, status, stock_status, sort not in {"newest", ""}]) and page == 1 and limit == 50:
         return items
@@ -191,7 +295,7 @@ async def create_product(payload: ProductInput):
     data["review_count"] = 0
     data["created_at"] = now_iso()
     await db.products.insert_one(dict(data))
-    return enrich_product(data)
+    return enrich_admin_product(data)
 
 
 @router.put("/products/{product_id}")
@@ -202,6 +306,8 @@ async def update_product(product_id: str, payload: ProductInput):
     existing = await db.products.find_one({"id": product_id})
     if not existing:
         raise HTTPException(status_code=404, detail="Product not found")
+    if "buying_price" not in payload.model_fields_set:
+        data["buying_price"] = existing.get("buying_price")
     data["sku"] = existing.get("sku") or await _next_product_sku()
     await db.products.update_one({"id": product_id}, {"$set": data})
     old_video = existing.get("product_video_url")
@@ -209,7 +315,7 @@ async def update_product(product_id: str, payload: ProductInput):
         old_path = old_video.removeprefix("/api/files/")
         await db.files.update_one({"storage_path": old_path}, {"$set": {"is_deleted": True}})
     updated = await db.products.find_one({"id": product_id})
-    return enrich_product(updated)
+    return enrich_admin_product(updated)
 
 
 @router.delete("/products/{product_id}")
@@ -225,7 +331,7 @@ async def adjust_stock(product_id: str, delta: int = 0, set_value: int | None = 
     else:
         await db.products.update_one({"id": product_id}, {"$inc": {"stock": delta}})
     updated = await db.products.find_one({"id": product_id})
-    return enrich_product(updated)
+    return enrich_admin_product(updated)
 
 
 # ---- Categories ----

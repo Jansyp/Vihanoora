@@ -162,6 +162,7 @@ def enrich_product(p: dict) -> dict:
     if not p:
         return p
     p.pop("_id", None)
+    p.pop("buying_price", None)
     price = effective_price(p)
     mrp = float(p.get("mrp", 0))
     p["effective_price"] = price
@@ -175,6 +176,15 @@ def enrich_product(p: dict) -> dict:
     else:
         p["stock_state"] = "In Stock"
     return p
+
+
+def enrich_admin_product(p: dict) -> dict:
+    if not p:
+        return p
+    buying_price = p.get("buying_price")
+    product = enrich_product(p)
+    product["buying_price"] = buying_price
+    return product
 
 
 def enrich_combo(c: dict, product_map: dict) -> dict:

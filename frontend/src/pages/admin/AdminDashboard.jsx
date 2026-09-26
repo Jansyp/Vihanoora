@@ -16,6 +16,7 @@ export default function AdminDashboard() {
     { label: "Pending Payments", value: d.pending_payments, icon: Clock, color: "var(--terracotta)" },
     { label: "Active Offers", value: d.active_offers, icon: TrendingUp, color: "var(--brand)" },
   ];
+  const profit = d.profit_report || {};
 
   return (
     <div>
@@ -39,6 +40,36 @@ export default function AdminDashboard() {
           </div>
         ))}
       </div>
+
+      <section className="bg-white rounded-2xl p-5 border border-[var(--line)] mb-6">
+        <h2 className="font-semibold mb-4">Profit Report</h2>
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+          <ProfitMetric label="Product Revenue (after coupon)" value={formatINR(profit.total_revenue)} />
+          <ProfitMetric label={profit.cost_complete ? "Total Product Cost" : "Known Product Cost"} value={formatINR(profit.total_product_cost)} />
+          <ProfitMetric label={profit.cost_complete ? "Gross Profit" : "Known Gross Profit"} value={formatINR(profit.gross_profit)} />
+          <ProfitMetric label="Average Profit / Costed Unit" value={profit.average_profit_per_item == null ? "—" : formatINR(profit.average_profit_per_item)} />
+          <ProfitMetric label="Profit Margin" value={profit.profit_margin_percent == null ? "—" : `${profit.profit_margin_percent.toFixed(2)}%`} />
+        </div>
+        <p className="text-xs text-[var(--ink-soft)] mt-3">
+          {profit.quantity_sold || 0} paid units sold. {profit.cost_complete ? "All paid items have cost snapshots." : `${profit.uncosted_item_count || 0} paid items across ${profit.orders_with_unknown_cost || 0} orders have no cost snapshot; known cost/profit totals exclude them.`}
+        </p>
+        {profit.products?.length > 0 && (
+          <div className="overflow-x-auto mt-4">
+            <table className="w-full min-w-[560px] text-sm">
+              <thead className="text-left text-xs text-[var(--ink-soft)]"><tr>{["Product", "Qty Sold", "Revenue", "Known Cost", "Known Profit"].map((heading) => <th key={heading} className="py-2 pr-4 font-semibold">{heading}</th>)}</tr></thead>
+              <tbody>{profit.products.map((product) => (
+                <tr key={`${product.combo}-${product.product_id || product.name}`} className="border-t border-[var(--line)]">
+                  <td className="py-2 pr-4">{product.name}{product.combo ? " (Combo)" : ""}</td>
+                  <td className="py-2 pr-4">{product.quantity_sold}</td>
+                  <td className="py-2 pr-4">{formatINR(product.actual_revenue)}</td>
+                  <td className="py-2 pr-4">{product.cost_complete ? formatINR(product.known_product_cost) : "Partial"}</td>
+                  <td className="py-2 pr-4">{product.gross_profit == null ? "—" : formatINR(product.gross_profit)}</td>
+                </tr>
+              ))}</tbody>
+            </table>
+          </div>
+        )}
+      </section>
 
       <div className="grid lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-2xl p-5 border border-[var(--line)]">
@@ -80,6 +111,15 @@ export default function AdminDashboard() {
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+function ProfitMetric({ label, value }) {
+  return (
+    <div className="rounded-xl bg-[var(--card-2)] p-3">
+      <p className="text-xs text-[var(--ink-soft)]">{label}</p>
+      <p className="font-semibold mt-1">{value}</p>
     </div>
   );
 }

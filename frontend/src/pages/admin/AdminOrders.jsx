@@ -63,8 +63,8 @@ export default function AdminOrders() {
       </div>
 
       <div className="bg-white rounded-2xl border border-[var(--line)] overflow-x-auto">
-        <table className="w-full text-sm min-w-[600px]">
-          <thead className="bg-[var(--card-2)] text-left"><tr><th className="px-4 py-3"><input type="checkbox" aria-label="Select all printable packed orders" checked={packedOrders.length > 0 && packedOrders.every((order) => selectedIds.includes(order.id))} onChange={(e) => setSelectedIds(e.target.checked ? packedOrders.map((order) => order.id) : [])} /></th>{["Order", "Customer", "Total", "Payment", "Status", ""].map((h) => <th key={h} className="px-4 py-3 text-xs font-semibold">{h}</th>)}</tr></thead>
+        <table className="w-full text-sm min-w-[700px]">
+          <thead className="bg-[var(--card-2)] text-left"><tr><th className="px-4 py-3"><input type="checkbox" aria-label="Select all printable packed orders" checked={packedOrders.length > 0 && packedOrders.every((order) => selectedIds.includes(order.id))} onChange={(e) => setSelectedIds(e.target.checked ? packedOrders.map((order) => order.id) : [])} /></th>{["Order", "Customer", "Total", "Profit", "Payment", "Status", ""].map((h) => <th key={h} className="px-4 py-3 text-xs font-semibold">{h}</th>)}</tr></thead>
           <tbody>
             {orders.map((o) => (
               <tr key={o.id} className="border-t border-[var(--line)]">
@@ -72,6 +72,7 @@ export default function AdminOrders() {
                 <td className="px-4 py-3 font-medium">{o.order_number}</td>
                 <td className="px-4 py-3 text-[var(--ink-soft)]">{o.customer.name}</td>
                 <td className="px-4 py-3 font-semibold">{formatINR(o.grand_total)}</td>
+                <td className="px-4 py-3">{o.gross_profit == null ? "—" : formatINR(o.gross_profit)}</td>
                 <td className="px-4 py-3"><span className={`text-xs font-semibold ${o.payment_status === "PAID" ? "text-[var(--sage-dark)]" : "text-[var(--amber)]"}`}>{o.payment_status}</span></td>
                 <td className="px-4 py-3"><span className="text-xs px-2 py-0.5 rounded-full bg-[var(--blush)] text-[var(--brand)]">{o.order_status}</span></td>
                 <td className="px-4 py-3"><button data-testid={`view-order-${o.order_number}`} onClick={() => openOrder(o)} className="text-[var(--brand)] font-medium text-xs">Manage</button></td>
@@ -106,12 +107,26 @@ export default function AdminOrders() {
               </div>
             </div>
 
+            <div className="bg-[var(--card-2)] rounded-2xl p-4 text-sm mb-4">
+              <p className="font-semibold mb-2">Profit Summary</p>
+              <div className="grid sm:grid-cols-2 gap-x-6 gap-y-1">
+                <p>Revenue after coupon: <b>{formatINR(sel.actual_revenue ?? Math.max(0, Number(sel.subtotal || 0) - Number(sel.coupon_discount || 0)))}</b></p>
+                <p>Product cost: <b>{sel.product_cost_total == null ? "Not captured" : formatINR(sel.product_cost_total)}</b></p>
+                <p>Gross profit: <b>{sel.gross_profit == null ? "Not calculated" : formatINR(sel.gross_profit)}</b></p>
+                <p>Profit margin: <b>{sel.profit_margin_percent == null ? "—" : `${sel.profit_margin_percent.toFixed(2)}%`}</b></p>
+              </div>
+              {sel.gross_profit == null && <p className="text-xs text-[var(--ink-soft)] mt-2">Cost snapshot unavailable; historical profit is not estimated.</p>}
+            </div>
+
             <div className="mb-4">
               <p className="font-semibold text-sm mb-2">Items</p>
               {sel.items.map((i, idx) => (
                 <div key={idx} className="flex items-center gap-3 py-2 border-b border-[var(--line)] last:border-0 text-sm">
                   <img src={i.image} alt="" className="w-10 h-10 rounded-lg object-cover" />
-                  <span className="flex-1"><span className="block">{i.name} × {i.qty}</span>{i.variant && <span className="block text-xs text-[var(--ink-soft)]">Colour: {i.variant}</span>}</span>
+                  <span className="flex-1"><span className="block">{i.name} × {i.qty}</span>{i.variant && <span className="block text-xs text-[var(--ink-soft)]">Colour: {i.variant}</span>}
+                    <span className="block text-xs text-[var(--ink-soft)]">Selling {formatINR(i.unit_price * i.qty)} · Buying {i.item_cost == null ? "Not captured" : formatINR(i.item_cost)} · Profit {i.item_gross_profit == null ? "Not calculated" : formatINR(i.item_gross_profit)}{i.coupon_discount_allocated > 0 ? ` · Coupon ${formatINR(i.coupon_discount_allocated)}` : ""}</span>
+                    {i.combo_cost_components?.length > 0 && <span className="block text-xs text-[var(--ink-soft)]">Combo costs: {i.combo_cost_components.map((component) => `${component.name} ${component.buying_price_at_purchase == null ? "—" : formatINR(component.buying_price_at_purchase)}`).join(" · ")}</span>}
+                  </span>
                   <span className="font-medium">{formatINR(i.unit_price * i.qty)}</span>
                 </div>
               ))}

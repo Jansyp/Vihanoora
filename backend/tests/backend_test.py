@@ -245,6 +245,8 @@ class TestOrderFlow:
         assert order["order_number"].startswith("JH2026")
         assert order["payment_status"] == "PENDING"
         assert order["order_status"] == "Payment Pending"
+        assert "gross_profit" not in order
+        assert all("buying_price_at_purchase" not in item for item in order["items"])
         # get stock before verify
         pre = s.get(f"{API}/products/{a_product['id']}").json()["product"]
         pre_stock = pre["stock"]
@@ -254,6 +256,12 @@ class TestOrderFlow:
         upd = r2.json()["order"]
         assert upd["payment_status"] == "PAID"
         assert upd["order_status"] == "Paid"
+        assert "gross_profit" not in upd
+        assert all("item_cost" not in item for item in upd["items"])
+        public_order = s.get(f"{API}/orders/{order['order_number']}")
+        assert public_order.status_code == 200
+        assert "gross_profit" not in public_order.json()
+        assert all("buying_price_at_purchase" not in item for item in public_order.json()["items"])
         # stock decremented
         post = s.get(f"{API}/products/{a_product['id']}").json()["product"]
         assert post["stock"] == pre_stock - 1
@@ -336,7 +344,7 @@ class TestAdmin:
         assert r.status_code == 200
         d = r.json()
         for k in ("total_products", "total_orders", "total_revenue", "status_counts",
-                  "low_stock", "top_sellers"):
+                  "low_stock", "top_sellers", "profit_report"):
             assert k in d
 
     def test_product_crud_and_stock(self, admin_session):
@@ -346,6 +354,7 @@ class TestAdmin:
             "sku": sku,
             "description": "test",
             "group": "gifts",
+            "buying_price": 180,
             "mrp": 500,
             "selling_price": 400,
             "stock": 10,
@@ -354,14 +363,21 @@ class TestAdmin:
         r = admin_session.post(f"{API}/admin/products", json=payload)
         assert r.status_code == 200, r.text
         pid = r.json()["id"]
+        assert r.json()["buying_price"] == 180
+        public_product = s.get(f"{API}/products/{pid}").json()["product"]
+        assert "buying_price" not in public_product
         # dup SKU rejected
         r_dup = admin_session.post(f"{API}/admin/products", json=payload)
         assert r_dup.status_code == 400
         # update
         payload["selling_price"] = 350
+        payload["buying_price"] = 210
         r_u = admin_session.put(f"{API}/admin/products/{pid}", json=payload)
         assert r_u.status_code == 200
         assert r_u.json()["selling_price"] == 350
+        assert r_u.json()["buying_price"] == 210
+        public_updated = s.get(f"{API}/products/{pid}").json()["product"]
+        assert "buying_price" not in public_updated
         # adjust stock
         r_s = admin_session.patch(f"{API}/admin/products/{pid}/stock", params={"set_value": 25})
         assert r_s.status_code == 200
@@ -369,6 +385,13 @@ class TestAdmin:
         # delete
         r_d = admin_session.delete(f"{API}/admin/products/{pid}")
         assert r_d.status_code == 200
+
+    def test_admin_rejects_negative_buying_price(self, admin_session):
+        response = admin_session.post(f"{API}/admin/products", json={
+            "name": "TEST_Negative_Buying_Price", "group": "gifts", "mrp": 300,
+            "selling_price": 250, "buying_price": -1,
+        })
+        assert response.status_code == 422
 
     def test_admin_orders_list_and_flow(self, admin_session):
         # get orders list
