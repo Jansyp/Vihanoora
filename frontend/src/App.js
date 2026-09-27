@@ -59,6 +59,7 @@ function AppRoutes() {
       <Route path="/payment-return/:orderNumber" element={<Store><OrderSuccess /></Store>} />
       <Route path="/admin/shipping-labels" element={<ShippingLabelPrint />} />
       <Route path="/track" element={<Store><TrackOrder /></Store>} />
+      <Route path="/track-order/:orderNumber" element={<Store><TrackOrder /></Store>} />
       <Route path="/instagram" element={<Store><InstagramLanding /></Store>} />
       <Route path="/wishlist" element={<Store><Wishlist /></Store>} />
       <Route path="/login" element={<Store><Login /></Store>} />

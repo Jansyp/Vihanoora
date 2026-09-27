@@ -670,14 +670,7 @@ async def legacy_payment_webhook():
     raise HTTPException(status_code=410, detail="Razorpay webhooks are no longer supported")
 
 
-@router.get("/orders/track")
-async def track_order(order_number: str, contact: str):
-    order = await db.orders.find_one({"order_number": order_number}, {"_id": 0})
-    if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
-    c = order["customer"]
-    if contact.lower() not in (c["email"].lower(), c["mobile"]):
-        raise HTTPException(status_code=403, detail="Contact does not match order")
+def _order_track_payload(order: dict) -> dict:
     return {
         "order_number": order["order_number"],
         "order_status": order["order_status"],
@@ -688,6 +681,25 @@ async def track_order(order_number: str, contact: str):
         "grand_total": order["grand_total"],
         "created_at": order["created_at"],
     }
+
+
+@router.get("/orders/track")
+async def track_order(order_number: str, contact: str):
+    order = await db.orders.find_one({"order_number": order_number}, {"_id": 0})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    c = order["customer"]
+    if contact.lower() not in (c["email"].lower(), c["mobile"]):
+        raise HTTPException(status_code=403, detail="Contact does not match order")
+    return _order_track_payload(order)
+
+
+@router.get("/my/orders/{order_number}/track")
+async def track_my_order(order_number: str, user: dict = Depends(get_current_user)):
+    order = await db.orders.find_one({"order_number": order_number}, {"_id": 0})
+    if not order or order.get("user_id") != user["id"]:
+        raise HTTPException(status_code=404, detail="Order not found")
+    return _order_track_payload(order)
 
 
 @router.get("/orders/{order_id}")

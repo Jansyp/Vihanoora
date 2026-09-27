@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { Package, Truck, CheckCircle2, Clock, MapPin } from "lucide-react";
 import api, { formatINR, formatApiError } from "@/lib/api";
 import { Section } from "@/components/common";
@@ -7,6 +7,7 @@ import { Section } from "@/components/common";
 const TIMELINE = ["Placed", "Payment Confirmed", "Processing", "Packed", "Shipped", "Out for Delivery", "Delivered"];
 
 export default function TrackOrder() {
+  const { orderNumber: authedOrderNumber } = useParams();
   const [sp] = useSearchParams();
   const [order, setOrder] = useState(sp.get("order") || "");
   const [contact, setContact] = useState("");
@@ -24,6 +25,15 @@ export default function TrackOrder() {
     finally { setLoading(false); }
   };
 
+  useEffect(() => {
+    if (!authedOrderNumber) return;
+    setErr(""); setResult(null); setLoading(true);
+    api.get(`/my/orders/${encodeURIComponent(authedOrderNumber)}/track`)
+      .then(({ data }) => setResult(data))
+      .catch((e2) => setErr(formatApiError(e2.response?.data?.detail)))
+      .finally(() => setLoading(false));
+  }, [authedOrderNumber]);
+
   const reached = (status) => {
     const done = new Set((result?.status_history || []).map((h) => h.status));
     // map order_status into timeline progress
@@ -34,13 +44,19 @@ export default function TrackOrder() {
   return (
     <Section className="max-w-2xl">
       <h1 className="font-serif text-3xl sm:text-4xl font-semibold mb-2">Track Your Order</h1>
-      <p className="text-[var(--ink-soft)] mb-6">Enter your Order ID and the mobile or email used on the order.</p>
-      <form onSubmit={track} className="bg-white rounded-3xl p-6 border border-[var(--line)] space-y-3">
-        <input data-testid="track-order-input" value={order} onChange={(e) => setOrder(e.target.value.toUpperCase())} placeholder="Order ID (e.g. JH202600001)" className="w-full px-4 py-3 rounded-xl bg-[var(--card-2)] outline-none text-sm" />
-        <input data-testid="track-contact-input" value={contact} onChange={(e) => setContact(e.target.value)} placeholder="Mobile or Email" className="w-full px-4 py-3 rounded-xl bg-[var(--card-2)] outline-none text-sm" />
-        <button data-testid="track-submit" disabled={loading} className="w-full py-3.5 rounded-full bg-[var(--brand)] text-white font-medium disabled:opacity-50">{loading ? "Searching..." : "Track Order"}</button>
-        {err && <p className="text-sm text-destructive text-center">{err}</p>}
-      </form>
+      {!authedOrderNumber && (
+        <>
+          <p className="text-[var(--ink-soft)] mb-6">Enter your Order ID and the mobile or email used on the order.</p>
+          <form onSubmit={track} className="bg-white rounded-3xl p-6 border border-[var(--line)] space-y-3">
+            <input data-testid="track-order-input" value={order} onChange={(e) => setOrder(e.target.value.toUpperCase())} placeholder="Order ID (e.g. JH202600001)" className="w-full px-4 py-3 rounded-xl bg-[var(--card-2)] outline-none text-sm" />
+            <input data-testid="track-contact-input" value={contact} onChange={(e) => setContact(e.target.value)} placeholder="Mobile or Email" className="w-full px-4 py-3 rounded-xl bg-[var(--card-2)] outline-none text-sm" />
+            <button data-testid="track-submit" disabled={loading} className="w-full py-3.5 rounded-full bg-[var(--brand)] text-white font-medium disabled:opacity-50">{loading ? "Searching..." : "Track Order"}</button>
+            {err && <p className="text-sm text-destructive text-center">{err}</p>}
+          </form>
+        </>
+      )}
+      {authedOrderNumber && loading && <p className="text-[var(--ink-soft)]">Loading your order...</p>}
+      {authedOrderNumber && err && <p className="text-sm text-destructive">{err}</p>}
 
       {result && (
         <div className="mt-6 bg-white rounded-3xl p-6 border border-[var(--line)]">

@@ -82,7 +82,7 @@ export default function Account() {
                 </div>
                 <div className="flex justify-between items-center mt-3 pt-3 border-t border-[var(--line)]">
                   <span className="font-bold text-[var(--brand)]">{formatINR(o.grand_total)}</span>
-                  <Link to={`/track?order=${o.order_number}`} className="text-sm text-[var(--brand)] font-medium">Track →</Link>
+                  <Link to={`/track-order/${o.order_number}`} className="text-sm text-[var(--brand)] font-medium">Track →</Link>
                 </div>
               </div>
             ))}
