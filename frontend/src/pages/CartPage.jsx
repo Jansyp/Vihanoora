@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Trash2, Heart, Minus, Plus, ShoppingBag, Tag } from "lucide-react";
-import api, { formatINR, formatApiError } from "@/lib/api";
+import api, { assetUrl, formatINR, formatApiError } from "@/lib/api";
 import { useCart } from "@/context/CartContext";
 import { Section } from "@/components/common";
 import { toast } from "sonner";
@@ -56,7 +56,7 @@ export default function CartPage() {
           {items.map((it) => (
             <div key={it.key} data-testid={`cart-item-${it.product_id}`} className="flex gap-4 bg-white rounded-3xl p-4 border border-[var(--line)]">
               <Link to={`/product/${it.slug}`} className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden bg-[var(--card-2)] shrink-0">
-                <img src={it.image} alt={it.name} className="w-full h-full object-cover" />
+                <img src={assetUrl(it.image)} alt={it.name} className="w-full h-full object-cover" />
               </Link>
               <div className="flex-1 min-w-0">
                 <div className="flex justify-between gap-2">
