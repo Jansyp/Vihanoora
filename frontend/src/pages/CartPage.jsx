@@ -56,7 +56,7 @@ export default function CartPage() {
           {items.map((it) => (
             <div key={it.key} data-testid={`cart-item-${it.product_id}`} className="flex gap-4 bg-white rounded-3xl p-4 border border-[var(--line)]">
               <Link to={`/product/${it.slug}`} className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden bg-[var(--card-2)] shrink-0">
-                <img src={assetUrl(it.image)} alt={it.name} className="w-full h-full object-cover" />
+                <img src={assetUrl(it.image)} alt={it.name} loading="lazy" className="w-full h-full object-cover" />
               </Link>
               <div className="flex-1 min-w-0">
                 <div className="flex justify-between gap-2">

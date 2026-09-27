@@ -108,7 +108,7 @@ export default function AdminProducts() {
           <tbody>
             {products.map((p) => (
               <tr key={p.id} className="border-t border-[var(--line)]">
-                <td className="px-4 py-3"><div className="flex items-center gap-2"><img src={assetUrl(p.images?.[0])} alt="" className="w-9 h-9 rounded-lg object-cover" /><span className="font-medium line-clamp-1">{p.name}</span></div></td>
+                <td className="px-4 py-3"><div className="flex items-center gap-2"><img src={assetUrl(p.images?.[0])} alt="" loading="lazy" className="w-9 h-9 rounded-lg object-cover" /><span className="font-medium line-clamp-1">{p.name}</span></div></td>
                 <td className="px-4 py-3 text-[var(--ink-soft)] text-xs">{p.sku}</td>
                 <td className="px-4 py-3 capitalize">{p.group} · {p.category}</td>
                 <td className="px-4 py-3">{p.buying_price == null ? "—" : formatINR(p.buying_price)}</td>

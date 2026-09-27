@@ -104,7 +104,7 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {d.top_sellers.map((p) => (
             <div key={p.id} className="text-center">
-              <img src={p.images?.[0]} alt="" className="w-full aspect-square rounded-xl object-cover" />
+              <img src={p.images?.[0]} alt="" loading="lazy" className="w-full aspect-square rounded-xl object-cover" />
               <p className="text-xs font-medium mt-1 line-clamp-1">{p.name}</p>
               <p className="text-[10px] text-[var(--ink-soft)]">{p.sold_count} sold</p>
             </div>

@@ -2,8 +2,9 @@ import { useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Heart, ShoppingBag, Star } from "lucide-react";
 import { motion } from "framer-motion";
-import { assetUrl, formatINR } from "@/lib/api";
+import { formatINR } from "@/lib/api";
 import { useCart } from "@/context/CartContext";
+import ProductImage from "@/components/ProductImage";
 
 export default function ProductCard({ product, index = 0 }) {
   const nav = useNavigate();
@@ -44,10 +45,10 @@ export default function ProductCard({ product, index = 0 }) {
     >
       <Link to={`/product/${product.slug}`} onClick={rememberListingScroll} className="block">
         <div className="relative aspect-square overflow-hidden bg-[var(--card-2)]">
-            <img
-            src={assetUrl(product.images?.[0])}
+            <ProductImage
+            src={product.images?.[0]}
             alt={product.name}
-            loading="lazy"
+            priority={index < 4}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           />
             {product.product_video_url && <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-white">Video</span>}

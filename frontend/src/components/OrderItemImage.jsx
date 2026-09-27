@@ -26,5 +26,5 @@ export default function OrderItemImage({ image, productId, alt, className = "w-1
       </div>
     );
   }
-  return <img src={src} alt={alt || ""} className={`${className} shrink-0`} onError={() => setFailed(true)} />;
+  return <img src={src} alt={alt || ""} loading="lazy" className={`${className} shrink-0`} onError={() => setFailed(true)} />;
 }

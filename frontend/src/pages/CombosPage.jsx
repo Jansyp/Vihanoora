@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import api, { assetUrl, formatINR } from "@/lib/api";
+import api, { formatINR } from "@/lib/api";
 import { Section, SectionHeader, GridSkeleton, Reveal } from "@/components/common";
+import ProductImage from "@/components/ProductImage";
 
 export default function CombosPage() {
   const [combos, setCombos] = useState(null);
@@ -15,7 +16,7 @@ export default function CombosPage() {
             <Reveal key={c.id} delay={i * 0.05}>
               <Link to={`/combo/${c.slug}`} data-testid={`combo-${c.id}`} className="block bg-white rounded-3xl overflow-hidden border border-[var(--line)] soft-shadow hover-shadow group">
                 <div className="relative aspect-[4/3] overflow-hidden bg-[var(--card-2)]">
-                  <img src={assetUrl(c.images?.[0])} alt={c.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  <ProductImage src={c.images?.[0]} alt={c.name} priority={i < 3} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                   <span className="absolute top-3 left-3 text-xs font-bold px-3 py-1 rounded-full bg-[var(--brand)] text-white">{c.discount_percent}% OFF · Save {formatINR(c.savings)}</span>
                 </div>
                 <div className="p-5">

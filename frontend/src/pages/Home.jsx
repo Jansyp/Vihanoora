@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Star, Truck, ShieldCheck, RefreshCw, Instagram, CheckCircle2, CircleAlert, X } from "lucide-react";
 import { toast } from "sonner";
-import api, { assetUrl, formatINR, subscribeToNewsletter } from "@/lib/api";
+import api, { formatINR, subscribeToNewsletter } from "@/lib/api";
 import FeaturedProductHero from "@/components/FeaturedProductHero";
 import CategoryTiles from "@/components/CategoryTiles";
+import ProductImage from "@/components/ProductImage";
 import { useSettings } from "@/context/SettingsContext";
 import { themeBg } from "@/lib/themes";
 import { Section, SectionHeader, ProductRow, GridSkeleton, Reveal, PRODUCT_PAGE_SIZE } from "@/components/common";
@@ -161,7 +162,7 @@ export default function Home() {
               <Link to={`/combo/${c.slug}`} data-testid={`combo-card-${c.id}`}
                 className="block bg-white rounded-3xl overflow-hidden border border-[var(--line)] soft-shadow hover-shadow group">
                 <div className="relative aspect-square overflow-hidden bg-[var(--card-2)]">
-                  <img src={assetUrl(c.images?.[0])} alt={c.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  <ProductImage src={c.images?.[0]} alt={c.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                   <span className="absolute top-3 left-3 text-xs font-bold px-2.5 py-1 rounded-full bg-[var(--brand)] text-white">Save {formatINR(c.savings)}</span>
                 </div>
                 <div className="p-4">
@@ -183,7 +184,7 @@ export default function Home() {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {(offer.items || []).concat(data.trend || []).slice(0, 6).map((p, i) => (
             <Link key={i} to={`/product/${p.slug}`} className="relative aspect-square rounded-2xl overflow-hidden group">
-              <img src={assetUrl(p.images?.[0])} alt={p.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+              <ProductImage src={p.images?.[0]} alt={p.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
                 <Instagram size={22} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>

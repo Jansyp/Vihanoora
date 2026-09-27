@@ -94,7 +94,7 @@ export default function AdminCombos() {
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {combos.map((c) => (
           <div key={c.id} className="bg-white rounded-2xl border border-[var(--line)] overflow-hidden">
-            <img src={c.images?.[0]} alt="" className="w-full aspect-video object-cover" />
+            <img src={c.images?.[0]} alt="" loading="lazy" className="w-full aspect-video object-cover" />
             <div className="p-4">
               <h3 className="font-semibold">{c.name}</h3>
               <p className="text-sm mt-1"><b className="text-[var(--brand)]">{formatINR(c.combo_price)}</b> <span className="line-through text-[var(--ink-soft)] text-xs">{formatINR(c.original_price)}</span></p>

@@ -98,7 +98,7 @@ export default function ProductPage() {
               <div className="flex gap-3 mt-4">
                 {mediaItems.map((item, i) => (
                   <button key={i} onClick={() => { setImg(i); setMode3d(false); }} className={`relative w-20 h-20 rounded-2xl overflow-hidden border-2 ${img === i ? "border-[var(--brand)]" : "border-transparent"}`}>
-                    {item.video ? <><video src={assetUrl(item.video)} preload="metadata" muted className="w-full h-full object-cover" /><span className="absolute inset-0 flex items-center justify-center bg-black/20 text-white"><Play size={20} fill="currentColor" /></span></> : <img src={assetUrl(item)} alt="" className="w-full h-full object-cover" />}
+                    {item.video ? <><video src={assetUrl(item.video)} preload="metadata" muted className="w-full h-full object-cover" /><span className="absolute inset-0 flex items-center justify-center bg-black/20 text-white"><Play size={20} fill="currentColor" /></span></> : <img src={assetUrl(item)} alt="" loading="lazy" className="w-full h-full object-cover" />}
                   </button>
                 ))}
               </div>
