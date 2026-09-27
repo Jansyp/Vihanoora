@@ -17,7 +17,7 @@ os.environ.setdefault("DB_NAME", "cashfree_test")
 os.environ.setdefault("JWT_SECRET", "cashfree-unit-test-jwt")
 
 import routers.commerce_routes as commerce
-from models import VerifyPaymentInput
+from models import CartItemIn, CreateOrderInput, VerifyPaymentInput
 
 
 class FakeCollection:
@@ -94,6 +94,63 @@ def make_order(amount=150.0, status="PENDING"):
         "customer": {"email": "buyer@example.com"},
         "coupon_code": None,
     }
+
+
+def test_catalogue_mode_refuses_new_orders_before_cashfree_or_database(monkeypatch):
+    monkeypatch.setattr(commerce, "PAYMENTS_ENABLED", False)
+    orders = FakeCollection()
+    monkeypatch.setattr(commerce.db, "orders", orders)
+    cashfree = AsyncMock()
+    monkeypatch.setattr(commerce, "_cashfree_request", cashfree)
+    payload = CreateOrderInput(
+        items=[CartItemIn(product_id="product-1", qty=1)],
+        customer={"name": "Buyer", "mobile": "9999999999", "email": "buyer@example.com",
+                  "address": "Street", "city": "Mumbai", "state": "MH", "pin": "400001"},
+    )
+
+    with pytest.raises(HTTPException) as error:
+        run(commerce.create_order(payload, None, None))
+
+    assert error.value.status_code == 503
+    assert error.value.detail == "Online payments are temporarily unavailable."
+    assert orders.document is None
+    cashfree.assert_not_awaited()
+
+
+def test_enabled_mode_still_creates_cashfree_session(monkeypatch):
+    class OrdersWithInsert:
+        document = None
+
+        async def insert_one(self, document):
+            self.document = dict(document)
+
+    monkeypatch.setattr(commerce, "PAYMENTS_ENABLED", True)
+    monkeypatch.setattr(commerce, "PAYMENT_MODE", "cashfree")
+    monkeypatch.setattr(commerce, "get_settings", AsyncMock(return_value={
+        "currency": "INR", "free_shipping_threshold": 999, "delivery_charge": 50,
+    }))
+    monkeypatch.setattr(commerce, "next_order_number", AsyncMock(return_value="JH202600002"))
+    monkeypatch.setattr(commerce, "_price_items", AsyncMock(return_value=([{
+        "product_id": "product-1", "name": "Sample", "image": "sample.jpg", "variant": "Pink",
+        "qty": 1, "mrp": 50, "unit_price": 50, "discount": 0, "combo": False,
+        "buying_price_at_purchase": 20,
+    }], 50.0, 50.0)))
+    orders = OrdersWithInsert()
+    monkeypatch.setattr(commerce.db, "orders", orders)
+    cashfree = AsyncMock(return_value={"order_id": "JH202600002", "payment_session_id": "session-123"})
+    monkeypatch.setattr(commerce, "_cashfree_request", cashfree)
+    payload = CreateOrderInput(
+        items=[CartItemIn(product_id="product-1", qty=1, variant="Pink")],
+        customer={"name": "Buyer", "mobile": "9999999999", "email": "buyer@example.com",
+                  "address": "Street", "city": "Mumbai", "state": "MH", "pin": "400001"},
+    )
+
+    response = run(commerce.create_order(payload, None, None))
+
+    assert response["payment_mode"] == "cashfree"
+    assert response["payment_session_id"] == "session-123"
+    assert orders.document["payment_status"] == "PENDING"
+    cashfree.assert_awaited_once()
 
 
 def test_cashfree_amount_matching_uses_decimal_precision():

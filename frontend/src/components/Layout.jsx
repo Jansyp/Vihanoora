@@ -4,8 +4,10 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import MobileNav from "@/components/MobileNav";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import { useSettings } from "@/context/SettingsContext";
 
 export default function Layout({ children }) {
+  const { paymentsEnabled } = useSettings();
   const loc = useLocation();
   const navigationType = useNavigationType();
   const isListing = ["/women", "/kids", "/gifts", "/trending", "/offer-zone", "/search"].includes(loc.pathname);
@@ -31,6 +33,7 @@ export default function Layout({ children }) {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
+      {!paymentsEnabled && !loc.pathname.startsWith("/order-success/") && !loc.pathname.startsWith("/payment-return/") && <div className="bg-[var(--blush)] text-center text-xs sm:text-sm text-[var(--ink)] py-2 px-4" role="status">Online payments are temporarily unavailable. To place an order, contact us on WhatsApp.</div>}
       <main className="flex-1 pb-20 lg:pb-0">{children}</main>
       <Footer />
       <MobileNav />

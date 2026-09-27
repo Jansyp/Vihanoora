@@ -5,6 +5,8 @@ import api, { assetUrl, formatINR } from "@/lib/api";
 import { useCart } from "@/context/CartContext";
 import { Section, ProductRow, SectionHeader, GridSkeleton } from "@/components/common";
 import { toast } from "sonner";
+import { useSettings } from "@/context/SettingsContext";
+import { viauraWhatsAppUrl } from "@/lib/whatsappOrder";
 
 const Product3D = lazy(() => import("@/components/Product3D"));
 
@@ -12,6 +14,7 @@ export default function ProductPage() {
   const { slug } = useParams();
   const nav = useNavigate();
   const { addToCart, toggleWishlist, inWishlist } = useCart();
+  const { paymentsEnabled } = useSettings();
   const [d, setD] = useState(null);
   const [loading, setLoading] = useState(true);
   const [img, setImg] = useState(0);
@@ -41,11 +44,11 @@ export default function ProductPage() {
   const wished = inWishlist(p.id);
 
   const selectColor = (value) => { setColor(value); setImg(0); setMode3d(false); };
-  const buyNow = () => { addToCart(selectedProduct, qty, color); nav("/checkout"); };
+  const buyNow = () => { addToCart(selectedProduct, qty, color); nav(paymentsEnabled ? "/checkout" : "/cart"); };
   const share = () => {
     const url = window.location.href;
     const text = `Check out ${p.name} on Viaura — ${url}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+    window.open(viauraWhatsAppUrl(text), "_blank");
   };
   const goBack = () => {
     if (window.history.length > 1) nav(-1);
@@ -159,7 +162,7 @@ export default function ProductPage() {
               </button>
               <button data-testid="buy-now" disabled={oos} onClick={buyNow}
                 className="flex-1 py-4 rounded-full bg-[var(--brand)] text-white font-medium hover:bg-[var(--brand-hover)] transition-colors disabled:opacity-40">
-                Buy Now
+                {paymentsEnabled ? "Buy Now" : "Order via WhatsApp"}
               </button>
             </div>
 
@@ -172,7 +175,7 @@ export default function ProductPage() {
               {pinMsg && <p className="text-xs text-[var(--sage-dark)] mt-2">{pinMsg}</p>}
               <div className="flex flex-wrap gap-4 mt-3 text-xs text-[var(--ink-soft)]">
                 <span className="flex items-center gap-1.5"><Truck size={14} /> Flat ₹50 delivery</span>
-                <span className="flex items-center gap-1.5"><ShieldCheck size={14} /> Secure checkout</span>
+                <span className="flex items-center gap-1.5"><ShieldCheck size={14} /> {paymentsEnabled ? "Secure checkout" : "WhatsApp ordering available"}</span>
                 <span className="flex items-center gap-1.5"><RotateCcw size={14} /> Easy returns</span>
               </div>
             </div>

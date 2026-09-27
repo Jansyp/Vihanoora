@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Lock } from "lucide-react";
+import { Lock, MessageCircle } from "lucide-react";
 import api, { formatINR, formatApiError } from "@/lib/api";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
@@ -8,10 +8,13 @@ import { Section } from "@/components/common";
 import { toast } from "sonner";
 import { load } from "@cashfreepayments/cashfree-js";
 import { validateCheckoutForm } from "@/lib/checkoutValidation";
+import { useSettings } from "@/context/SettingsContext";
+import { whatsappOrderUrl } from "@/lib/whatsappOrder";
 
 export default function CheckoutPage() {
   const { items, subtotal, couponCode, setCouponCode, removePurchasedItems } = useCart();
   const { user } = useAuth();
+  const { paymentsEnabled } = useSettings();
   const nav = useNavigate();
   const [summary, setSummary] = useState(null);
   const [coupon, setCoupon] = useState(couponCode || "");
@@ -60,6 +63,7 @@ export default function CheckoutPage() {
   };
 
   const placeOrder = async () => {
+    if (!paymentsEnabled) return;
     const errors = validateCheckoutForm(form);
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) {
@@ -119,6 +123,30 @@ export default function CheckoutPage() {
       {fieldErrors[k] && <p id={`checkout-${k}-error`} className="mt-1 text-xs text-red-600">{fieldErrors[k]}</p>}
     </div>
   );
+
+  if (!paymentsEnabled) {
+    return (
+      <Section>
+        <h1 className="font-serif text-3xl sm:text-4xl font-semibold mb-2">Order enquiry</h1>
+        <p className="text-[var(--ink-soft)] mb-6">Online payments are temporarily unavailable. To place an order, contact us on WhatsApp.</p>
+        <div className="max-w-2xl bg-white rounded-3xl p-6 border border-[var(--line)]">
+          <h2 className="font-semibold text-lg mb-4">Your selection</h2>
+          <div className="space-y-3">
+            {items.map((item) => <div key={item.key} className="flex justify-between gap-4 text-sm">
+              <span>{item.name}{item.variant ? ` · ${item.variant}` : ""} × {item.qty}</span>
+              <span className="font-medium shrink-0">{formatINR(item.price * item.qty)}</span>
+            </div>)}
+          </div>
+          {summary && <div className="flex justify-between border-t border-[var(--line)] mt-4 pt-4 font-bold"><span>Estimated total</span><span className="text-[var(--brand)]">{formatINR(summary.grand_total)}</span></div>}
+          <a href={whatsappOrderUrl(items, summary?.grand_total)} target="_blank" rel="noreferrer"
+            className="mt-6 w-full py-4 rounded-full bg-[#25D366] text-white font-medium flex items-center justify-center gap-2">
+            <MessageCircle size={18} /> Order via WhatsApp
+          </a>
+          <p className="text-xs text-center text-[var(--ink-soft)] mt-3">Your cart will stay saved while we help with your order.</p>
+        </div>
+      </Section>
+    );
+  }
 
   return (
     <Section>

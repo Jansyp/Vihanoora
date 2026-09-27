@@ -62,7 +62,7 @@ const showNewsletterToast = (message, type = "success") => {
 };
 
 export default function Home() {
-  const { settings } = useSettings();
+  const { settings, paymentsEnabled } = useSettings();
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [newsletterSubmitting, setNewsletterSubmitting] = useState(false);
 
@@ -249,7 +249,7 @@ export default function Home() {
 
       <div className="bg-white border-y border-[var(--line)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 grid grid-cols-2 md:grid-cols-4 gap-4 py-5 text-center">
-          {[[Truck, "Flat ₹50 Delivery"], [ShieldCheck, "Secure Payments"], [RefreshCw, "Easy Returns"], [Instagram, "As seen on Insta"]].map(([Ic, t], i) => (
+          {[[Truck, "Flat ₹50 Delivery"], [ShieldCheck, paymentsEnabled ? "Secure Payments" : "WhatsApp Ordering"], [RefreshCw, "Easy Returns"], [Instagram, "As seen on Insta"]].map(([Ic, t], i) => (
             <div key={i} className="flex items-center justify-center gap-2 text-[var(--ink-soft)]">
               <Ic size={18} className="text-[var(--brand)]" /><span className="text-xs sm:text-sm font-medium">{t}</span>
             </div>

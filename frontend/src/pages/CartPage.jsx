@@ -1,14 +1,17 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Trash2, Heart, Minus, Plus, ShoppingBag, Tag } from "lucide-react";
+import { Trash2, Heart, Minus, Plus, ShoppingBag, Tag, MessageCircle } from "lucide-react";
 import api, { assetUrl, formatINR, formatApiError } from "@/lib/api";
 import { useCart } from "@/context/CartContext";
 import { Section } from "@/components/common";
 import { toast } from "sonner";
+import { useSettings } from "@/context/SettingsContext";
+import { whatsappOrderUrl } from "@/lib/whatsappOrder";
 
 export default function CartPage() {
   const { items, updateQty, removeItem, toggleWishlist, couponCode, setCouponCode } = useCart();
   const nav = useNavigate();
+  const { paymentsEnabled } = useSettings();
   const [summary, setSummary] = useState(null);
   const [coupon, setCoupon] = useState(couponCode || "");
   const [applied, setApplied] = useState("");
@@ -104,10 +107,12 @@ export default function CartPage() {
               </div>
             </div>
           )}
-          <button data-testid="checkout-btn" onClick={() => nav("/checkout")} className="w-full mt-5 py-4 rounded-full bg-[var(--brand)] text-white font-medium hover:bg-[var(--brand-hover)] transition-colors">
+          {paymentsEnabled ? <button data-testid="checkout-btn" onClick={() => nav("/checkout")} className="w-full mt-5 py-4 rounded-full bg-[var(--brand)] text-white font-medium hover:bg-[var(--brand-hover)] transition-colors">
             Proceed to Checkout
-          </button>
-          <p className="text-xs text-center text-[var(--ink-soft)] mt-3">Guest checkout available · Secure payments</p>
+          </button> : <a data-testid="checkout-btn" href={whatsappOrderUrl(items, summary?.grand_total)} target="_blank" rel="noreferrer" className="w-full mt-5 py-4 rounded-full bg-[#25D366] text-white font-medium flex items-center justify-center gap-2">
+            <MessageCircle size={18} /> Order via WhatsApp
+          </a>}
+          <p className="text-xs text-center text-[var(--ink-soft)] mt-3">{paymentsEnabled ? "Guest checkout available · Secure payments" : "Online payments are temporarily unavailable. Contact us on WhatsApp to place your order."}</p>
         </div>
       </div>
     </Section>

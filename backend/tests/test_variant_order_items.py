@@ -173,6 +173,7 @@ def test_order_creation_persists_cost_snapshot_but_redacts_customer_response(mon
     }))
     monkeypatch.setattr(commerce, "next_order_number", AsyncMock(return_value="JH202600001"))
     monkeypatch.setattr(commerce, "PAYMENT_MODE", "mock")
+    monkeypatch.setattr(commerce, "PAYMENTS_ENABLED", True)
     payload = CreateOrderInput(
         items=[CartItemIn(product_id="product-1", qty=3)],
         customer={"name": "Buyer", "mobile": "9999999999", "email": "buyer@example.com",

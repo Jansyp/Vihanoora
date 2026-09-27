@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from core import db, require_admin, enrich_product, enrich_admin_product, now_iso
 from mailer import send_order_email
-from routers.commerce_routes import get_settings
+from routers.commerce_routes import get_settings, VIAURA_WHATSAPP_NUMBER
 from models import (ProductInput, CategoryInput, ComboInput, CouponInput,
                     ShippingInput, OrderStatusInput, SettingsInput, BannerInput,
                     AnnouncementInput, LEGACY_PRODUCT_CATEGORY)
@@ -655,6 +655,7 @@ async def add_shipping(order_id: str, payload: ShippingInput):
 @router.put("/settings")
 async def update_settings(payload: SettingsInput):
     data = {k: v for k, v in payload.model_dump().items() if v is not None}
+    data["whatsapp"] = VIAURA_WHATSAPP_NUMBER
     await db.store_settings.update_one({"id": "singleton"}, {"$set": data}, upsert=True)
     return await db.store_settings.find_one({"id": "singleton"}, {"_id": 0})
 

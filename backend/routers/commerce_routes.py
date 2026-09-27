@@ -19,6 +19,7 @@ from models import (ValidateCartInput, CreateOrderInput, VerifyPaymentInput, New
 
 router = APIRouter(prefix="/api", tags=["commerce"])
 
+VIAURA_WHATSAPP_NUMBER = "917010177567"
 CASHFREE_APP_ID = os.environ.get("CASHFREE_APP_ID", "")
 CASHFREE_SECRET_KEY = os.environ.get("CASHFREE_SECRET_KEY", "")
 CASHFREE_ENVIRONMENT = os.environ.get("CASHFREE_ENVIRONMENT", "sandbox").lower()
@@ -30,6 +31,8 @@ CASHFREE_API_BASE = os.environ.get(
 FRONTEND_BASE_URL = os.environ.get("FRONTEND_BASE_URL", "http://localhost:3000").rstrip("/")
 CASHFREE_WEBHOOK_URL = os.environ.get("CASHFREE_WEBHOOK_URL", "")
 PAYMENT_MODE = "cashfree" if (CASHFREE_APP_ID and CASHFREE_SECRET_KEY) else "mock"
+PAYMENTS_ENABLED = os.environ.get("PAYMENTS_ENABLED", "false").strip().lower() in {"1", "true", "yes", "on"}
+PAYMENTS_UNAVAILABLE_MESSAGE = "Online payments are temporarily unavailable."
 CASHFREE_FAILED_PAYMENT_STATUSES = {"FAILURE", "FAILED", "USER_DROPPED", "CANCELLED", "VOID", "EXPIRED", "TERMINATED"}
 
 
@@ -46,7 +49,7 @@ DEFAULT_SETTINGS = {
     "logo": "",
     "contact_number": "+917010177567",
     "email": "hello@Viaura.com",
-    "whatsapp": "919000000000",
+    "whatsapp": VIAURA_WHATSAPP_NUMBER,
     "instagram_url": "https://instagram.com/Viaura",
     "delivery_charge": 50,
     "free_shipping_threshold": 999,
@@ -82,7 +85,7 @@ async def get_settings() -> dict:
     if not s:
         s = {"id": "singleton", **DEFAULT_SETTINGS}
         await db.store_settings.insert_one(dict(s))
-    merged = {**DEFAULT_SETTINGS, **s}
+    merged = {**DEFAULT_SETTINGS, **s, "whatsapp": VIAURA_WHATSAPP_NUMBER}
     return merged
 
 
@@ -130,7 +133,7 @@ async def public_announcements():
 
 @router.get("/payment-config")
 async def payment_config():
-    return {"mode": PAYMENT_MODE, "environment": CASHFREE_ENVIRONMENT}
+    return {"enabled": PAYMENTS_ENABLED, "mode": PAYMENT_MODE, "environment": CASHFREE_ENVIRONMENT}
 
 
 def _cashfree_headers() -> dict[str, str]:
@@ -396,6 +399,8 @@ async def validate_cart(payload: ValidateCartInput, user: dict = Depends(get_opt
 
 @router.post("/orders")
 async def create_order(payload: CreateOrderInput, request: Request, user: dict = Depends(get_optional_user)):
+    if not PAYMENTS_ENABLED:
+        raise HTTPException(status_code=503, detail=PAYMENTS_UNAVAILABLE_MESSAGE)
     settings = await get_settings()
     line_items, subtotal, total_mrp = await _price_items(payload.items, include_cost_snapshots=True)
     coupon_discount, applied = await _apply_coupon(payload.coupon_code, subtotal, payload.customer.email, user) if payload.coupon_code else (0.0, None)

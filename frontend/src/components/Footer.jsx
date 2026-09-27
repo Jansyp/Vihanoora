@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Instagram, MessageCircle, Mail } from "lucide-react";
 import { useSettings } from "@/context/SettingsContext";
+import { viauraWhatsAppUrl } from "@/lib/whatsappOrder";
 
 export default function Footer() {
   const { settings, reduceMotion, setReduceMotion } = useSettings();
@@ -18,7 +19,7 @@ export default function Footer() {
             <p className="text-sm text-white/60 max-w-xs">{settings?.tagline || "Little Things. Beautiful Moments."} Curated gifting & Instagram-trending finds.</p>
             <div className="flex gap-3 mt-5">
               <a href={settings?.instagram_url || "#"} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-[var(--brand)] transition-colors"><Instagram size={18} /></a>
-              <a href={`https://wa.me/${settings?.whatsapp || ""}`} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-[var(--brand)] transition-colors"><MessageCircle size={18} /></a>
+              <a href={viauraWhatsAppUrl()} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-[var(--brand)] transition-colors"><MessageCircle size={18} /></a>
               <a href={`mailto:${settings?.email || ""}`} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-[var(--brand)] transition-colors"><Mail size={18} /></a>
             </div>
           </div>

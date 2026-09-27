@@ -6,12 +6,14 @@ export const useSettings = () => useContext(SettingsCtx);
 
 export function SettingsProvider({ children }) {
   const [settings, setSettings] = useState(null);
+  const [paymentsEnabled, setPaymentsEnabled] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(
     () => localStorage.getItem("jh_reduce_motion") === "1"
   );
 
   useEffect(() => {
     api.get("/settings").then(({ data }) => setSettings(data)).catch(() => {});
+    api.get("/payment-config").then(({ data }) => setPaymentsEnabled(data.enabled === true)).catch(() => setPaymentsEnabled(false));
   }, []);
 
   useEffect(() => {
@@ -20,7 +22,7 @@ export function SettingsProvider({ children }) {
   }, [reduceMotion]);
 
   return (
-    <SettingsCtx.Provider value={{ settings, reduceMotion, setReduceMotion }}>
+    <SettingsCtx.Provider value={{ settings, paymentsEnabled, reduceMotion, setReduceMotion }}>
       {children}
     </SettingsCtx.Provider>
   );

@@ -284,7 +284,7 @@ class TestOrderFlow:
         body = {
             "items": [{"product_id": a_product["id"], "qty": 99999}],
             "customer": {
-                "name": "TEST OOS", "mobile": "9000000000", "email": "oos@x.com",
+                "name": "TEST OOS", "mobile": "917010177567", "email": "oos@x.com",
                 "address": "x", "city": "x", "state": "x", "pin": "111111",
             },
         }
