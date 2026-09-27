@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { LogOut, Package, MapPin, Heart, Plus, Trash2 } from "lucide-react";
-import api, { formatINR } from "@/lib/api";
+import api, { assetUrl, formatINR } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { Section, ProductGrid } from "@/components/common";
@@ -78,7 +78,7 @@ export default function Account() {
                   <span className="px-3 py-1 rounded-full bg-[var(--blush)] text-[var(--brand)] text-xs font-semibold h-fit">{o.order_status}</span>
                 </div>
                 <div className="mt-3 space-y-2">
-                  {o.items.map((i, idx) => <div key={idx} className="flex items-center gap-3 text-sm"><img src={i.image} alt="" className="w-14 h-14 rounded-xl object-cover shrink-0" /><div><p>{i.name} × {i.qty}</p>{i.variant && <p className="text-xs text-[var(--ink-soft)]">Colour: {i.variant}</p>}</div></div>)}
+                  {o.items.map((i, idx) => <div key={idx} className="flex items-center gap-3 text-sm"><img src={assetUrl(i.image)} alt="" className="w-14 h-14 rounded-xl object-cover shrink-0" /><div><p>{i.name} × {i.qty}</p>{i.variant && <p className="text-xs text-[var(--ink-soft)]">Colour: {i.variant}</p>}</div></div>)}
                 </div>
                 <div className="flex justify-between items-center mt-3 pt-3 border-t border-[var(--line)]">
                   <span className="font-bold text-[var(--brand)]">{formatINR(o.grand_total)}</span>
