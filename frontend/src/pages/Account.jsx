@@ -95,7 +95,7 @@ export default function Account() {
           <div className="grid sm:grid-cols-2 gap-4">
             {addresses.map((a) => (
               <div key={a.id} className="bg-white rounded-2xl p-4 border border-[var(--line)] relative">
-                <button onClick={() => delAddr(a.id)} className="absolute top-3 right-3 text-[var(--ink-soft)] hover:text-destructive"><Trash2 size={16} /></button>
+                <button onClick={() => delAddr(a.id)} aria-label={`Delete address for ${a.name}`} className="absolute top-3 right-3 text-[var(--ink-soft)] hover:text-destructive"><Trash2 size={16} /></button>
                 <p className="font-semibold">{a.name}</p>
                 <p className="text-sm text-[var(--ink-soft)]">{a.mobile}</p>
                 <p className="text-sm text-[var(--ink-soft)] mt-1">{a.address}, {a.city}, {a.state} - {a.pin}</p>

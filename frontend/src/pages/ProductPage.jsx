@@ -139,15 +139,15 @@ export default function ProductPage() {
 
             <div className="mt-6 flex items-center gap-4">
               <div className="flex items-center border border-[var(--line)] rounded-full">
-                <button data-testid="qty-minus" onClick={() => setQty((q) => Math.max(1, q - 1))} className="p-3"><Minus size={16} /></button>
+                <button data-testid="qty-minus" onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="Decrease quantity" className="p-3"><Minus size={16} /></button>
                 <span className="w-8 text-center font-semibold" data-testid="qty-value">{qty}</span>
-                <button data-testid="qty-plus" onClick={() => setQty((q) => q + 1)} className="p-3"><Plus size={16} /></button>
+                <button data-testid="qty-plus" onClick={() => setQty((q) => q + 1)} aria-label="Increase quantity" className="p-3"><Plus size={16} /></button>
               </div>
-              <button data-testid="wishlist-detail" onClick={() => toggleWishlist(p)}
+              <button data-testid="wishlist-detail" onClick={() => toggleWishlist(p)} aria-label={wished ? "Remove from wishlist" : "Add to wishlist"}
                 className="w-12 h-12 rounded-full border border-[var(--line)] flex items-center justify-center hover:border-[var(--brand)]">
                 <Heart size={18} className={wished ? "fill-[var(--brand)] text-[var(--brand)]" : ""} />
               </button>
-              <button data-testid="share-btn" onClick={share} className="w-12 h-12 rounded-full border border-[var(--line)] flex items-center justify-center hover:border-[var(--brand)]">
+              <button data-testid="share-btn" onClick={share} aria-label="Share product" className="w-12 h-12 rounded-full border border-[var(--line)] flex items-center justify-center hover:border-[var(--brand)]">
                 <Share2 size={18} />
               </button>
             </div>

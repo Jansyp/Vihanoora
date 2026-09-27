@@ -109,7 +109,7 @@ export default function Header() {
               <Link to="/" onClick={() => setOpen(false)} className="flex items-center gap-0" aria-label="Viaura home">
                 <img src={wordmark} alt="Viaura" className="h-9 w-auto object-contain" />
               </Link>
-              <button onClick={() => setOpen(false)} data-testid="mobile-menu-close"><X size={22} /></button>
+              <button onClick={() => setOpen(false)} data-testid="mobile-menu-close" aria-label="Close menu"><X size={22} /></button>
             </div>
             <form onSubmit={submitSearch} className="flex items-center bg-[var(--card-2)] rounded-full px-3 py-2 mb-5">
               <Search size={16} className="text-[var(--ink-soft)]" />

@@ -49,9 +49,9 @@ export default function AdminAnnouncements() {
               <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${w.cls}`}>{w.label}</span>
               <span className="flex-1 text-sm line-clamp-1">{a.text}</span>
               {(a.start || a.end) && <span className="hidden sm:flex items-center gap-1 text-[10px] text-[var(--ink-soft)]"><Clock size={11} /> {a.start?.slice(0, 10) || "…"} → {a.end?.slice(0, 10) || "…"}</span>}
-              <button onClick={() => toggle(a)} data-testid={`toggle-announcement-${a.id}`} className="text-[var(--ink-soft)] hover:text-[var(--brand)]">{a.active ? <Eye size={16} /> : <EyeOff size={16} />}</button>
-              <button data-testid={`edit-announcement-${a.id}`} onClick={() => { setForm({ ...BLANK, ...a, start: a.start || "", end: a.end || "" }); setEditId(a.id); setOpen(true); }} className="text-[var(--ink-soft)] hover:text-[var(--brand)]"><Edit size={16} /></button>
-              <button onClick={() => del(a.id)} data-testid={`delete-announcement-${a.id}`} className="text-[var(--ink-soft)] hover:text-destructive"><Trash2 size={16} /></button>
+              <button onClick={() => toggle(a)} data-testid={`toggle-announcement-${a.id}`} aria-label={a.active ? "Deactivate announcement" : "Activate announcement"} className="text-[var(--ink-soft)] hover:text-[var(--brand)]">{a.active ? <Eye size={16} /> : <EyeOff size={16} />}</button>
+              <button data-testid={`edit-announcement-${a.id}`} onClick={() => { setForm({ ...BLANK, ...a, start: a.start || "", end: a.end || "" }); setEditId(a.id); setOpen(true); }} aria-label="Edit announcement" className="text-[var(--ink-soft)] hover:text-[var(--brand)]"><Edit size={16} /></button>
+              <button onClick={() => del(a.id)} data-testid={`delete-announcement-${a.id}`} aria-label="Delete announcement" className="text-[var(--ink-soft)] hover:text-destructive"><Trash2 size={16} /></button>
             </div>
           );
         })}

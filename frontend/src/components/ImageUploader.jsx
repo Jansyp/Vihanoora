@@ -36,6 +36,7 @@ export default function ImageUploader({ images = [], onChange, label = "Images",
           <div key={i} className="relative w-16 h-16 rounded-xl overflow-hidden border border-[var(--line)] group">
             <img src={assetUrl(url)} alt="" className="w-full h-full object-cover" />
             <button type="button" onClick={() => onChange(images.filter((_, idx) => idx !== i))}
+              aria-label="Remove image"
               className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100" data-testid={`remove-image-${i}`}>
               <X size={12} />
             </button>

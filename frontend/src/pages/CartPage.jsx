@@ -61,7 +61,7 @@ export default function CartPage() {
               <div className="flex-1 min-w-0">
                 <div className="flex justify-between gap-2">
                   <Link to={`/product/${it.slug}`} className="font-semibold text-sm sm:text-base line-clamp-2 hover:text-[var(--brand)]">{it.name}</Link>
-                  <button data-testid={`cart-remove-${it.product_id}`} onClick={() => removeItem(it.key)} className="text-[var(--ink-soft)] hover:text-destructive shrink-0"><Trash2 size={18} /></button>
+                  <button data-testid={`cart-remove-${it.product_id}`} onClick={() => removeItem(it.key)} aria-label={`Remove ${it.name} from cart`} className="text-[var(--ink-soft)] hover:text-destructive shrink-0"><Trash2 size={18} /></button>
                 </div>
                 {it.variant && <p className="text-xs text-[var(--ink-soft)] mt-0.5">Colour: {it.variant}</p>}
                 <div className="flex items-center gap-2 mt-1">

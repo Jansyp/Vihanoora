@@ -11,7 +11,7 @@ export default function WhatsAppButton() {
       href={`https://wa.me/${num}?text=${msg}`}
       target="_blank"
       rel="noreferrer"
-      className="fixed bottom-20 lg:bottom-6 right-4 z-40 w-14 h-14 rounded-full bg-[#25D366] flex items-center justify-center shadow-lg hover:scale-110 transition-transform animate-float-slow"
+      className="fixed bottom-24 lg:bottom-6 right-4 z-30 w-14 h-14 rounded-full bg-[#25D366] flex items-center justify-center shadow-lg hover:scale-110 transition-transform animate-float-slow"
       aria-label="Chat on WhatsApp"
     >
       <MessageCircle size={26} className="text-white fill-white" />
