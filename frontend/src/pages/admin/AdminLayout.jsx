@@ -1,7 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { Link, useNavigate, useLocation, Outlet } from "react-router-dom";
 import { LayoutDashboard, Package, ShoppingCart, Boxes, Ticket, FolderTree, Settings, Home, Image, Megaphone } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import PageLoader from "@/components/PageLoader";
+import RouteErrorBoundary from "@/components/RouteErrorBoundary";
 
 const LINKS = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
@@ -56,7 +58,11 @@ export default function AdminLayout() {
         })}
       </div>
 
-      <main className="flex-1 p-4 sm:p-8 pb-24 md:pb-8 overflow-x-hidden"><Outlet /></main>
+      <main className="flex-1 p-4 sm:p-8 pb-24 md:pb-8 overflow-x-hidden">
+        <RouteErrorBoundary>
+          <Suspense fallback={<PageLoader />}><Outlet /></Suspense>
+        </RouteErrorBoundary>
+      </main>
     </div>
   );
 }

@@ -1,45 +1,60 @@
 import "@/App.css";
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/context/AuthContext";
 import { SettingsProvider } from "@/context/SettingsContext";
 import { CartProvider } from "@/context/CartContext";
 import Layout from "@/components/Layout";
+import PageLoader from "@/components/PageLoader";
+import RouteErrorBoundary from "@/components/RouteErrorBoundary";
 
-import Home from "@/pages/Home";
-import CategoryPage from "@/pages/CategoryPage";
-import ProductPage from "@/pages/ProductPage";
-import CombosPage from "@/pages/CombosPage";
-import ComboDetail from "@/pages/ComboDetail";
-import CartPage from "@/pages/CartPage";
-import CheckoutPage from "@/pages/CheckoutPage";
-import OrderSuccess from "@/pages/OrderSuccess";
-import TrackOrder from "@/pages/TrackOrder";
-import InstagramLanding from "@/pages/InstagramLanding";
-import Wishlist from "@/pages/Wishlist";
-import Login from "@/pages/Login";
-import AuthCallback from "@/pages/AuthCallback";
-import Account from "@/pages/Account";
-import StaticPage from "@/pages/StaticPage";
+const Home = lazy(() => import("@/pages/Home"));
+const CategoryPage = lazy(() => import("@/pages/CategoryPage"));
+const ProductPage = lazy(() => import("@/pages/ProductPage"));
+const CombosPage = lazy(() => import("@/pages/CombosPage"));
+const ComboDetail = lazy(() => import("@/pages/ComboDetail"));
+const CartPage = lazy(() => import("@/pages/CartPage"));
+const CheckoutPage = lazy(() => import("@/pages/CheckoutPage"));
+const OrderSuccess = lazy(() => import("@/pages/OrderSuccess"));
+const TrackOrder = lazy(() => import("@/pages/TrackOrder"));
+const InstagramLanding = lazy(() => import("@/pages/InstagramLanding"));
+const Wishlist = lazy(() => import("@/pages/Wishlist"));
+const Login = lazy(() => import("@/pages/Login"));
+const AuthCallback = lazy(() => import("@/pages/AuthCallback"));
+const Account = lazy(() => import("@/pages/Account"));
+const StaticPage = lazy(() => import("@/pages/StaticPage"));
 
-import AdminLayout from "@/pages/admin/AdminLayout";
-import AdminDashboard from "@/pages/admin/AdminDashboard";
-import AdminProducts from "@/pages/admin/AdminProducts";
-import AdminOrders from "@/pages/admin/AdminOrders";
-import AdminCombos from "@/pages/admin/AdminCombos";
-import AdminCoupons from "@/pages/admin/AdminCoupons";
-import AdminCategories from "@/pages/admin/AdminCategories";
-import AdminBanners from "@/pages/admin/AdminBanners";
-import AdminAnnouncements from "@/pages/admin/AdminAnnouncements";
-import AdminSettings from "@/pages/admin/AdminSettings";
-import ShippingLabelPrint from "@/pages/admin/ShippingLabelPrint";
+const AdminLayout = lazy(() => import("@/pages/admin/AdminLayout"));
+const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
+const AdminProducts = lazy(() => import("@/pages/admin/AdminProducts"));
+const AdminOrders = lazy(() => import("@/pages/admin/AdminOrders"));
+const AdminCombos = lazy(() => import("@/pages/admin/AdminCombos"));
+const AdminCoupons = lazy(() => import("@/pages/admin/AdminCoupons"));
+const AdminCategories = lazy(() => import("@/pages/admin/AdminCategories"));
+const AdminBanners = lazy(() => import("@/pages/admin/AdminBanners"));
+const AdminAnnouncements = lazy(() => import("@/pages/admin/AdminAnnouncements"));
+const AdminSettings = lazy(() => import("@/pages/admin/AdminSettings"));
+const ShippingLabelPrint = lazy(() => import("@/pages/admin/ShippingLabelPrint"));
 
-const Store = ({ children }) => <Layout>{children}</Layout>;
+const Store = ({ children }) => (
+  <Layout>
+    <RouteErrorBoundary>
+      <Suspense fallback={<PageLoader />}>{children}</Suspense>
+    </RouteErrorBoundary>
+  </Layout>
+);
+
+const Lazy = ({ children }) => (
+  <RouteErrorBoundary>
+    <Suspense fallback={<PageLoader />}>{children}</Suspense>
+  </RouteErrorBoundary>
+);
 
 function AppRoutes() {
   const location = useLocation();
   // Emergent Google OAuth callback — process session_id before anything else
-  if (location.hash?.includes("session_id=")) return <AuthCallback />;
+  if (location.hash?.includes("session_id=")) return <Lazy><AuthCallback /></Lazy>;
 
   return (
     <Routes>
@@ -57,7 +72,7 @@ function AppRoutes() {
       <Route path="/checkout" element={<Store><CheckoutPage /></Store>} />
       <Route path="/order-success/:orderNumber" element={<Store><OrderSuccess /></Store>} />
       <Route path="/payment-return/:orderNumber" element={<Store><OrderSuccess /></Store>} />
-      <Route path="/admin/shipping-labels" element={<ShippingLabelPrint />} />
+      <Route path="/admin/shipping-labels" element={<Lazy><ShippingLabelPrint /></Lazy>} />
       <Route path="/track" element={<Store><TrackOrder /></Store>} />
       <Route path="/track-order/:orderNumber" element={<Store><TrackOrder /></Store>} />
       <Route path="/instagram" element={<Store><InstagramLanding /></Store>} />
@@ -66,7 +81,7 @@ function AppRoutes() {
       <Route path="/account" element={<Store><Account /></Store>} />
       <Route path="/page/:slug" element={<Store><StaticPage /></Store>} />
 
-      <Route path="/admin" element={<AdminLayout />}>
+      <Route path="/admin" element={<Lazy><AdminLayout /></Lazy>}>
         <Route index element={<AdminDashboard />} />
         <Route path="products" element={<AdminProducts />} />
         <Route path="orders" element={<AdminOrders />} />
