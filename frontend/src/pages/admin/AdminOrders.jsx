@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { X, Truck } from "lucide-react";
 import api, { formatINR, formatApiError } from "@/lib/api";
 import { toast } from "sonner";
+import OrderItemImage from "@/components/OrderItemImage";
 
 const STATUSES = ["Payment Pending", "Paid", "Processing", "Packed", "Shipped", "Out for Delivery", "Delivered", "Cancelled", "Returned"];
 const COURIERS = ["Professional Couriers", "Blue Dart", "DTDC", "India Post", "Other"];
@@ -122,7 +123,7 @@ export default function AdminOrders() {
               <p className="font-semibold text-sm mb-2">Items</p>
               {sel.items.map((i, idx) => (
                 <div key={idx} className="flex items-center gap-3 py-2 border-b border-[var(--line)] last:border-0 text-sm">
-                  <img src={i.image} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                  <OrderItemImage image={i.image} productId={i.product_id} alt={i.name} />
                   <span className="flex-1"><span className="block">{i.name} × {i.qty}</span>{i.variant && <span className="block text-xs text-[var(--ink-soft)]">Colour: {i.variant}</span>}
                     <span className="block text-xs text-[var(--ink-soft)]">Selling {formatINR(i.unit_price * i.qty)} · Buying {i.item_cost == null ? "Not captured" : formatINR(i.item_cost)} · Profit {i.item_gross_profit == null ? "Not calculated" : formatINR(i.item_gross_profit)}{i.coupon_discount_allocated > 0 ? ` · Coupon ${formatINR(i.coupon_discount_allocated)}` : ""}</span>
                     {i.combo_cost_components?.length > 0 && <span className="block text-xs text-[var(--ink-soft)]">Combo costs: {i.combo_cost_components.map((component) => `${component.name} ${component.buying_price_at_purchase == null ? "—" : formatINR(component.buying_price_at_purchase)}`).join(" · ")}</span>}
