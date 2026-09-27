@@ -99,6 +99,7 @@ async def _product_page(query, page, limit, sort, min_discount=0, discount_only=
             sort_stage = {"_page_effective_price": 1 if sort == "price_asc" else -1}
         else:
             sort_stage = dict(_sort_stage(sort) or [("created_at", -1)])
+        sort_stage = {"featured": -1, **sort_stage}
 
         docs = await db.products.aggregate(base_pipeline + [
             {"$sort": sort_stage},
@@ -108,7 +109,7 @@ async def _product_page(query, page, limit, sort, min_discount=0, discount_only=
     else:
         total = await db.products.count_documents(query)
         max_discount = 0
-        sort_stage = _sort_stage(sort) or [("created_at", -1)]
+        sort_stage = [("featured", -1)] + (_sort_stage(sort) or [("created_at", -1)])
         docs = await db.products.find(query).sort(sort_stage).skip(skip).limit(limit).to_list(limit)
 
     items = []
