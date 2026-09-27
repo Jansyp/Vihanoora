@@ -276,7 +276,7 @@ class TestOrderFlow:
         # track - wrong contact
         r5 = s.get(f"{API}/orders/track", params={"order_number": order["order_number"],
                                                    "contact": "wrong@nope.com"})
-        assert r5.status_code == 403
+        assert r5.status_code == 404
         # save order id for other tests
         pytest.shared_order = order
 

@@ -677,20 +677,39 @@ def _order_track_payload(order: dict) -> dict:
         "payment_status": order["payment_status"],
         "status_history": order.get("status_history", []),
         "shipping": order.get("shipping", {}),
-        "items": [{"name": i["name"], "qty": i["qty"], "variant": i.get("variant"), "image": i.get("image")} for i in order["items"]],
+        "items": [{
+            "name": i["name"], "qty": i["qty"], "variant": i.get("variant"),
+            "image": i.get("image"), "product_id": i.get("product_id"), "unit_price": i.get("unit_price"),
+        } for i in order["items"]],
+        "subtotal": order.get("subtotal"),
+        "coupon_code": order.get("coupon_code"),
+        "coupon_discount": order.get("coupon_discount", 0),
+        "delivery_charge": order.get("delivery_charge", 0),
         "grand_total": order["grand_total"],
         "created_at": order["created_at"],
     }
 
 
+def _normalize_contact(value: str) -> str:
+    return (value or "").strip().lower()
+
+
+def _normalize_mobile(value: str) -> str:
+    digits = re.sub(r"\D", "", value or "")
+    return digits[-10:] if len(digits) >= 10 else digits
+
+
 @router.get("/orders/track")
 async def track_order(order_number: str, contact: str):
-    order = await db.orders.find_one({"order_number": order_number}, {"_id": 0})
+    order = await db.orders.find_one({"order_number": (order_number or "").strip().upper()}, {"_id": 0})
+    not_found = HTTPException(status_code=404, detail="Order not found. Please check your Order ID and mobile/email.")
     if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
+        raise not_found
     c = order["customer"]
-    if contact.lower() not in (c["email"].lower(), c["mobile"]):
-        raise HTTPException(status_code=403, detail="Contact does not match order")
+    supplied = _normalize_contact(contact)
+    match = supplied == _normalize_contact(c["email"]) or _normalize_mobile(contact) == _normalize_mobile(c["mobile"])
+    if not match:
+        raise not_found
     return _order_track_payload(order)
 
 
