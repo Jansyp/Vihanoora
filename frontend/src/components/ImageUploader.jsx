@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { Upload, X, Loader2 } from "lucide-react";
-import api, { API, formatApiError } from "@/lib/api";
+import api, { API, assetUrl, formatApiError } from "@/lib/api";
 import { toast } from "sonner";
 
 const BACKEND = process.env.REACT_APP_BACKEND_URL;
@@ -34,7 +34,7 @@ export default function ImageUploader({ images = [], onChange, label = "Images",
       <div className="flex flex-wrap gap-2 mt-1">
         {images.map((url, i) => (
           <div key={i} className="relative w-16 h-16 rounded-xl overflow-hidden border border-[var(--line)] group">
-            <img src={url} alt="" className="w-full h-full object-cover" />
+            <img src={assetUrl(url)} alt="" className="w-full h-full object-cover" />
             <button type="button" onClick={() => onChange(images.filter((_, idx) => idx !== i))}
               className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100" data-testid={`remove-image-${i}`}>
               <X size={12} />
