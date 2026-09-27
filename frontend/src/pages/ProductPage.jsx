@@ -6,7 +6,6 @@ import { useCart } from "@/context/CartContext";
 import { Section, ProductRow, SectionHeader, GridSkeleton } from "@/components/common";
 import { toast } from "sonner";
 import { useSettings } from "@/context/SettingsContext";
-import { viauraWhatsAppUrl } from "@/lib/whatsappOrder";
 
 const Product3D = lazy(() => import("@/components/Product3D"));
 
@@ -45,10 +44,38 @@ export default function ProductPage() {
 
   const selectColor = (value) => { setColor(value); setImg(0); setMode3d(false); };
   const buyNow = () => { addToCart(selectedProduct, qty, color); nav(paymentsEnabled ? "/checkout" : "/cart"); };
-  const share = () => {
+  const share = async () => {
     const url = window.location.href;
-    const text = `Check out ${p.name} on Viaura — ${url}`;
-    window.open(viauraWhatsAppUrl(text), "_blank");
+    const title = p.name;
+    const text = `Check out ${p.name} on Viaura`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, text, url });
+      } catch (error) {
+        if (error?.name !== "AbortError") toast.error("Unable to share this product.");
+      }
+      return;
+    }
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+      } else {
+        const input = document.createElement("textarea");
+        input.value = url;
+        input.setAttribute("readonly", "");
+        input.style.position = "fixed";
+        input.style.opacity = "0";
+        document.body.appendChild(input);
+        input.select();
+        const copied = document.execCommand("copy");
+        document.body.removeChild(input);
+        if (!copied) throw new Error("Clipboard copy failed");
+      }
+      toast.success("Product link copied!");
+    } catch {
+      toast.error("Unable to copy product link.");
+    }
   };
   const goBack = () => {
     if (window.history.length > 1) nav(-1);
