@@ -7,7 +7,7 @@ import FeaturedProductHero from "@/components/FeaturedProductHero";
 import CategoryTiles from "@/components/CategoryTiles";
 import { useSettings } from "@/context/SettingsContext";
 import { themeBg } from "@/lib/themes";
-import { Section, SectionHeader, ProductRow, ProductGrid, GridSkeleton, Reveal, PRODUCT_PAGE_SIZE } from "@/components/common";
+import { Section, SectionHeader, ProductRow, GridSkeleton, Reveal, PRODUCT_PAGE_SIZE } from "@/components/common";
 
 const REVIEWS = [
   { name: "Ananya R.", text: "The crystal bracelet is even prettier in person. Packaging felt so premium!", rating: 5 },
@@ -150,14 +150,13 @@ export default function Home() {
     gift_picks: (c) => (
       <Section key="gift_picks">
         <SectionHeader subtitle={c.subtitle || "For someone special"} title={c.title || "Gift Picks"} to="/gifts" />
-        <ProductGrid products={data.gift || []} />
+        <ProductRow products={data.gift || []} />
       </Section>
     ),
     combos: (c) => (
       <Section key="combos">
         <SectionHeader subtitle={c.subtitle || "Bundle & save"} title={c.title || "Combo Offers"} to="/combo-offers" />
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {combos.map((c, i) => (
+        <ProductRow products={combos || []} renderItem={(c, i) => (
             <Reveal key={c.id} delay={i * 0.05}>
               <Link to={`/combo/${c.slug}`} data-testid={`combo-card-${c.id}`}
                 className="block bg-white rounded-3xl overflow-hidden border border-[var(--line)] soft-shadow hover-shadow group">
@@ -175,8 +174,7 @@ export default function Home() {
                 </div>
               </Link>
             </Reveal>
-          ))}
-        </div>
+        )} />
       </Section>
     ),
     instagram: (c) => (
