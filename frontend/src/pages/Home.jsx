@@ -122,7 +122,7 @@ export default function Home() {
     best_sellers: (c) => (
       <Section key="best_sellers">
         <SectionHeader subtitle={c.subtitle || "Loved by many"} title={c.title || "Best Sellers"} to="/women" />
-        <ProductGrid products={data.best || []} />
+        <ProductRow products={data.best || []} />
       </Section>
     ),
     offer_banner: (c) => (
