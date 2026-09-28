@@ -2,7 +2,11 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { toast } from "sonner";
 
 const CartCtx = createContext(null);
+const CartActionsCtx = createContext(null);
+const WishlistCtx = createContext(null);
 export const useCart = () => useContext(CartCtx);
+export const useCartActions = () => useContext(CartActionsCtx);
+export const useWishlist = () => useContext(WishlistCtx);
 
 const load = (k, d) => {
   try { return JSON.parse(localStorage.getItem(k)) || d; } catch { return d; }
@@ -29,7 +33,7 @@ export function CartProvider({ children }) {
   useEffect(() => { localStorage.setItem("jh_wishlist", JSON.stringify(wishlist)); }, [wishlist]);
   useEffect(() => { localStorage.setItem("jh_coupon_code", couponCode || ""); }, [couponCode]);
 
-  const addToCart = (product, qty = 1, variant = null, combo = false) => {
+  const addToCart = useCallback((product, qty = 1, variant = null, combo = false) => {
     const selectedVariant = resolveCartVariant(product, variant);
     setItems((prev) => {
       const exists = prev.find((i) =>
@@ -49,13 +53,14 @@ export function CartProvider({ children }) {
       }];
     });
     toast.success(`${product.name} added to cart`);
-  };
+  }, []);
 
-  const updateQty = (key, qty) =>
+  const updateQty = useCallback((key, qty) => {
     setItems((prev) => prev.map((i) => (i.key === key ? { ...i, qty: Math.max(1, qty) } : i)));
+  }, []);
 
-  const removeItem = (key) => setItems((prev) => prev.filter((i) => i.key !== key));
-  const clearCart = () => setItems([]);
+  const removeItem = useCallback((key) => setItems((prev) => prev.filter((i) => i.key !== key)), []);
+  const clearCart = useCallback(() => setItems([]), []);
   const removePurchasedItems = useCallback((orderId, purchasedItems) => {
     const storedProcessedOrders = load("jh_cart_processed_orders", []);
     const processedOrders = Array.isArray(storedProcessedOrders) ? storedProcessedOrders : [];
@@ -65,7 +70,7 @@ export function CartProvider({ children }) {
     localStorage.setItem("jh_cart_processed_orders", JSON.stringify([...processedOrders, orderId]));
   }, []);
 
-  const toggleWishlist = (product) => {
+  const toggleWishlist = useCallback((product) => {
     setWishlist((prev) => {
       if (prev.find((p) => p.id === product.id)) {
         toast("Removed from wishlist");
@@ -74,19 +79,21 @@ export function CartProvider({ children }) {
       toast.success("Saved to wishlist");
       return [...prev, product];
     });
-  };
-  const inWishlist = (id) => wishlist.some((p) => p.id === id);
+  }, []);
+  const inWishlist = useCallback((id) => wishlist.some((p) => p.id === id), [wishlist]);
 
   const count = useMemo(() => items.reduce((s, i) => s + i.qty, 0), [items]);
   const subtotal = useMemo(() => items.reduce((s, i) => s + i.price * i.qty, 0), [items]);
 
+  const cartValue = useMemo(() => ({ items, count, subtotal, updateQty, removeItem, clearCart, removePurchasedItems, couponCode, setCouponCode }), [items, count, subtotal, updateQty, removeItem, clearCart, removePurchasedItems, couponCode]);
+  const cartActions = useMemo(() => ({ addToCart }), [addToCart]);
+  const wishlistValue = useMemo(() => ({ wishlist, toggleWishlist, inWishlist }), [wishlist, toggleWishlist, inWishlist]);
+
   return (
-    <CartCtx.Provider value={{
-      items, count, subtotal, addToCart, updateQty, removeItem, clearCart, removePurchasedItems,
-      couponCode, setCouponCode,
-      wishlist, toggleWishlist, inWishlist,
-    }}>
-      {children}
+    <CartCtx.Provider value={{ ...cartValue, ...cartActions, ...wishlistValue }}>
+      <CartActionsCtx.Provider value={cartActions}>
+        <WishlistCtx.Provider value={wishlistValue}>{children}</WishlistCtx.Provider>
+      </CartActionsCtx.Provider>
     </CartCtx.Provider>
   );
 }

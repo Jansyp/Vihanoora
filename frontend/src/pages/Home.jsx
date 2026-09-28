@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Star, Truck, ShieldCheck, RefreshCw, Instagram, CheckCircle2, CircleAlert, X } from "lucide-react";
 import { toast } from "sonner";
-import api, { formatINR, subscribeToNewsletter } from "@/lib/api";
+import api, { formatINR, getCatalog, subscribeToNewsletter } from "@/lib/api";
 import FeaturedProductHero from "@/components/FeaturedProductHero";
 import CategoryTiles from "@/components/CategoryTiles";
 import ProductImage from "@/components/ProductImage";
@@ -96,21 +96,25 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const [best, trend, arr, gift, cmb, oz] = await Promise.all([
-          api.get(`/products?best_seller=true&limit=${PRODUCT_PAGE_SIZE}`),
-          api.get(`/products?trending=true&limit=${PRODUCT_PAGE_SIZE}`),
-          api.get(`/products?new_arrival=true&limit=${PRODUCT_PAGE_SIZE}`),
-          api.get(`/products?giftable=true&limit=${PRODUCT_PAGE_SIZE}`),
-          api.get("/combos"),
-          api.get(`/offer-zone?limit=${PRODUCT_PAGE_SIZE}`),
-        ]);
-        setData({ best: best.data.items, trend: trend.data.items, arr: arr.data.items, gift: gift.data.items });
-        setCombos(cmb.data);
-        setOffer(oz.data);
-      } finally { setLoading(false); }
-    })();
+    let active = true;
+    const bestRequest = getCatalog(`/products?best_seller=true&limit=${PRODUCT_PAGE_SIZE}`);
+    const trendRequest = getCatalog(`/products?trending=true&limit=${PRODUCT_PAGE_SIZE}`);
+    Promise.all([bestRequest, trendRequest]).then(([best, trend]) => {
+      if (active) setData((current) => ({ ...current, best: best.data.items, trend: trend.data.items }));
+    }).catch(() => {}).finally(() => { if (active) setLoading(false); });
+
+    const loadSecondary = () => {
+      getCatalog(`/products?new_arrival=true&limit=${PRODUCT_PAGE_SIZE}`).then(({ data: result }) => {
+        if (active) setData((current) => ({ ...current, arr: result.items }));
+      }).catch(() => {});
+      getCatalog(`/products?giftable=true&limit=${PRODUCT_PAGE_SIZE}`).then(({ data: result }) => {
+        if (active) setData((current) => ({ ...current, gift: result.items }));
+      }).catch(() => {});
+      getCatalog("/combos").then(({ data: result }) => { if (active) setCombos(result); }).catch(() => {});
+      getCatalog(`/offer-zone?limit=${PRODUCT_PAGE_SIZE}`).then(({ data: result }) => { if (active) setOffer(result); }).catch(() => {});
+    };
+    const timer = window.setTimeout(loadSecondary, 900);
+    return () => { active = false; window.clearTimeout(timer); };
   }, []);
 
   const sections = {

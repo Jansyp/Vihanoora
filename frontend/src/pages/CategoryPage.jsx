@@ -1,7 +1,7 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigationType, useParams, useSearchParams } from "react-router-dom";
 import { SlidersHorizontal, X } from "lucide-react";
-import api from "@/lib/api";
+import api, { getCatalog } from "@/lib/api";
 import { Section, ProductGrid, GridSkeleton, Pagination, PRODUCT_PAGE_SIZE } from "@/components/common";
 
 const GROUP_TITLE = {
@@ -38,6 +38,7 @@ export default function CategoryPage({ type, group: groupProp }) {
   const [showFilters, setShowFilters] = useState(false);
   const [categories, setCategories] = useState([]);
   const [categoriesLoaded, setCategoriesLoaded] = useState(type !== "group");
+  const [priceDraft, setPriceDraft] = useState(Number(sp.get("max_price") || 5000));
 
   const defaultSort = type === "offer-zone" ? "biggest_discount" : "default";
   const sort = sp.get("sort") || defaultSort;
@@ -59,6 +60,13 @@ export default function CategoryPage({ type, group: groupProp }) {
     suppressionKey.current = scrollKey;
     suppressScrollSave.current = shouldRestoreScroll;
   }
+
+  const updateParam = useCallback((name, value, defaultValue = "") => {
+    const next = new URLSearchParams(sp);
+    if (value && value !== defaultValue) next.set(name, value); else next.delete(name);
+    if (name !== "page") next.delete("page");
+    setSp(next, { replace: true });
+  }, [sp, setSp]);
 
   useLayoutEffect(() => {
     if (!shouldRestoreScroll) setReserveRestoreSpace(false);
@@ -106,11 +114,21 @@ export default function CategoryPage({ type, group: groupProp }) {
   }, [loading, savedScrollPosition, scrollKey, shouldRestoreScroll]);
 
   useEffect(() => {
-    api.get("/categories")
-      .then(({ data }) => setCategories(data))
+    if (type !== "group") return undefined;
+    let active = true;
+    getCatalog("/categories")
+      .then(({ data }) => { if (active) setCategories(data); })
       .catch(() => {})
-      .finally(() => setCategoriesLoaded(true));
-  }, []);
+      .finally(() => { if (active) setCategoriesLoaded(true); });
+    return () => { active = false; };
+  }, [type]);
+
+  useEffect(() => setPriceDraft(maxPrice), [maxPrice]);
+  useEffect(() => {
+    if (priceDraft === maxPrice) return undefined;
+    const timer = setTimeout(() => updateParam("max_price", priceDraft, "5000"), 250);
+    return () => clearTimeout(timer);
+  }, [priceDraft, maxPrice, updateParam]);
 
   const subcats = useMemo(() => {
     const c = categories.find((c) => c.group === group);
@@ -147,7 +165,7 @@ export default function CategoryPage({ type, group: groupProp }) {
       url = `/products?${requestParams.toString()}`;
     }
     let active = true;
-    api.get(url).then(({ data }) => {
+    getCatalog(url).then(({ data }) => {
       if (!active) return;
       setItems(data.items || []);
       setTotal(data.total || 0);
@@ -161,12 +179,6 @@ export default function CategoryPage({ type, group: groupProp }) {
     return () => { active = false; };
   }, [categoriesLoaded, type, group, q, sort, minDiscount, maxPrice, minPrice, categoryQuery, stockStatus, page, searchParamsKey]);
 
-  const updateParam = (name, value, defaultValue = "") => {
-    const next = new URLSearchParams(sp);
-    if (value && value !== defaultValue) next.set(name, value); else next.delete(name);
-    if (name !== "page") next.delete("page");
-    setSp(next, { replace: true });
-  };
   const selectCategory = (value) => updateParam("category", value);
   const changePage = (nextPage) => {
     const next = new URLSearchParams(sp);
@@ -240,8 +252,8 @@ export default function CategoryPage({ type, group: groupProp }) {
           )}
           <div className="flex-1">
             <p className="text-sm font-semibold mb-2">Max Price: ₹{maxPrice}</p>
-            <input type="range" min="100" max="5000" step="100" value={maxPrice}
-              onChange={(e) => updateParam("max_price", e.target.value, "5000")} className="w-full accent-[var(--brand)]" data-testid="price-range" />
+            <input type="range" min="100" max="5000" step="100" value={priceDraft}
+              onChange={(e) => setPriceDraft(e.target.value)} className="w-full accent-[var(--brand)]" data-testid="price-range" />
           </div>
         </div>
       )}

@@ -6,10 +6,10 @@ const DEFAULT_SIZES = "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw";
 
 // Centralized product-image renderer: responsive Cloudinary srcset, lazy/eager
 // loading, and a graceful fallback (no broken-image icon, no retry loop).
-export default function ProductImage({ src, alt = "", className = "", priority = false, sizes = DEFAULT_SIZES }) {
+export default function ProductImage({ src, alt = "", className = "", priority = false, sizes = DEFAULT_SIZES, widths, width = 640, height = 640 }) {
   const [failed, setFailed] = useState(false);
   const resolved = assetUrl(src);
-  const srcSet = productSrcSet(src);
+  const srcSet = productSrcSet(src, widths);
 
   if (failed || !resolved) {
     return (
@@ -24,8 +24,11 @@ export default function ProductImage({ src, alt = "", className = "", priority =
       src={resolved}
       srcSet={srcSet}
       sizes={srcSet ? sizes : undefined}
+      width={width}
+      height={height}
       alt={alt}
       loading={priority ? "eager" : "lazy"}
+      fetchPriority={priority ? "high" : "auto"}
       decoding={priority ? "sync" : "async"}
       className={className}
       onError={() => setFailed(true)}

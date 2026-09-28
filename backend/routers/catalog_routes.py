@@ -10,6 +10,21 @@ from models import ReviewInput
 
 router = APIRouter(prefix="/api", tags=["catalog"])
 PRODUCT_PAGE_SIZE = 12
+PRODUCT_LIST_FIELDS = [
+    "id", "name", "slug", "images", "product_video_url", "group", "category",
+    "mrp", "selling_price", "flash_price", "flash_start", "flash_end",
+    "stock", "low_stock_threshold", "featured", "trending", "best_seller",
+    "new_arrival", "giftable", "rating", "review_count", "colors",
+    "created_at", "sold_count",
+]
+
+
+def _product_list_projection(aggregation=False):
+    return {
+        **{field: 1 for field in PRODUCT_LIST_FIELDS if field != "images"},
+        "images": {"$slice": ["$images", 1]} if aggregation else {"$slice": 1},
+        "_id": 0,
+    }
 
 
 def _slugify(text: str) -> str:
@@ -105,12 +120,13 @@ async def _product_page(query, page, limit, sort, min_discount=0, discount_only=
             {"$sort": sort_stage},
             {"$skip": skip},
             {"$limit": limit},
+            {"$project": _product_list_projection(aggregation=True)},
         ]).to_list(limit)
     else:
         total = await db.products.count_documents(query)
         max_discount = 0
         sort_stage = [("featured", -1)] + (_sort_stage(sort) or [("created_at", -1)])
-        docs = await db.products.find(query).sort(sort_stage).skip(skip).limit(limit).to_list(limit)
+        docs = await db.products.find(query, _product_list_projection()).sort(sort_stage).skip(skip).limit(limit).to_list(limit)
 
     items = []
     for doc in docs:

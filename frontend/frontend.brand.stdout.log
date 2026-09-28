@@ -354,3 +354,710 @@ src\pages\admin\AdminOrders.jsx
   Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
 
 webpack compiled with 1 warning
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+webpack compiled with 1 warning
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+webpack compiled with 1 warning
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+webpack compiled with 1 warning
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+webpack compiled with 1 warning
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+webpack compiled with 1 warning
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+webpack compiled with 1 warning
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+webpack compiled with 1 warning
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+webpack compiled with 1 warning
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+webpack compiled with 1 warning
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+webpack compiled with 1 warning
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+webpack compiled with 1 warning
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\CategoryPage.jsx
+  Line 124:6:  React Hook useEffect has a missing dependency: 'updateParam'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\CategoryPage.jsx
+  Line 124:6:  React Hook useEffect has a missing dependency: 'updateParam'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+webpack compiled with 1 warning
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\CategoryPage.jsx
+  Line 124:6:  React Hook useEffect has a missing dependency: 'updateParam'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\CategoryPage.jsx
+  Line 124:6:  React Hook useEffect has a missing dependency: 'updateParam'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+webpack compiled with 1 warning
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\CategoryPage.jsx
+  Line 124:6:  React Hook useEffect has a missing dependency: 'updateParam'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\CategoryPage.jsx
+  Line 124:6:  React Hook useEffect has a missing dependency: 'updateParam'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+webpack compiled with 1 warning
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\CategoryPage.jsx
+  Line 124:6:  React Hook useEffect has a missing dependency: 'updateParam'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\CategoryPage.jsx
+  Line 124:6:  React Hook useEffect has a missing dependency: 'updateParam'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+webpack compiled with 1 warning
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\CategoryPage.jsx
+  Line 124:6:  React Hook useEffect has a missing dependency: 'updateParam'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\CategoryPage.jsx
+  Line 124:6:  React Hook useEffect has a missing dependency: 'updateParam'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+webpack compiled with 1 warning
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\CategoryPage.jsx
+  Line 124:6:  React Hook useEffect has a missing dependency: 'updateParam'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\CategoryPage.jsx
+  Line 124:6:  React Hook useEffect has a missing dependency: 'updateParam'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+webpack compiled with 1 warning
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\CategoryPage.jsx
+  Line 124:6:  React Hook useEffect has a missing dependency: 'updateParam'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\CategoryPage.jsx
+  Line 124:6:  React Hook useEffect has a missing dependency: 'updateParam'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+webpack compiled with 1 warning
+Compiling...
+Failed to compile.
+
+[eslint] 
+src\context\CartContext.jsx
+Syntax error: Unexpected token, expected "," (59:94) (59:94)
+WARNING in [eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\CategoryPage.jsx
+  Line 124:6:  React Hook useEffect has a missing dependency: 'updateParam'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+ERROR in ./src/context/CartContext.jsx
+Module build failed (from ./node_modules/babel-loader/lib/index.js):
+SyntaxError: C:\Projects\Jave-house-shop\frontend\src\context\CartContext.jsx: Unexpected token, expected "," (59:94)
+
+  57 |
+  58 |   const updateQty = useCallback((key, qty) =>
+> 59 |     setItems((prev) => prev.map((i) => (i.key === key ? { ...i, qty: Math.max(1, qty) } : i)));
+     |                                                                                               ^
+  60 |
+  61 |   const removeItem = useCallback((key) => setItems((prev) => prev.filter((i) => i.key !== key)), []);
+  62 |   const clearCart = useCallback(() => setItems([]), []);
+    at constructor (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:369:19)
+    at FlowParserMixin.raise (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:6620:19)
+    at FlowParserMixin.unexpected (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:6640:16)
+    at FlowParserMixin.expect (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:6920:12)
+    at FlowParserMixin.parseCallExpressionArguments (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:11269:14)
+    at FlowParserMixin.parseCoverCallAndAsyncArrowHead (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:11212:29)
+    at FlowParserMixin.parseSubscript (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:11141:19)
+    at FlowParserMixin.parseSubscript (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:3666:18)
+    at FlowParserMixin.parseSubscripts (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:11115:19)
+    at FlowParserMixin.parseSubscripts (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:3632:18)
+    at FlowParserMixin.parseExprSubscripts (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:11106:17)
+    at FlowParserMixin.parseUpdate (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:11087:21)
+    at FlowParserMixin.parseMaybeUnary (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:11067:23)
+    at FlowParserMixin.parseMaybeUnaryOrPrivate (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:10920:61)
+    at FlowParserMixin.parseExprOps (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:10925:23)
+    at FlowParserMixin.parseMaybeConditional (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:10902:23)
+    at FlowParserMixin.parseMaybeAssign (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:10852:21)
+    at FlowParserMixin.parseMaybeAssign (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:3565:18)
+    at C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:10821:39
+    at FlowParserMixin.allowInAnd (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:12450:16)
+    at FlowParserMixin.parseMaybeAssignAllowIn (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:10821:17)
+    at FlowParserMixin.parseVar (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:13413:91)
+    at FlowParserMixin.parseVarStatement (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:13259:10)
+    at FlowParserMixin.parseStatementContent (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:12880:23)
+    at FlowParserMixin.parseStatementLike (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:12796:17)
+    at FlowParserMixin.parseStatementLike (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:2934:24)
+    at FlowParserMixin.parseStatementListItem (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:12776:17)
+    at FlowParserMixin.parseBlockOrModuleBlockBody (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:13345:61)
+    at FlowParserMixin.parseBlockBody (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:13338:10)
+    at FlowParserMixin.parseBlock (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:13326:10)
+    at FlowParserMixin.parseFunctionBody (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:12129:24)
+    at FlowParserMixin.parseFunctionBody (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:2911:11)
+    at FlowParserMixin.parseFunctionBodyAndFinish (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:12115:10)
+    at FlowParserMixin.parseFunctionBodyAndFinish (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:2919:18)
+    at C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:13474:12
+    at FlowParserMixin.withSmartMixTopicForbiddingContext (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:12432:14)
+    at FlowParserMixin.parseFunction (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:13473:10)
+    at FlowParserMixin.parseFunctionStatement (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:13154:17)
+    at FlowParserMixin.parseStatementContent (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:12820:21)
+    at FlowParserMixin.parseStatementLike (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:12796:17)
+    at FlowParserMixin.parseStatementLike (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:2934:24)
+    at FlowParserMixin.parseStatementListItem (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:12776:17)
+    at FlowParserMixin.parseExportDeclaration (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:13963:17)
+    at FlowParserMixin.parseExportDeclaration (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:3136:20)
+    at FlowParserMixin.maybeParseExportDeclaration (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:13922:31)
+    at FlowParserMixin.parseExport (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:13841:29)
+    at FlowParserMixin.parseStatementContent (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:12907:27)
+    at FlowParserMixin.parseStatementLike (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:12796:17)
+    at FlowParserMixin.parseStatementLike (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:2934:24)
+    at FlowParserMixin.parseModuleItem (C:\Projects\Jave-house-shop\frontend\node_modules\@babel\parser\lib\index.js:12773:17)
+
+ERROR in [eslint] 
+src\context\CartContext.jsx
+  Line 59:94:  Parsing error: Unexpected token, expected "," (59:94)
+
+webpack compiled with 2 errors and 1 warning
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\CategoryPage.jsx
+  Line 124:6:  React Hook useEffect has a missing dependency: 'updateParam'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\CategoryPage.jsx
+  Line 124:6:  React Hook useEffect has a missing dependency: 'updateParam'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+webpack compiled with 1 warning
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\CategoryPage.jsx
+  Line 124:6:  React Hook useEffect has a missing dependency: 'updateParam'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\CategoryPage.jsx
+  Line 124:6:  React Hook useEffect has a missing dependency: 'updateParam'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+webpack compiled with 1 warning
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src\pages\Account.jsx
+  Line 23:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminLayout.jsx
+  Line 30:6:  React Hook useEffect has a missing dependency: 'nav'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\admin\AdminOrders.jsx
+  Line 19:32:  React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+webpack compiled with 1 warning

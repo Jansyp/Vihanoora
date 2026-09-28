@@ -3,13 +3,14 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Heart, ShoppingBag, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import { formatINR } from "@/lib/api";
-import { useCart } from "@/context/CartContext";
+import { useCartActions, useWishlist } from "@/context/CartContext";
 import ProductImage from "@/components/ProductImage";
 
 export default function ProductCard({ product, index = 0 }) {
   const nav = useNavigate();
   const location = useLocation();
-  const { addToCart, toggleWishlist, inWishlist } = useCart();
+  const { addToCart } = useCartActions();
+  const { toggleWishlist, inWishlist } = useWishlist();
   const ref = useRef(null);
   const [tilt, setTilt] = useState({ rx: 0, ry: 0 });
 
@@ -48,7 +49,6 @@ export default function ProductCard({ product, index = 0 }) {
             <ProductImage
             src={product.images?.[0]}
             alt={product.name}
-            priority={index < 4}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           />
             {product.product_video_url && <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-white">Video</span>}

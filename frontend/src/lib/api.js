@@ -76,6 +76,27 @@ export function productSrcSet(url, widths = [320, 480, 640, 960]) {
   return widths.map((w) => `${withCloudinaryWidth(resolved, w)} ${w}w`).join(", ");
 }
 
+const responseCache = new Map();
+const CACHEABLE_CATALOG_PATH = /^\/(?:products(?:\?|$)|categories(?:\?|$)|combos(?:\?|$)|offer-zone(?:\?|$)|banners(?:\?|$))/;
+
+// Short-lived in-memory cache shares in-flight catalogue GETs between storefront components.
+export function getCatalog(url, { ttl = 30000, signal } = {}) {
+  if (!CACHEABLE_CATALOG_PATH.test(url)) return api.get(url, { signal });
+  const now = Date.now();
+  for (const [key, entry] of responseCache) {
+    if (entry.expiresAt <= now) responseCache.delete(key);
+  }
+  const cached = responseCache.get(url);
+  if (cached && cached.expiresAt > now) return cached.promise;
+  const promise = api.get(url, { signal }).catch((error) => {
+    if (responseCache.get(url)?.promise === promise) responseCache.delete(url);
+    throw error;
+  });
+  responseCache.set(url, { promise, expiresAt: now + ttl });
+  while (responseCache.size > 100) responseCache.delete(responseCache.keys().next().value);
+  return promise;
+}
+
 const api = axios.create({
   baseURL: API,
   withCredentials: true,

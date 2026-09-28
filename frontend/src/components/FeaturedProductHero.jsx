@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useSettings } from "@/context/SettingsContext";
-import api, { assetUrl, formatINR } from "@/lib/api";
+import { getCatalog, assetUrl, formatINR } from "@/lib/api";
 import { PRODUCT_PAGE_SIZE } from "@/components/common";
 
 const ROTATION_MS = 5000;
@@ -77,13 +77,12 @@ export default function FeaturedProductHero() {
   const [productIndex, setProductIndex] = useState(0);
 
   useEffect(() => {
+    getCatalog("/banners").then(({ data }) => setBanners(data || [])).catch(() => {});
     Promise.all([
-      api.get("/banners"),
-      api.get(`/products?limit=${PRODUCT_PAGE_SIZE}&sort=best_selling`),
-      api.get("/combos"),
-      api.get(`/offer-zone?limit=${PRODUCT_PAGE_SIZE}`),
-    ]).then(([bannerResponse, productResponse, comboResponse, offerResponse]) => {
-      setBanners(bannerResponse.data || []);
+      getCatalog(`/products?limit=${PRODUCT_PAGE_SIZE}&sort=best_selling`),
+      getCatalog("/combos"),
+      getCatalog(`/offer-zone?limit=${PRODUCT_PAGE_SIZE}`),
+    ]).then(([productResponse, comboResponse, offerResponse]) => {
       setShowcase(selectShowcaseProducts(productResponse.data?.items || [], comboResponse.data || [], offerResponse.data?.items || []));
     }).catch(() => {});
   }, []);

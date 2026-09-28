@@ -4,6 +4,7 @@ import { ArrowLeft, Heart, Share2, Truck, ShieldCheck, RotateCcw, Star, Minus, P
 import api, { assetUrl, formatINR } from "@/lib/api";
 import { useCart } from "@/context/CartContext";
 import { Section, ProductRow, SectionHeader, GridSkeleton } from "@/components/common";
+import ProductImage from "@/components/ProductImage";
 import { toast } from "sonner";
 import { useSettings } from "@/context/SettingsContext";
 
@@ -114,7 +115,7 @@ export default function ProductPage() {
               ) : showingVideo ? (
                 <video src={assetUrl(showingVideo)} controls preload="metadata" className="w-full h-full object-contain bg-black" />
               ) : (
-                <img src={assetUrl(mediaItems[img])} alt={p.name} className="w-full h-full object-cover" />
+                <ProductImage src={mediaItems[img]} alt={p.name} priority sizes="(max-width: 1024px) 100vw, 50vw" className="w-full h-full object-cover" />
               )}
               {p.discount_percent > 0 && !mode3d && (
                 <span className="absolute top-4 left-4 text-sm font-bold px-3 py-1 rounded-full bg-[var(--brand)] text-white">-{p.discount_percent}%</span>
@@ -128,7 +129,7 @@ export default function ProductPage() {
               <div className="flex gap-3 mt-4">
                 {mediaItems.map((item, i) => (
                   <button key={i} onClick={() => { setImg(i); setMode3d(false); }} className={`relative w-20 h-20 rounded-2xl overflow-hidden border-2 ${img === i ? "border-[var(--brand)]" : "border-transparent"}`}>
-                    {item.video ? <><video src={assetUrl(item.video)} preload="metadata" muted className="w-full h-full object-cover" /><span className="absolute inset-0 flex items-center justify-center bg-black/20 text-white"><Play size={20} fill="currentColor" /></span></> : <img src={assetUrl(item)} alt="" loading="lazy" className="w-full h-full object-cover" />}
+                    {item.video ? <><video src={assetUrl(item.video)} preload="none" muted className="w-full h-full object-cover" /><span className="absolute inset-0 flex items-center justify-center bg-black/20 text-white"><Play size={20} fill="currentColor" /></span></> : <ProductImage src={item} alt="" sizes="80px" widths={[160, 320]} width={160} height={160} className="w-full h-full object-cover" />}
                   </button>
                 ))}
               </div>
