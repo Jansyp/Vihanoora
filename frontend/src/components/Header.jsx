@@ -5,7 +5,7 @@ import api from "@/lib/api";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { useSettings } from "@/context/SettingsContext";
-import wordmark from "@/assets/viaura-wordmark.png";
+import wordmark from "@/assets/viaura-wordmark-324.png";
 
 const NAV = [
   { label: "Home", to: "/" },
@@ -60,7 +60,7 @@ export default function Header() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
           <div className="flex items-center justify-between h-16 gap-4">
             <Link to="/" data-testid="logo-link" className="flex items-center gap-0 shrink-0" aria-label="Viaura home">
-              <img src={wordmark} alt="Viaura" className="h-9 w-auto object-contain sm:h-10" />
+              <img src={wordmark} alt="Viaura" width="324" height="108" className="h-9 w-auto object-contain sm:h-10" />
             </Link>
 
             <nav className="hidden lg:flex items-center gap-6 flex-1 justify-center">
@@ -107,7 +107,7 @@ export default function Header() {
           <div className="absolute left-0 top-0 h-full w-72 bg-white p-6 shadow-xl fade-up">
             <div className="flex items-center justify-between mb-6">
               <Link to="/" onClick={() => setOpen(false)} className="flex items-center gap-0" aria-label="Viaura home">
-                <img src={wordmark} alt="Viaura" className="h-9 w-auto object-contain" />
+                <img src={wordmark} alt="Viaura" width="324" height="108" className="h-9 w-auto object-contain" />
               </Link>
               <button onClick={() => setOpen(false)} data-testid="mobile-menu-close" aria-label="Close menu"><X size={22} /></button>
             </div>

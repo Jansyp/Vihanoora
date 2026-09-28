@@ -3,8 +3,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useSettings } from "@/context/SettingsContext";
-import { getCatalog, assetUrl, formatINR } from "@/lib/api";
+import { getCatalog, formatINR } from "@/lib/api";
 import { PRODUCT_PAGE_SIZE } from "@/components/common";
+import ProductImage from "@/components/ProductImage";
 
 const ROTATION_MS = 5000;
 
@@ -157,7 +158,16 @@ export default function FeaturedProductHero() {
                 className="relative z-10 flex w-full flex-col items-center text-center">
                 <Link to={productLink} className={`group relative flex h-[275px] w-[min(82vw,360px)] items-center justify-center sm:h-[350px] sm:w-[410px] ${reduceMotion ? "" : "animate-product-float"}`}>
                   <div className="absolute inset-8 rounded-full bg-white/60 blur-3xl" />
-                  <img src={assetUrl(product.images[0])} alt={productAlt} className="relative max-h-full max-w-full object-contain drop-shadow-[0_24px_24px_rgba(72,45,35,0.18)] transition-transform duration-700 group-hover:scale-[1.03]" />
+                  <ProductImage
+                    src={product.images[0]}
+                    alt={productAlt}
+                    priority={productIndex === 0}
+                    sizes="(max-width: 640px) min(82vw, 360px), 410px"
+                    widths={[320, 480, 640, 800]}
+                    width={800}
+                    height={800}
+                    className="relative max-h-full max-w-full object-contain drop-shadow-[0_24px_24px_rgba(72,45,35,0.18)] transition-transform duration-700 group-hover:scale-[1.03]"
+                  />
                 </Link>
                 <div className="relative z-10 mt-3">
                   <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[var(--brand)]">{currentShowcase.label}</p>

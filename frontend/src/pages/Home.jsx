@@ -28,6 +28,8 @@ const DEFAULT_ORDER = [
   { key: "reviews", enabled: true, order: 8 },
   { key: "newsletter", enabled: true, order: 9 },
 ];
+const HOME_CARD_WIDTHS = [320, 480, 640];
+const HOME_CARD_SIZES = "(max-width: 640px) 230px, 250px";
 
 const currentBrandCopy = (value, fallback) => (value || fallback)
   .replace(/\bJAVE(?: HOUSE)?\b/gi, "Viaura")
@@ -121,13 +123,13 @@ export default function Home() {
     trending: (c) => (
       <Section key="trending">
         <SectionHeader subtitle={c.subtitle || "#Viaura"} title={c.title || "Trending on Instagram"} to="/trending" />
-        <ProductRow products={data.trend || []} />
+        <ProductRow products={data.trend || []} imageWidths={HOME_CARD_WIDTHS} imageSizes={HOME_CARD_SIZES} />
       </Section>
     ),
     best_sellers: (c) => (
       <Section key="best_sellers">
         <SectionHeader subtitle={c.subtitle || "Loved by many"} title={c.title || "Best Sellers"} to="/women" />
-        <ProductRow products={data.best || []} />
+        <ProductRow products={data.best || []} imageWidths={HOME_CARD_WIDTHS} imageSizes={HOME_CARD_SIZES} />
       </Section>
     ),
     offer_banner: (c) => (
@@ -149,13 +151,13 @@ export default function Home() {
     new_arrivals: (c) => (
       <Section key="new_arrivals">
         <SectionHeader subtitle={c.subtitle || "Fresh drops"} title={c.title || "New Arrivals"} to="/women" />
-        <ProductRow products={data.arr || []} />
+        <ProductRow products={data.arr || []} imageWidths={HOME_CARD_WIDTHS} imageSizes={HOME_CARD_SIZES} />
       </Section>
     ),
     gift_picks: (c) => (
       <Section key="gift_picks">
         <SectionHeader subtitle={c.subtitle || "For someone special"} title={c.title || "Gift Picks"} to="/gifts" />
-        <ProductRow products={data.gift || []} />
+        <ProductRow products={data.gift || []} imageWidths={HOME_CARD_WIDTHS} imageSizes={HOME_CARD_SIZES} />
       </Section>
     ),
     combos: (c) => (
@@ -166,7 +168,7 @@ export default function Home() {
               <Link to={`/combo/${c.slug}`} data-testid={`combo-card-${c.id}`}
                 className="block bg-white rounded-3xl overflow-hidden border border-[var(--line)] soft-shadow hover-shadow group">
                 <div className="relative aspect-square overflow-hidden bg-[var(--card-2)]">
-                  <ProductImage src={c.images?.[0]} alt={c.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  <ProductImage src={c.images?.[0]} alt={c.name} widths={HOME_CARD_WIDTHS} sizes={HOME_CARD_SIZES} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                   <span className="absolute top-3 left-3 text-xs font-bold px-2.5 py-1 rounded-full bg-[var(--brand)] text-white">Save {formatINR(c.savings)}</span>
                 </div>
                 <div className="p-4">
@@ -188,7 +190,7 @@ export default function Home() {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {(offer.items || []).concat(data.trend || []).slice(0, 6).map((p, i) => (
             <Link key={i} to={`/product/${p.slug}`} className="relative aspect-square rounded-2xl overflow-hidden group">
-              <ProductImage src={p.images?.[0]} alt={p.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+              <ProductImage src={p.images?.[0]} alt={p.name} widths={[240, 320, 480]} sizes="(max-width: 640px) 44vw, 170px" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
                 <Instagram size={22} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>

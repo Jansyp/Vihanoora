@@ -20,12 +20,12 @@ export function Section({ children, className = "" }) {
   return <section className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-10 sm:py-14 ${className}`}>{children}</section>;
 }
 
-export function ProductRow({ products = [], renderItem }) {
+export function ProductRow({ products = [], renderItem, imageWidths, imageSizes }) {
   return (
     <div className="flex gap-4 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 snap-x">
       {products.map((p, i) => (
         <div key={p.id} className="min-w-[230px] w-[230px] sm:min-w-[250px] sm:w-[250px] snap-start">
-          {renderItem ? renderItem(p, i) : <ProductCard product={p} index={i} />}
+          {renderItem ? renderItem(p, i) : <ProductCard product={p} index={i} imageWidths={imageWidths} imageSizes={imageSizes} />}
         </div>
       ))}
     </div>

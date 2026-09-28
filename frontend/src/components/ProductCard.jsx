@@ -6,7 +6,7 @@ import { formatINR } from "@/lib/api";
 import { useCartActions, useWishlist } from "@/context/CartContext";
 import ProductImage from "@/components/ProductImage";
 
-export default function ProductCard({ product, index = 0 }) {
+export default function ProductCard({ product, index = 0, imageWidths, imageSizes }) {
   const nav = useNavigate();
   const location = useLocation();
   const { addToCart } = useCartActions();
@@ -49,6 +49,8 @@ export default function ProductCard({ product, index = 0 }) {
             <ProductImage
             src={product.images?.[0]}
             alt={product.name}
+            widths={imageWidths}
+            sizes={imageSizes}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           />
             {product.product_video_url && <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-black/70 px-2.5 py-1 text-[10px] font-semibold text-white">Video</span>}
