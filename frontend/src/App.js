@@ -6,7 +6,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { SettingsProvider } from "@/context/SettingsContext";
 import { CartProvider } from "@/context/CartContext";
 import Layout from "@/components/Layout";
-import PageLoader from "@/components/PageLoader";
+import PageLoader, { HomePageLoader } from "@/components/PageLoader";
 import RouteErrorBoundary from "@/components/RouteErrorBoundary";
 
 const Home = lazy(() => import("@/pages/Home"));
@@ -37,10 +37,10 @@ const AdminAnnouncements = lazy(() => import("@/pages/admin/AdminAnnouncements")
 const AdminSettings = lazy(() => import("@/pages/admin/AdminSettings"));
 const ShippingLabelPrint = lazy(() => import("@/pages/admin/ShippingLabelPrint"));
 
-const Store = ({ children }) => (
+const Store = ({ children, fallback = <PageLoader /> }) => (
   <Layout>
     <RouteErrorBoundary>
-      <Suspense fallback={<PageLoader />}>{children}</Suspense>
+      <Suspense fallback={fallback}>{children}</Suspense>
     </RouteErrorBoundary>
   </Layout>
 );
@@ -58,7 +58,7 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/" element={<Store><Home /></Store>} />
+      <Route path="/" element={<Store fallback={<HomePageLoader />}><Home /></Store>} />
       <Route path="/women" element={<Store><CategoryPage type="group" group="women" /></Store>} />
       <Route path="/kids" element={<Store><CategoryPage type="group" group="kids" /></Store>} />
       <Route path="/gifts" element={<Store><CategoryPage type="group" group="gifts" /></Store>} />
