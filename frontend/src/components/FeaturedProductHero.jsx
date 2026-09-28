@@ -73,20 +73,29 @@ function selectShowcaseProducts(products, combos, offerItems) {
 export default function FeaturedProductHero() {
   const { reduceMotion } = useSettings();
   const [banners, setBanners] = useState([]);
-  const [showcase, setShowcase] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [combos, setCombos] = useState([]);
+  const [offerItems, setOfferItems] = useState([]);
   const [bannerIndex, setBannerIndex] = useState(0);
   const [productIndex, setProductIndex] = useState(0);
 
   useEffect(() => {
     getCatalog("/banners").then(({ data }) => setBanners(data || [])).catch(() => {});
-    Promise.all([
-      getCatalog(`/products?limit=${PRODUCT_PAGE_SIZE}&sort=best_selling`),
-      getCatalog("/combos"),
-      getCatalog(`/offer-zone?limit=${PRODUCT_PAGE_SIZE}`),
-    ]).then(([productResponse, comboResponse, offerResponse]) => {
-      setShowcase(selectShowcaseProducts(productResponse.data?.items || [], comboResponse.data || [], offerResponse.data?.items || []));
-    }).catch(() => {});
+    getCatalog(`/products?limit=${PRODUCT_PAGE_SIZE}&sort=best_selling`)
+      .then(({ data }) => setProducts(data?.items || []))
+      .catch(() => {});
+    getCatalog("/combos")
+      .then(({ data }) => setCombos(data || []))
+      .catch(() => {});
+    getCatalog(`/offer-zone?limit=${PRODUCT_PAGE_SIZE}`)
+      .then(({ data }) => setOfferItems(data?.items || []))
+      .catch(() => {});
   }, []);
+
+  const showcase = useMemo(
+    () => selectShowcaseProducts(products, combos, offerItems),
+    [products, combos, offerItems],
+  );
 
   useEffect(() => {
     if (banners.length <= 1) return undefined;
