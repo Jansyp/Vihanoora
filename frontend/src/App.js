@@ -1,5 +1,5 @@
 import "@/App.css";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/context/AuthContext";
@@ -8,6 +8,7 @@ import { CartProvider } from "@/context/CartContext";
 import Layout from "@/components/Layout";
 import PageLoader, { HomePageLoader } from "@/components/PageLoader";
 import RouteErrorBoundary from "@/components/RouteErrorBoundary";
+import { getCatalog } from "@/lib/api";
 
 const Home = lazy(() => import("@/pages/Home"));
 const CategoryPage = lazy(() => import("@/pages/CategoryPage"));
@@ -53,6 +54,11 @@ const Lazy = ({ children }) => (
 
 function AppRoutes() {
   const location = useLocation();
+  useEffect(() => {
+    if (location.pathname !== "/") return;
+    getCatalog("/products?limit=12&sort=best_selling").catch(() => {});
+  }, [location.pathname]);
+
   // Emergent Google OAuth callback — process session_id before anything else
   if (location.hash?.includes("session_id=")) return <Lazy><AuthCallback /></Lazy>;
 
