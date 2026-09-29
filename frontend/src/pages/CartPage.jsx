@@ -7,7 +7,7 @@ import { Section } from "@/components/common";
 import { toast } from "sonner";
 import { useSettings } from "@/context/SettingsContext";
 import { whatsappOrderUrl } from "@/lib/whatsappOrder";
-import { trackEcommerce, trackEvent } from "@/lib/analytics";
+import { trackEcommerce, trackWhatsAppOrderClick } from "@/lib/analytics";
 
 export default function CartPage() {
   const { items, updateQty, removeItem, toggleWishlist, couponCode, setCouponCode } = useCart();
@@ -112,7 +112,7 @@ export default function CartPage() {
           )}
           {paymentsEnabled ? <button data-testid="checkout-btn" onClick={() => nav("/checkout")} className="w-full mt-5 py-4 rounded-full bg-[var(--brand)] text-white font-medium hover:bg-[var(--brand-hover)] transition-colors">
             Proceed to Checkout
-          </button> : <a data-testid="checkout-btn" href={whatsappOrderUrl(items, summary?.grand_total)} onClick={() => trackEvent("whatsapp_click", { placement: "cart" })} target="_blank" rel="noreferrer" className="w-full mt-5 py-4 rounded-full bg-[#25D366] text-white font-medium flex items-center justify-center gap-2">
+          </button> : <a data-testid="checkout-btn" href={whatsappOrderUrl(items, summary?.grand_total)} onClick={() => trackWhatsAppOrderClick(items, "cart")} target="_blank" rel="noreferrer" className="w-full mt-5 py-4 rounded-full bg-[#25D366] text-white font-medium flex items-center justify-center gap-2">
             <MessageCircle size={18} /> Order via WhatsApp
           </a>}
           <p className="text-xs text-center text-[var(--ink-soft)] mt-3">{paymentsEnabled ? "Guest checkout available · Secure payments" : "Online payments are temporarily unavailable. Contact us on WhatsApp to place your order."}</p>

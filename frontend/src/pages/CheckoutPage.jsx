@@ -10,7 +10,7 @@ import { load } from "@cashfreepayments/cashfree-js";
 import { validateCheckoutForm } from "@/lib/checkoutValidation";
 import { useSettings } from "@/context/SettingsContext";
 import { whatsappOrderUrl } from "@/lib/whatsappOrder";
-import { trackEcommerce, trackEvent } from "@/lib/analytics";
+import { trackEcommerce, trackEvent, trackWhatsAppOrderClick } from "@/lib/analytics";
 
 export default function CheckoutPage() {
   const { items, subtotal, couponCode, setCouponCode, removePurchasedItems } = useCart();
@@ -147,7 +147,7 @@ export default function CheckoutPage() {
             </div>)}
           </div>
           {summary && <div className="flex justify-between border-t border-[var(--line)] mt-4 pt-4 font-bold"><span>Estimated total</span><span className="text-[var(--brand)]">{formatINR(summary.grand_total)}</span></div>}
-          <a href={whatsappOrderUrl(items, summary?.grand_total)} onClick={() => trackEvent("whatsapp_click", { placement: "checkout" })} target="_blank" rel="noreferrer"
+          <a href={whatsappOrderUrl(items, summary?.grand_total)} onClick={() => trackWhatsAppOrderClick(items, "checkout")} target="_blank" rel="noreferrer"
             className="mt-6 w-full py-4 rounded-full bg-[#25D366] text-white font-medium flex items-center justify-center gap-2">
             <MessageCircle size={18} /> Order via WhatsApp
           </a>

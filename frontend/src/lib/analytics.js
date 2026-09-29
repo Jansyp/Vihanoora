@@ -39,6 +39,10 @@ export function trackEcommerce(name, items, extra = {}) {
   trackEvent(name, { currency: "INR", ...extra, items: ecommerceItems(items) });
 }
 
+export function trackWhatsAppOrderClick(items, placement) {
+  trackEcommerce("whatsapp_order_click", items, { placement });
+}
+
 const sentPurchases = new Set();
 const sentPaymentOutcomes = new Set();
 export function trackPaymentOutcomeOnce(order, status) {
