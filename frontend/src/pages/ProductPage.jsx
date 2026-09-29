@@ -7,6 +7,7 @@ import { Section, ProductRow, SectionHeader, GridSkeleton } from "@/components/c
 import ProductImage from "@/components/ProductImage";
 import { toast } from "sonner";
 import { useSettings } from "@/context/SettingsContext";
+import { trackEcommerce } from "@/lib/analytics";
 
 const Product3D = lazy(() => import("@/components/Product3D"));
 
@@ -31,6 +32,10 @@ export default function ProductPage() {
       setD(data); setColor(data.product.colors?.[0] || "");
     }).finally(() => setLoading(false));
   }, [slug]);
+
+  useEffect(() => {
+    if (d?.product?.slug === slug) trackEcommerce("view_item", [{ ...d.product, product_id: d.product.id, price: d.product.effective_price, qty: 1 }], { value: Number(d.product.effective_price || 0) });
+  }, [d, slug]);
 
   if (loading) return <Section><GridSkeleton n={4} /></Section>;
   if (!d) return <Section><p className="text-center py-20">Product not found.</p></Section>;

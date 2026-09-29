@@ -9,6 +9,7 @@ import Layout from "@/components/Layout";
 import PageLoader, { HomePageLoader } from "@/components/PageLoader";
 import RouteErrorBoundary from "@/components/RouteErrorBoundary";
 import { getCatalog } from "@/lib/api";
+import { initializeAnalytics, trackPageView } from "@/lib/analytics";
 
 const Home = lazy(() => import("@/pages/Home"));
 const CategoryPage = lazy(() => import("@/pages/CategoryPage"));
@@ -54,6 +55,10 @@ const Lazy = ({ children }) => (
 
 function AppRoutes() {
   const location = useLocation();
+  useEffect(() => {
+    initializeAnalytics();
+    trackPageView(location.pathname);
+  }, [location.pathname]);
   useEffect(() => {
     if (location.pathname !== "/") return;
     getCatalog("/products?limit=12&sort=best_selling").catch(() => {});

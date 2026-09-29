@@ -6,6 +6,7 @@ import { useSettings } from "@/context/SettingsContext";
 import { getCatalog, formatINR } from "@/lib/api";
 import { PRODUCT_PAGE_SIZE } from "@/components/common";
 import ProductImage from "@/components/ProductImage";
+import { trackEvent } from "@/lib/analytics";
 
 const ROTATION_MS = 5000;
 
@@ -110,6 +111,9 @@ export default function FeaturedProductHero() {
   }, [reduceMotion, showcase.length]);
 
   const active = banners[bannerIndex];
+  useEffect(() => {
+    if (active) trackEvent("view_promotion", { promotion_id: String(active.id), promotion_name: active.title || "Homepage banner" });
+  }, [active]);
   const DEFAULT = { title: "Trending Finds.", accent: "Thoughtful Gifts.",
     subtitle: "Little Things. Beautiful Moments. Curated jewellery, hair accessories, toys & gift hampers — all in one cute corner.",
     cta_text: "Shop Now", cta_link: "/trending" };
@@ -138,7 +142,7 @@ export default function FeaturedProductHero() {
               </h1>
               <p className="mt-5 text-base sm:text-lg text-[var(--ink-soft)] max-w-md mx-auto lg:mx-0">{heading.subtitle}</p>
               <div className="mt-8 flex flex-wrap gap-3 justify-center lg:justify-start">
-                <Link data-testid="hero-shop-now" to={heading.cta_link || "/trending"}
+                <Link data-testid="hero-shop-now" to={heading.cta_link || "/trending"} onClick={() => active && trackEvent("select_promotion", { promotion_id: String(active.id), promotion_name: active.title || "Homepage banner" })}
                   className="px-7 py-3.5 rounded-full bg-[var(--ink)] text-white font-medium hover:bg-[var(--brand)] transition-colors soft-shadow">
                   {heading.cta_text || "Shop Now"}
                 </Link>

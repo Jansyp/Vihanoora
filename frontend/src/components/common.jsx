@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import ProductCard from "@/components/ProductCard";
+import { trackEcommerce } from "@/lib/analytics";
 
 export const PRODUCT_PAGE_SIZE = 12;
 
@@ -20,7 +22,10 @@ export function Section({ children, className = "" }) {
   return <section className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-10 sm:py-14 ${className}`}>{children}</section>;
 }
 
-export function ProductRow({ products = [], renderItem, imageWidths, imageSizes }) {
+export function ProductRow({ products = [], renderItem, imageWidths, imageSizes, listName }) {
+  useEffect(() => {
+    if (!renderItem && listName && products.length) trackEcommerce("view_item_list", products.map((item) => ({ ...item, product_id: item.id, price: item.effective_price, qty: 1 })), { item_list_id: listName, item_list_name: listName });
+  }, [products, renderItem, listName]);
   return (
     <div className="flex gap-4 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 snap-x">
       {products.map((p, i) => (

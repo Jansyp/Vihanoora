@@ -3,6 +3,7 @@ import { useLocation, useNavigationType, useParams, useSearchParams } from "reac
 import { SlidersHorizontal, X } from "lucide-react";
 import api, { getCatalog } from "@/lib/api";
 import { Section, ProductGrid, GridSkeleton, Pagination, PRODUCT_PAGE_SIZE } from "@/components/common";
+import { trackEcommerce, trackEvent } from "@/lib/analytics";
 
 const GROUP_TITLE = {
   women: ["Women", "Jewellery, bracelets, hair accessories & more"],
@@ -53,6 +54,7 @@ export default function CategoryPage({ type, group: groupProp }) {
   const shouldRestoreScroll = navigationType === "POP" && Number.isFinite(savedScrollPosition) && savedScrollPosition > 0;
   const [reserveRestoreSpace, setReserveRestoreSpace] = useState(shouldRestoreScroll);
   const restoredKey = useRef(null);
+  const trackedSearchTerm = useRef(null);
   const suppressScrollSave = useRef(shouldRestoreScroll);
   const suppressionKey = useRef(scrollKey);
 
@@ -169,6 +171,12 @@ export default function CategoryPage({ type, group: groupProp }) {
       if (!active) return;
       setItems(data.items || []);
       setTotal(data.total || 0);
+      const list = data.items || [];
+      if (list.length) trackEcommerce("view_item_list", list.map((item) => ({ ...item, product_id: item.id, price: item.effective_price, qty: 1 })), { item_list_id: key, item_list_name: title });
+      if (type === "search" && q && trackedSearchTerm.current !== q && !/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}|\b\d{8,}\b/.test(q)) {
+        trackedSearchTerm.current = q;
+        trackEvent("search", { search_term: q });
+      }
     }).catch(() => {
       if (!active) return;
       setItems([]);
@@ -177,7 +185,7 @@ export default function CategoryPage({ type, group: groupProp }) {
       if (active) setLoading(false);
     });
     return () => { active = false; };
-  }, [categoriesLoaded, type, group, q, sort, minDiscount, maxPrice, minPrice, categoryQuery, stockStatus, page, searchParamsKey]);
+  }, [categoriesLoaded, type, group, q, sort, minDiscount, maxPrice, minPrice, categoryQuery, stockStatus, page, searchParamsKey, key, title]);
 
   const selectCategory = (value) => updateParam("category", value);
   const changePage = (nextPage) => {

@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { trackEcommerce } from "@/lib/analytics";
 
 const CartCtx = createContext(null);
 const CartActionsCtx = createContext(null);
@@ -52,6 +53,7 @@ export function CartProvider({ children }) {
         slug: product.slug,
       }];
     });
+    trackEcommerce("add_to_cart", [{ ...product, product_id: product.id, price: combo ? product.combo_price : product.effective_price, qty }]);
     toast.success(`${product.name} added to cart`);
   }, []);
 
@@ -59,7 +61,11 @@ export function CartProvider({ children }) {
     setItems((prev) => prev.map((i) => (i.key === key ? { ...i, qty: Math.max(1, qty) } : i)));
   }, []);
 
-  const removeItem = useCallback((key) => setItems((prev) => prev.filter((i) => i.key !== key)), []);
+  const removeItem = useCallback((key) => setItems((prev) => {
+    const removed = prev.find((item) => item.key === key);
+    if (removed) trackEcommerce("remove_from_cart", [removed]);
+    return prev.filter((i) => i.key !== key);
+  }), []);
   const clearCart = useCallback(() => setItems([]), []);
   const removePurchasedItems = useCallback((orderId, purchasedItems) => {
     const storedProcessedOrders = load("jh_cart_processed_orders", []);

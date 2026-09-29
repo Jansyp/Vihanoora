@@ -9,6 +9,7 @@ import ProductImage from "@/components/ProductImage";
 import { useSettings } from "@/context/SettingsContext";
 import { themeBg } from "@/lib/themes";
 import { Section, SectionHeader, ProductRow, GridSkeleton, Reveal, PRODUCT_PAGE_SIZE } from "@/components/common";
+import { trackEvent } from "@/lib/analytics";
 
 const REVIEWS = [
   { name: "Ananya R.", text: "The crystal bracelet is even prettier in person. Packaging felt so premium!", rating: 5 },
@@ -84,6 +85,7 @@ export default function Home() {
     setNewsletterSubmitting(true);
     try {
       const { data } = await subscribeToNewsletter(email);
+      trackEvent("newsletter_signup", { method: "email" });
       showNewsletterToast(data.message, "success");
       setNewsletterEmail("");
     } catch {
@@ -123,13 +125,13 @@ export default function Home() {
     trending: (c) => (
       <Section key="trending">
         <SectionHeader subtitle={c.subtitle || "#Viaura"} title={c.title || "Trending on Instagram"} to="/trending" />
-        <ProductRow products={data.trend || []} imageWidths={HOME_CARD_WIDTHS} imageSizes={HOME_CARD_SIZES} />
+        <ProductRow products={data.trend || []} listName="home_trending" imageWidths={HOME_CARD_WIDTHS} imageSizes={HOME_CARD_SIZES} />
       </Section>
     ),
     best_sellers: (c) => (
       <Section key="best_sellers">
         <SectionHeader subtitle={c.subtitle || "Loved by many"} title={c.title || "Best Sellers"} to="/women" />
-        <ProductRow products={data.best || []} imageWidths={HOME_CARD_WIDTHS} imageSizes={HOME_CARD_SIZES} />
+        <ProductRow products={data.best || []} listName="home_best_sellers" imageWidths={HOME_CARD_WIDTHS} imageSizes={HOME_CARD_SIZES} />
       </Section>
     ),
     offer_banner: (c) => (
@@ -151,13 +153,13 @@ export default function Home() {
     new_arrivals: (c) => (
       <Section key="new_arrivals">
         <SectionHeader subtitle={c.subtitle || "Fresh drops"} title={c.title || "New Arrivals"} to="/women" />
-        <ProductRow products={data.arr || []} imageWidths={HOME_CARD_WIDTHS} imageSizes={HOME_CARD_SIZES} />
+        <ProductRow products={data.arr || []} listName="home_new_arrivals" imageWidths={HOME_CARD_WIDTHS} imageSizes={HOME_CARD_SIZES} />
       </Section>
     ),
     gift_picks: (c) => (
       <Section key="gift_picks">
         <SectionHeader subtitle={c.subtitle || "For someone special"} title={c.title || "Gift Picks"} to="/gifts" />
-        <ProductRow products={data.gift || []} imageWidths={HOME_CARD_WIDTHS} imageSizes={HOME_CARD_SIZES} />
+        <ProductRow products={data.gift || []} listName="home_gift_picks" imageWidths={HOME_CARD_WIDTHS} imageSizes={HOME_CARD_SIZES} />
       </Section>
     ),
     combos: (c) => (

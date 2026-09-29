@@ -10,6 +10,7 @@ import { load } from "@cashfreepayments/cashfree-js";
 import { validateCheckoutForm } from "@/lib/checkoutValidation";
 import { useSettings } from "@/context/SettingsContext";
 import { whatsappOrderUrl } from "@/lib/whatsappOrder";
+import { trackEcommerce, trackEvent } from "@/lib/analytics";
 
 export default function CheckoutPage() {
   const { items, subtotal, couponCode, setCouponCode, removePurchasedItems } = useCart();
@@ -23,6 +24,10 @@ export default function CheckoutPage() {
   const [form, setForm] = useState({ name: "", mobile: "", email: "", address: "", city: "", state: "", pin: "" });
   const [fieldErrors, setFieldErrors] = useState({});
   const inputRefs = useRef({});
+
+  useEffect(() => {
+    if (paymentsEnabled && items.length) trackEcommerce("begin_checkout", items, { value: Number(subtotal || 0) });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- snapshot checkout once on route entry
 
   useEffect(() => {
     if (user) setForm((f) => ({ ...f, name: user.name || "", email: user.email || "" }));
@@ -81,6 +86,8 @@ export default function CheckoutPage() {
       const payload = { items: items.map((i) => ({ product_id: i.product_id, qty: i.qty, variant: i.variant, combo: i.combo })), customer: form, coupon_code: couponCode || null };
       const { data } = await api.post("/orders", payload);
       const order = data.order;
+      trackEcommerce("add_shipping_info", items, { value: Number(order.grand_total || subtotal) });
+      trackEcommerce("add_payment_info", items, { value: Number(order.grand_total || subtotal), payment_type: "Cashfree" });
 
       if (data.payment_mode === "mock") {
         const { data: verification } = await api.post("/payments/verify", { order_id: order.id });
@@ -98,8 +105,10 @@ export default function CheckoutPage() {
         setSubmitted(false);
         return;
       }
+      trackEvent("payment_started", { payment_type: "Cashfree" });
       const result = await cashfree.checkout({ paymentSessionId: data.payment_session_id, redirectTarget: "_self" });
       if (result?.error) {
+        // A widget result alone is not the server's confirmed payment state.
         toast.error("Payment was not completed. You can try again.");
         setBusy(false);
         setSubmitted(false);
@@ -138,7 +147,7 @@ export default function CheckoutPage() {
             </div>)}
           </div>
           {summary && <div className="flex justify-between border-t border-[var(--line)] mt-4 pt-4 font-bold"><span>Estimated total</span><span className="text-[var(--brand)]">{formatINR(summary.grand_total)}</span></div>}
-          <a href={whatsappOrderUrl(items, summary?.grand_total)} target="_blank" rel="noreferrer"
+          <a href={whatsappOrderUrl(items, summary?.grand_total)} onClick={() => trackEvent("whatsapp_click", { placement: "checkout" })} target="_blank" rel="noreferrer"
             className="mt-6 w-full py-4 rounded-full bg-[#25D366] text-white font-medium flex items-center justify-center gap-2">
             <MessageCircle size={18} /> Order via WhatsApp
           </a>

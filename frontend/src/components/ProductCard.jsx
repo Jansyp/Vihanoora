@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { formatINR } from "@/lib/api";
 import { useCartActions, useWishlist } from "@/context/CartContext";
 import ProductImage from "@/components/ProductImage";
+import { trackEcommerce } from "@/lib/analytics";
 
 export default function ProductCard({ product, index = 0, imageWidths, imageSizes }) {
   const nav = useNavigate();
@@ -30,6 +31,7 @@ export default function ProductCard({ product, index = 0, imageWidths, imageSize
     if (!["/women", "/kids", "/gifts", "/trending", "/offer-zone", "/search"].includes(location.pathname)) return;
     sessionStorage.setItem(`viaura:listing-scroll:${location.pathname}${location.search}`, String(window.scrollY));
   };
+  const selectProduct = () => trackEcommerce("select_item", [{ ...product, product_id: product.id, price: product.effective_price, qty: 1 }], { item_list_id: location.pathname });
 
   return (
     <motion.div
@@ -44,7 +46,7 @@ export default function ProductCard({ product, index = 0, imageWidths, imageSize
       style={{ transform: `perspective(900px) rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg)` }}
       className="tilt-card group relative bg-white rounded-3xl soft-shadow hover-shadow overflow-hidden border border-[var(--line)]"
     >
-      <Link to={`/product/${product.slug}`} onClick={rememberListingScroll} className="block">
+      <Link to={`/product/${product.slug}`} onClick={() => { rememberListingScroll(); selectProduct(); }} className="block">
         <div className="relative aspect-square overflow-hidden bg-[var(--card-2)]">
             <ProductImage
             src={product.images?.[0]}
@@ -95,7 +97,7 @@ export default function ProductCard({ product, index = 0, imageWidths, imageSize
             <span className="text-xs font-medium text-[var(--ink-soft)]">{product.rating} ({product.review_count})</span>
           </div>
         )}
-        <Link to={`/product/${product.slug}`} onClick={rememberListingScroll}>
+        <Link to={`/product/${product.slug}`} onClick={() => { rememberListingScroll(); selectProduct(); }}>
           <h3 className="text-sm font-semibold text-[var(--ink)] leading-snug line-clamp-2 min-h-[2.5rem] hover:text-[var(--brand)] transition-colors">
             {product.name}
           </h3>

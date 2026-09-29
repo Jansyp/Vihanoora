@@ -5,6 +5,7 @@ import api, { formatINR } from "@/lib/api";
 import { Section } from "@/components/common";
 import GiftReveal from "@/components/GiftReveal";
 import { useCart } from "@/context/CartContext";
+import { trackPaymentOutcomeOnce, trackPurchaseOnce } from "@/lib/analytics";
 
 export default function OrderSuccess() {
   const { orderNumber } = useParams();
@@ -53,6 +54,12 @@ export default function OrderSuccess() {
   const paymentStatus = order?.payment_status;
   const isPaid = paymentStatus === "PAID";
   const isFailed = paymentStatus === "FAILED";
+
+  useEffect(() => {
+    if (!order) return;
+    trackPaymentOutcomeOnce(order, paymentStatus);
+    if (paymentStatus === "PAID") trackPurchaseOnce(order);
+  }, [order, paymentStatus]);
 
   return (
     <Section className="max-w-2xl">
