@@ -10,14 +10,14 @@ import { whatsappOrderUrl } from "@/lib/whatsappOrder";
 import { trackEcommerce, trackWhatsAppOrderClick } from "@/lib/analytics";
 
 export default function CartPage() {
-  const { items, updateQty, removeItem, toggleWishlist, couponCode, setCouponCode } = useCart();
+  const { items, subtotal, updateQty, removeItem, toggleWishlist, couponCode, setCouponCode } = useCart();
   const nav = useNavigate();
   const { paymentsEnabled } = useSettings();
   const [summary, setSummary] = useState(null);
   const [coupon, setCoupon] = useState(couponCode || "");
   const [applied, setApplied] = useState("");
 
-  useEffect(() => { if (items.length) trackEcommerce("view_cart", items); }, []); // eslint-disable-line react-hooks/exhaustive-deps -- snapshot cart once on entry
+  useEffect(() => { if (items.length) trackEcommerce("view_cart", items, { value: Number(subtotal) }); }, []); // eslint-disable-line react-hooks/exhaustive-deps -- snapshot cart once on entry
 
   const validate = useCallback(async (code) => {
     if (items.length === 0) { setSummary(null); return; }
@@ -112,7 +112,7 @@ export default function CartPage() {
           )}
           {paymentsEnabled ? <button data-testid="checkout-btn" onClick={() => nav("/checkout")} className="w-full mt-5 py-4 rounded-full bg-[var(--brand)] text-white font-medium hover:bg-[var(--brand-hover)] transition-colors">
             Proceed to Checkout
-          </button> : <a data-testid="checkout-btn" href={whatsappOrderUrl(items, summary?.grand_total)} onClick={() => trackWhatsAppOrderClick(items, "cart")} target="_blank" rel="noreferrer" className="w-full mt-5 py-4 rounded-full bg-[#25D366] text-white font-medium flex items-center justify-center gap-2">
+          </button> : <a data-testid="checkout-btn" href={whatsappOrderUrl(items, summary?.grand_total)} onClick={() => trackWhatsAppOrderClick(items, "cart", summary?.grand_total ?? subtotal)} target="_blank" rel="noreferrer" className="w-full mt-5 py-4 rounded-full bg-[#25D366] text-white font-medium flex items-center justify-center gap-2">
             <MessageCircle size={18} /> Order via WhatsApp
           </a>}
           <p className="text-xs text-center text-[var(--ink-soft)] mt-3">{paymentsEnabled ? "Guest checkout available · Secure payments" : "Online payments are temporarily unavailable. Contact us on WhatsApp to place your order."}</p>

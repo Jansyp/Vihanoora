@@ -173,9 +173,10 @@ export default function CategoryPage({ type, group: groupProp }) {
       setTotal(data.total || 0);
       const list = data.items || [];
       if (list.length) trackEcommerce("view_item_list", list.map((item) => ({ ...item, product_id: item.id, price: item.effective_price, qty: 1 })), { item_list_id: key, item_list_name: title });
-      if (type === "search" && q && trackedSearchTerm.current !== q && !/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}|\b\d{8,}\b/.test(q)) {
+      if (type === "search" && q && trackedSearchTerm.current !== q) {
         trackedSearchTerm.current = q;
-        trackEvent("search", { search_term: q });
+        // Count searches without forwarding raw user-entered text that might contain PII.
+        trackEvent("search");
       }
     }).catch(() => {
       if (!active) return;

@@ -12,35 +12,57 @@ export function trackEvent(name, parameters = {}) {
   }
 }
 
-export function trackPageView(path) {
+export function trackPageView(path, searchString = typeof window === "undefined" ? "" : window.location.search) {
   if (!isProduction() || typeof window === "undefined") return;
   // Keep campaign attribution while excluding arbitrary query values (which can contain PII).
-  const search = new URLSearchParams(window.location.search);
+  const search = new URLSearchParams(searchString);
   const campaign = new URLSearchParams();
   ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "utm_id"].forEach((key) => {
     const value = search.get(key);
     if (value) campaign.set(key, value);
   });
-  const pagePath = `${path}${campaign.size ? `?${campaign.toString()}` : ""}`;
+  const campaignQuery = campaign.toString();
+  const pagePath = `${path}${campaignQuery ? `?${campaignQuery}` : ""}`;
   trackEvent("page_view", { page_path: pagePath, page_location: `${window.location.origin}${pagePath}`, page_title: document.title });
 }
 
 export function ecommerceItems(items = []) {
-  return items.map((item) => ({
-    item_id: String(item.product_id ?? item.id ?? ""),
-    item_name: item.name || "",
-    ...(item.group || item.category ? { item_category: item.group || item.category } : {}),
-    price: Number(item.price ?? item.unit_price ?? item.effective_price ?? item.combo_price ?? 0),
-    quantity: Number(item.qty ?? item.quantity ?? 1),
-  }));
+  return items.map((item) => {
+    const rawPrice = item.price ?? item.unit_price ?? item.effective_price ?? item.combo_price;
+    const rawQuantity = item.qty ?? item.quantity;
+    const price = Number(rawPrice);
+    const quantity = Number(rawQuantity);
+    const itemId = item.product_id ?? item.id;
+    return {
+      ...(itemId != null && itemId !== "" ? { item_id: String(itemId) } : {}),
+      ...(typeof item.name === "string" && item.name ? { item_name: item.name } : {}),
+      ...(item.category || item.group ? { item_category: item.category || item.group } : {}),
+      ...(rawPrice != null && Number.isFinite(price) ? { price } : {}),
+      ...(rawQuantity != null && Number.isFinite(quantity) ? { quantity } : {}),
+    };
+  });
 }
 
 export function trackEcommerce(name, items, extra = {}) {
-  trackEvent(name, { currency: "INR", ...extra, items: ecommerceItems(items) });
+  const parameters = { currency: "INR", ...extra, items: ecommerceItems(items) };
+  if (Object.prototype.hasOwnProperty.call(extra, "value")) {
+    const value = Number(extra.value);
+    if (Number.isFinite(value)) parameters.value = value;
+    else delete parameters.value;
+  }
+  trackEvent(name, parameters);
 }
 
-export function trackWhatsAppOrderClick(items, placement) {
-  trackEcommerce("whatsapp_order_click", items, { placement });
+export function trackWhatsAppOrderClick(items, placement, value) {
+  const itemValues = items.map((item) => {
+    const rawPrice = item.price ?? item.unit_price ?? item.effective_price ?? item.combo_price;
+    const rawQuantity = item.qty ?? item.quantity;
+    return rawPrice != null && rawQuantity != null && Number.isFinite(Number(rawPrice)) && Number.isFinite(Number(rawQuantity))
+      ? Number(rawPrice) * Number(rawQuantity)
+      : null;
+  });
+  const orderValue = value != null ? Number(value) : itemValues.every((itemValue) => itemValue != null) ? itemValues.reduce((sum, itemValue) => sum + itemValue, 0) : null;
+  trackEcommerce("whatsapp_order_click", items, { placement, ...(Number.isFinite(orderValue) ? { value: orderValue } : {}) });
 }
 
 const sentPurchases = new Set();
@@ -62,7 +84,7 @@ export function trackPaymentOutcomeOnce(order, status) {
 
 export function trackPurchaseOnce(order) {
   const id = String(order?.id || "");
-  if (!id || !isProduction()) return;
+  if (!id || order?.payment_status !== "PAID" || !isProduction()) return;
   const key = `viaura:ga4:purchase:${id}`;
   try {
     if (sentPurchases.has(id) || window.localStorage.getItem(key)) return;

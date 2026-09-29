@@ -36,6 +36,7 @@ export function CartProvider({ children }) {
 
   const addToCart = useCallback((product, qty = 1, variant = null, combo = false) => {
     const selectedVariant = resolveCartVariant(product, variant);
+    const unitPrice = combo ? product.combo_price : product.effective_price;
     setItems((prev) => {
       const exists = prev.find((i) =>
         i.product_id === product.id &&
@@ -51,9 +52,11 @@ export function CartProvider({ children }) {
         image: (product.images || [])[0] || product.image,
         mrp: product.mrp, price: combo ? product.combo_price : product.effective_price,
         slug: product.slug,
+        group: product.group,
+        category: product.category,
       }];
     });
-    trackEcommerce("add_to_cart", [{ ...product, product_id: product.id, price: combo ? product.combo_price : product.effective_price, qty }]);
+    trackEcommerce("add_to_cart", [{ ...product, product_id: product.id, price: unitPrice, qty }], { value: Number(unitPrice) * Number(qty) });
     toast.success(`${product.name} added to cart`);
   }, []);
 
@@ -63,7 +66,7 @@ export function CartProvider({ children }) {
 
   const removeItem = useCallback((key) => setItems((prev) => {
     const removed = prev.find((item) => item.key === key);
-    if (removed) trackEcommerce("remove_from_cart", [removed]);
+    if (removed) trackEcommerce("remove_from_cart", [removed], { value: Number(removed.price) * Number(removed.qty) });
     return prev.filter((i) => i.key !== key);
   }), []);
   const clearCart = useCallback(() => setItems([]), []);
