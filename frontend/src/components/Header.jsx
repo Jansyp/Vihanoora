@@ -80,7 +80,7 @@ export default function Header() {
                 <input data-testid="search-input" value={q} onChange={(e) => setQ(e.target.value)}
                   placeholder="Search..." className="bg-transparent outline-none text-sm px-2 w-28 lg:w-40" />
               </form>
-              <Link to="/search" className="md:hidden p-2" aria-label="search"><Search size={20} /></Link>
+              <Link to="/search" className="md:hidden p-2" aria-label="Search"><Search size={20} /></Link>
               <Link to="/wishlist" data-testid="wishlist-nav" className="p-2 relative" aria-label="wishlist">
                 <Heart size={20} />
                 {wishlist.length > 0 && <Badge>{wishlist.length}</Badge>}

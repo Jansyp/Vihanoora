@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigationType, useParams, useSearchParams } from "react-router-dom";
-import { SlidersHorizontal, X } from "lucide-react";
+import { Search, SlidersHorizontal, X } from "lucide-react";
 import api, { getCatalog } from "@/lib/api";
 import { Section, ProductGrid, GridSkeleton, Pagination, PRODUCT_PAGE_SIZE } from "@/components/common";
 import { trackEcommerce, trackEvent } from "@/lib/analytics";
@@ -28,14 +28,17 @@ export default function CategoryPage({ type, group: groupProp }) {
   const location = useLocation();
   const navigationType = useNavigationType();
   const [sp, setSp] = useSearchParams();
-  const q = sp.get("q") || "";
+  const rawQuery = sp.get("q") || "";
+  const q = rawQuery.trim();
   const group = type === "group" ? (groupProp || params.group) : null;
   const key = type === "group" ? group : type;
   const [title, subtitle] = GROUP_TITLE[key] || [key, ""];
 
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(type !== "search" || Boolean(q));
+  const [searchInput, setSearchInput] = useState(q);
+  const searchInputRef = useRef(null);
   const [showFilters, setShowFilters] = useState(false);
   const [categories, setCategories] = useState([]);
   const [categoriesLoaded, setCategoriesLoaded] = useState(type !== "group");
@@ -141,7 +144,29 @@ export default function CategoryPage({ type, group: groupProp }) {
   const searchParamsKey = sp.toString();
 
   useEffect(() => {
+    setSearchInput(q);
+  }, [q]);
+
+  useEffect(() => {
+    if (type === "search") searchInputRef.current?.focus();
+  }, [type]);
+
+  useEffect(() => {
+    if (type !== "search" || rawQuery === q) return;
+    const next = new URLSearchParams(sp);
+    if (q) next.set("q", q); else next.delete("q");
+    setSp(next, { replace: true });
+  }, [type, rawQuery, q, sp, setSp]);
+
+  useEffect(() => {
     if (!categoriesLoaded) return undefined;
+    if (type === "search" && !q) {
+      setItems([]);
+      setTotal(0);
+      setLoading(false);
+      trackedSearchTerm.current = null;
+      return undefined;
+    }
     setLoading(true);
     setItems([]);
     setTotal(0);
@@ -195,14 +220,61 @@ export default function CategoryPage({ type, group: groupProp }) {
     setSp(next, { replace: true });
   };
 
+  const submitSearch = (event) => {
+    event.preventDefault();
+    const term = searchInput.trim();
+    if (!term) return;
+    const next = new URLSearchParams(sp);
+    next.set("q", term);
+    next.delete("page");
+    setSp(next);
+  };
+
+  const clearSearch = () => {
+    setSearchInput("");
+    const next = new URLSearchParams(sp);
+    next.delete("q");
+    next.delete("page");
+    setSp(next, { replace: true });
+    searchInputRef.current?.focus();
+  };
+
   return (
     <Section>
       <div style={reserveRestoreSpace ? { minHeight: `calc(${savedScrollPosition}px + 100vh)` } : undefined}>
       <div className="mb-6">
-        <h1 className="font-serif text-3xl sm:text-4xl font-semibold text-[var(--ink)]">{type === "search" ? `Search: "${q}"` : title}</h1>
+        {type === "search" ? (
+          <>
+            <form onSubmit={submitSearch} role="search" className="flex items-center gap-2 rounded-full border border-[var(--line)] bg-white px-4 py-3 shadow-sm">
+              <Search size={18} className="shrink-0 text-[var(--ink-soft)]" aria-hidden="true" />
+              <input
+                ref={searchInputRef}
+                data-testid="catalog-search-input"
+                type="search"
+                value={searchInput}
+                onChange={(event) => setSearchInput(event.target.value)}
+                placeholder="Search products..."
+                aria-label="Search products"
+                enterKeyHint="search"
+                className="min-w-0 flex-1 bg-transparent text-base outline-none"
+              />
+              {searchInput && <button type="button" onClick={clearSearch} aria-label="Clear search" className="rounded-full p-1 text-[var(--ink-soft)]"><X size={18} /></button>}
+            </form>
+            {q && <>
+              <h1 className="mt-6 font-serif text-3xl sm:text-4xl font-semibold text-[var(--ink)]">Search: "{q}"</h1>
+              {!loading && <p className="text-sm text-[var(--ink-soft)] mt-1">{total} products</p>}
+            </>}
+            {!q && <div className="py-16 text-center text-[var(--ink-soft)]">
+              <p className="text-lg font-medium text-[var(--ink)]">What are you looking for?</p>
+              <p className="mt-1 text-sm">Search jewellery, accessories, toys &amp; gifts</p>
+            </div>}
+          </>
+        ) : <h1 className="font-serif text-3xl sm:text-4xl font-semibold text-[var(--ink)]">{title}</h1>}
         {subtitle && <p className="text-[var(--ink-soft)] mt-1">{subtitle}</p>}
-        {!loading && <p className="text-sm text-[var(--ink-soft)] mt-1">{total} products</p>}
+        {type !== "search" && !loading && <p className="text-sm text-[var(--ink-soft)] mt-1">{total} products</p>}
       </div>
+
+      {type === "search" && !q ? null : <>
 
       {group && subcats.length > 0 && (
         <div className="mb-6 -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto no-scrollbar">
@@ -274,6 +346,7 @@ export default function CategoryPage({ type, group: groupProp }) {
         </div>
       ) : <ProductGrid products={items} />}
       {!loading && items.length > 0 && <Pagination page={page} total={total} onPageChange={changePage} />}
+      </>}
       </div>
     </Section>
   );
