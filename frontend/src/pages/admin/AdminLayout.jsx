@@ -1,6 +1,6 @@
 import { useEffect, Suspense } from "react";
 import { Link, useNavigate, useLocation, Outlet } from "react-router-dom";
-import { LayoutDashboard, Package, ShoppingCart, Boxes, Ticket, FolderTree, Settings, Home, Image, Megaphone } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Boxes, Ticket, FolderTree, Settings, Home, Image, Megaphone, BarChart3 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import PageLoader from "@/components/PageLoader";
 import RouteErrorBoundary from "@/components/RouteErrorBoundary";
@@ -9,6 +9,7 @@ const LINKS = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/admin/products", label: "Products", icon: Package },
   { to: "/admin/orders", label: "Orders", icon: ShoppingCart },
+  { to: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/admin/combos", label: "Combos", icon: Boxes },
   { to: "/admin/coupons", label: "Coupons", icon: Ticket },
   { to: "/admin/categories", label: "Categories", icon: FolderTree },

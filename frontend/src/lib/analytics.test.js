@@ -118,7 +118,7 @@ describe("VIAURA GA4 ecommerce analytics", () => {
   });
 
   test("page views preserve UTM attribution and omit unrelated query values", () => {
-    trackPageView("/", "?utm_source=instagram&utm_medium=social&utm_campaign=new_arrivals&email=private%40example.com");
+    trackPageView("/", "?utm_source=instagram&utm_medium=social&utm_campaign=new_arrivals&utm_term=private%40example.com&email=private%40example.com");
 
     expect(gtag).toHaveBeenCalledWith("event", "page_view", expect.objectContaining({
       page_path: "/?utm_source=instagram&utm_medium=social&utm_campaign=new_arrivals",

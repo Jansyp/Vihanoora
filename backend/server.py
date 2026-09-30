@@ -9,7 +9,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from core import db
 from seed import seed
-from routers import auth_routes, catalog_routes, commerce_routes, admin_routes, upload_routes
+from routers import auth_routes, catalog_routes, commerce_routes, admin_routes, upload_routes, analytics_routes
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("Viaura")
@@ -20,6 +20,7 @@ app.include_router(auth_routes.router)
 app.include_router(catalog_routes.router)
 app.include_router(commerce_routes.router)
 app.include_router(admin_routes.router)
+app.include_router(analytics_routes.router)
 app.include_router(upload_routes.router)
 
 
@@ -40,6 +41,10 @@ async def startup():
     await db.combos.create_index("slug")
     await db.coupon_usage.create_index("order_id", unique=True, sparse=True)
     await db.orders.create_index("payment.cashfree_order_id", unique=True, sparse=True)
+    await db.analytics_events.create_index("timestamp")
+    await db.analytics_events.create_index([("event_name", 1), ("timestamp", 1)])
+    await db.analytics_events.create_index([("session_id", 1), ("timestamp", 1)])
+    await db.analytics_events.create_index([("items.product_id", 1), ("timestamp", 1)])
     await seed()
     try:
         from storage import init_storage
