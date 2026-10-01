@@ -8,13 +8,14 @@ import ProductImage from "@/components/ProductImage";
 import { toast } from "sonner";
 import { useSettings } from "@/context/SettingsContext";
 import { trackEcommerce } from "@/lib/analytics";
+import FreeDeliveryMessage from "@/components/FreeDeliveryMessage";
 
 const Product3D = lazy(() => import("@/components/Product3D"));
 
 export default function ProductPage() {
   const { slug } = useParams();
   const nav = useNavigate();
-  const { addToCart, toggleWishlist, inWishlist } = useCart();
+  const { items, addToCart, toggleWishlist, inWishlist } = useCart();
   const { paymentsEnabled } = useSettings();
   const [d, setD] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -47,6 +48,7 @@ export default function ProductPage() {
   const selectedProduct = activeImages === p.images ? p : { ...p, images: activeImages };
   const oos = p.stock_state === "Out of Stock";
   const wished = inWishlist(p.id);
+  const deliverySubtotal = items.reduce((total, item) => total + Number(item.price || 0) * Number(item.qty || 0), Number(p.effective_price || 0) * qty);
 
   const selectColor = (value) => { setColor(value); setImg(0); setMode3d(false); };
   const buyNow = () => { addToCart(selectedProduct, qty, color); nav(paymentsEnabled ? "/checkout" : "/cart"); };
@@ -89,7 +91,7 @@ export default function ProductPage() {
   };
   const checkPin = () => {
     if (pin.length !== 6) { setPinMsg("Enter a valid 6-digit PIN"); return; }
-    setPinMsg(`Delivery in 4-6 days to ${pin}. Flat ₹50 delivery.`);
+    setPinMsg(`Delivery in 4-6 days to ${pin}.`);
   };
   const submitReview = async () => {
     if (!rev.name.trim()) { toast.error("Please enter your name"); return; }
@@ -206,8 +208,11 @@ export default function ProductPage() {
                 <button data-testid="pin-check" onClick={checkPin} className="px-5 py-2.5 rounded-full bg-[var(--ink)] text-white text-sm font-medium">Check</button>
               </div>
               {pinMsg && <p className="text-xs text-[var(--sage-dark)] mt-2">{pinMsg}</p>}
+              <div className="mt-3">
+                <FreeDeliveryMessage subtotal={deliverySubtotal} />
+              </div>
               <div className="flex flex-wrap gap-4 mt-3 text-xs text-[var(--ink-soft)]">
-                <span className="flex items-center gap-1.5"><Truck size={14} /> Flat ₹50 delivery</span>
+                <span className="flex items-center gap-1.5"><Truck size={14} /> ₹50 delivery below ₹199</span>
                 <span className="flex items-center gap-1.5"><ShieldCheck size={14} /> {paymentsEnabled ? "Secure checkout" : "WhatsApp ordering available"}</span>
                 <span className="flex items-center gap-1.5"><RotateCcw size={14} /> Easy returns</span>
               </div>

@@ -127,7 +127,7 @@ def test_enabled_mode_still_creates_cashfree_session(monkeypatch):
     monkeypatch.setattr(commerce, "PAYMENTS_ENABLED", True)
     monkeypatch.setattr(commerce, "PAYMENT_MODE", "cashfree")
     monkeypatch.setattr(commerce, "get_settings", AsyncMock(return_value={
-        "currency": "INR", "free_shipping_threshold": 999, "delivery_charge": 50,
+        "currency": "INR", "free_shipping_threshold": 199, "delivery_charge": 50,
     }))
     monkeypatch.setattr(commerce, "next_order_number", AsyncMock(return_value="JH202600002"))
     monkeypatch.setattr(commerce, "_price_items", AsyncMock(return_value=([{

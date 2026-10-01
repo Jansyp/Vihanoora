@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useSettings } from "@/context/SettingsContext";
 import { whatsappOrderUrl } from "@/lib/whatsappOrder";
 import { trackEcommerce, trackWhatsAppOrderClick } from "@/lib/analytics";
+import FreeDeliveryMessage from "@/components/FreeDeliveryMessage";
 
 export default function CartPage() {
   const { items, subtotal, updateQty, removeItem, toggleWishlist, couponCode, setCouponCode } = useCart();
@@ -101,6 +102,7 @@ export default function CartPage() {
           {applied && <p className="text-xs text-[var(--sage-dark)] -mt-2 mb-3">Coupon {applied} ✓</p>}
           {summary && (
             <div className="space-y-2.5 text-sm">
+              <FreeDeliveryMessage subtotal={summary.subtotal} threshold={summary.free_shipping_threshold} />
               <Row label="Subtotal" value={formatINR(summary.subtotal)} />
               {summary.product_discount > 0 && <Row label="Product Discount" value={`- ${formatINR(summary.product_discount)}`} green />}
               {summary.coupon_discount > 0 && <Row label={`Coupon (${summary.coupon_code})`} value={`- ${formatINR(summary.coupon_discount)}`} green />}
@@ -112,7 +114,7 @@ export default function CartPage() {
           )}
           {paymentsEnabled ? <button data-testid="checkout-btn" onClick={() => nav("/checkout")} className="w-full mt-5 py-4 rounded-full bg-[var(--brand)] text-white font-medium hover:bg-[var(--brand-hover)] transition-colors">
             Proceed to Checkout
-          </button> : <a data-testid="checkout-btn" href={whatsappOrderUrl(items, summary?.grand_total)} onClick={() => trackWhatsAppOrderClick(items, "cart", summary?.grand_total ?? subtotal)} target="_blank" rel="noreferrer" className="w-full mt-5 py-4 rounded-full bg-[#25D366] text-white font-medium flex items-center justify-center gap-2">
+          </button> : <a data-testid="checkout-btn" href={whatsappOrderUrl(items, summary)} onClick={() => trackWhatsAppOrderClick(items, "cart", summary?.grand_total ?? subtotal)} target="_blank" rel="noreferrer" className="w-full mt-5 py-4 rounded-full bg-[#25D366] text-white font-medium flex items-center justify-center gap-2">
             <MessageCircle size={18} /> Order via WhatsApp
           </a>}
           <p className="text-xs text-center text-[var(--ink-soft)] mt-3">{paymentsEnabled ? "Guest checkout available · Secure payments" : "Online payments are temporarily unavailable. Contact us on WhatsApp to place your order."}</p>

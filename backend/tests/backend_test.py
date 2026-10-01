@@ -175,7 +175,7 @@ class TestCart:
         d = r.json()
         assert d["subtotal"] > 0
         # delivery charge rule
-        threshold = 999
+        threshold = 199
         if d["subtotal"] >= threshold:
             assert d["delivery_charge"] == 0
         else:

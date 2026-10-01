@@ -11,6 +11,7 @@ import { validateCheckoutForm } from "@/lib/checkoutValidation";
 import { useSettings } from "@/context/SettingsContext";
 import { whatsappOrderUrl } from "@/lib/whatsappOrder";
 import { trackEcommerce, trackEvent, trackWhatsAppOrderClick } from "@/lib/analytics";
+import FreeDeliveryMessage from "@/components/FreeDeliveryMessage";
 
 export default function CheckoutPage() {
   const { items, subtotal, couponCode, setCouponCode, removePurchasedItems } = useCart();
@@ -146,8 +147,11 @@ export default function CheckoutPage() {
               <span className="font-medium shrink-0">{formatINR(item.price * item.qty)}</span>
             </div>)}
           </div>
-          {summary && <div className="flex justify-between border-t border-[var(--line)] mt-4 pt-4 font-bold"><span>Estimated total</span><span className="text-[var(--brand)]">{formatINR(summary.grand_total)}</span></div>}
-          <a href={whatsappOrderUrl(items, summary?.grand_total)} onClick={() => trackWhatsAppOrderClick(items, "checkout", summary?.grand_total ?? subtotal)} target="_blank" rel="noreferrer"
+          {summary && <div className="border-t border-[var(--line)] mt-4 pt-4">
+            <FreeDeliveryMessage subtotal={summary.subtotal} threshold={summary.free_shipping_threshold} />
+            <div className="flex justify-between font-bold"><span>Estimated total</span><span className="text-[var(--brand)]">{formatINR(summary.grand_total)}</span></div>
+          </div>}
+          <a href={whatsappOrderUrl(items, summary)} onClick={() => trackWhatsAppOrderClick(items, "checkout", summary?.grand_total ?? subtotal)} target="_blank" rel="noreferrer"
             className="mt-6 w-full py-4 rounded-full bg-[#25D366] text-white font-medium flex items-center justify-center gap-2">
             <MessageCircle size={18} /> Order via WhatsApp
           </a>
@@ -188,6 +192,7 @@ export default function CheckoutPage() {
           {summary?.coupon_code ? <div className="flex items-center justify-between gap-3 mb-4 px-3 py-2.5 rounded-full bg-[var(--card-2)] text-sm"><span>Coupon <b>{summary.coupon_code}</b> ✓</span><button onClick={() => { setCoupon(""); setCouponCode(""); revalidate(""); }} className="text-[var(--ink-soft)] underline">Remove</button></div> : <div className="flex gap-2 mb-4"><input data-testid="checkout-coupon" value={coupon} onChange={(e) => setCoupon(e.target.value.toUpperCase())} placeholder="Coupon" className="flex-1 px-3 py-2.5 rounded-full bg-[var(--card-2)] outline-none text-sm" /><button onClick={() => revalidate(coupon)} className="px-4 py-2.5 rounded-full bg-[var(--ink)] text-white text-sm">Apply</button></div>}
           {summary && (
             <div className="space-y-2 text-sm border-t border-[var(--line)] pt-3">
+              <FreeDeliveryMessage subtotal={summary.subtotal} threshold={summary.free_shipping_threshold} />
               <div className="flex justify-between"><span className="text-[var(--ink-soft)]">Subtotal</span><span>{formatINR(summary.subtotal)}</span></div>
               {summary.coupon_discount > 0 && <div className="flex justify-between text-[var(--sage-dark)]"><span>Coupon</span><span>- {formatINR(summary.coupon_discount)}</span></div>}
               <div className="flex justify-between"><span className="text-[var(--ink-soft)]">Delivery</span><span>{summary.delivery_charge === 0 ? "FREE" : formatINR(summary.delivery_charge)}</span></div>

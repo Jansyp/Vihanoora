@@ -12,7 +12,6 @@ const FIELDS = [
   ["whatsapp", "WhatsApp (with country code, no +)", "text"],
   ["instagram_url", "Instagram URL", "text"],
   ["delivery_charge", "Delivery Charge (₹)", "number"],
-  ["free_shipping_threshold", "Free Shipping Above (₹)", "number"],
   ["gst_percent", "GST %", "number"],
   ["sender_business_name", "Sender Business Name", "text"],
   ["sender_name", "Sender Name", "text"],
@@ -51,7 +50,7 @@ export default function AdminSettings() {
     const payload = {
       store_name: s.store_name, tagline: s.tagline, contact_number: s.contact_number, email: s.email,
       whatsapp: s.whatsapp, instagram_url: s.instagram_url, delivery_charge: Number(s.delivery_charge),
-      free_shipping_threshold: Number(s.free_shipping_threshold), gst_percent: Number(s.gst_percent),
+      gst_percent: Number(s.gst_percent),
       sender_business_name: s.sender_business_name, sender_name: s.sender_name, sender_address: s.sender_address,
       sender_city: s.sender_city, sender_state: s.sender_state, sender_pin: s.sender_pin,
       sender_country: s.sender_country, sender_phone: s.sender_phone, sender_email: s.sender_email,
@@ -107,7 +106,7 @@ export default function AdminSettings() {
       </div>
 
       <button data-testid="save-settings-btn" onClick={save} className="mt-6 px-7 py-3.5 rounded-full bg-[var(--brand)] text-white font-medium">Save All Settings</button>
-      <p className="text-xs text-[var(--ink-soft)] mt-3">Delivery charge, free-shipping threshold, section order & visibility all read live across the store.</p>
+      <p className="text-xs text-[var(--ink-soft)] mt-3">Delivery charge, free-delivery policy, section order & visibility all read live across the store. Free delivery starts at &#8377;199.</p>
     </div>
   );
 }

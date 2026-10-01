@@ -169,7 +169,7 @@ def test_order_creation_persists_cost_snapshot_but_redacts_customer_response(mon
     monkeypatch.setattr(commerce.db, "products", FakeProducts(sample))
     monkeypatch.setattr(commerce.db, "orders", orders)
     monkeypatch.setattr(commerce, "get_settings", AsyncMock(return_value={
-        "currency": "INR", "free_shipping_threshold": 999, "delivery_charge": 50,
+        "currency": "INR", "free_shipping_threshold": 199, "delivery_charge": 50,
     }))
     monkeypatch.setattr(commerce, "next_order_number", AsyncMock(return_value="JH202600001"))
     monkeypatch.setattr(commerce, "PAYMENT_MODE", "mock")

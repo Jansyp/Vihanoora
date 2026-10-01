@@ -19,6 +19,9 @@ from models import (ValidateCartInput, CreateOrderInput, VerifyPaymentInput, New
 
 router = APIRouter(prefix="/api", tags=["commerce"])
 
+FREE_SHIPPING_THRESHOLD = 199
+STANDARD_DELIVERY_CHARGE = 50
+
 VIAURA_WHATSAPP_NUMBER = "917010177567"
 CASHFREE_APP_ID = os.environ.get("CASHFREE_APP_ID", "")
 CASHFREE_SECRET_KEY = os.environ.get("CASHFREE_SECRET_KEY", "")
@@ -51,8 +54,8 @@ DEFAULT_SETTINGS = {
     "email": "hello@Viaura.com",
     "whatsapp": VIAURA_WHATSAPP_NUMBER,
     "instagram_url": "https://instagram.com/Viaura",
-    "delivery_charge": 50,
-    "free_shipping_threshold": 999,
+    "delivery_charge": STANDARD_DELIVERY_CHARGE,
+    "free_shipping_threshold": FREE_SHIPPING_THRESHOLD,
     "currency": "INR",
     "gst_percent": 0,
     "sender_business_name": "VIAURA",
@@ -64,7 +67,7 @@ DEFAULT_SETTINGS = {
     "sender_country": "India",
     "sender_phone": "+917010177567",
     "sender_email": "hello@Viaura.com",
-    "announcement_bar_text": "✨ Free shipping on orders above ₹999 • Flat ₹50 delivery • Shop the Instagram trends",
+    "announcement_bar_text": "\U0001F389 Free delivery on orders of \u20b9199 or more - Flat \u20b950 delivery below \u20b9199",
     "announcement_enabled": True,
     "home_sections": [
         {"key": "trending", "label": "Trending on Instagram", "enabled": True, "order": 1, "theme": "white", "subtitle": "#Viaura", "title": "Trending on Instagram"},
@@ -85,8 +88,22 @@ async def get_settings() -> dict:
     if not s:
         s = {"id": "singleton", **DEFAULT_SETTINGS}
         await db.store_settings.insert_one(dict(s))
-    merged = {**DEFAULT_SETTINGS, **s, "whatsapp": VIAURA_WHATSAPP_NUMBER}
+    # Free delivery is a store policy constant; repair any previously persisted threshold.
+    if s.get("free_shipping_threshold") != FREE_SHIPPING_THRESHOLD:
+        await db.store_settings.update_one({"id": "singleton"}, {"$set": {"free_shipping_threshold": FREE_SHIPPING_THRESHOLD}})
+        s["free_shipping_threshold"] = FREE_SHIPPING_THRESHOLD
+    announcement = s.get("announcement_bar_text", "")
+    if "Free shipping on orders above" in announcement:
+        s["announcement_bar_text"] = DEFAULT_SETTINGS["announcement_bar_text"]
+        await db.store_settings.update_one({"id": "singleton"}, {"$set": {"announcement_bar_text": s["announcement_bar_text"]}})
+    merged = {**DEFAULT_SETTINGS, **s, "whatsapp": VIAURA_WHATSAPP_NUMBER,
+              "free_shipping_threshold": FREE_SHIPPING_THRESHOLD}
     return merged
+
+
+def calculate_delivery_charge(eligible_subtotal: float, settings: dict) -> float:
+    """Calculate from eligible product subtotal before coupon and delivery charges."""
+    return 0 if float(eligible_subtotal) >= FREE_SHIPPING_THRESHOLD else float(settings["delivery_charge"])
 
 
 @router.get("/settings")
@@ -385,12 +402,13 @@ async def validate_cart(payload: ValidateCartInput, user: dict = Depends(get_opt
             coupon_discount, applied = await _apply_coupon(payload.coupon_code, subtotal, payload.email, user)
         except HTTPException as e:
             coupon_error = e.detail
-    delivery = 0 if subtotal >= float(settings["free_shipping_threshold"]) else float(settings["delivery_charge"])
+    delivery = calculate_delivery_charge(subtotal, settings)
     grand_total = round(subtotal + delivery - coupon_discount, 2)
     return {
         "items": line_items, "subtotal": subtotal, "total_mrp": total_mrp,
         "product_discount": round(total_mrp - subtotal, 2),
-        "delivery_charge": delivery, "coupon_discount": coupon_discount,
+        "delivery_charge": delivery, "free_shipping_threshold": FREE_SHIPPING_THRESHOLD,
+        "coupon_discount": coupon_discount,
         "coupon_code": applied, "coupon_error": coupon_error,
         "coupon_validation": coupon_error or ({"valid": True, "code": "COUPON_VALID"} if applied else None),
         "grand_total": grand_total, "currency": settings["currency"],
@@ -405,7 +423,7 @@ async def create_order(payload: CreateOrderInput, request: Request, user: dict =
     line_items, subtotal, total_mrp = await _price_items(payload.items, include_cost_snapshots=True)
     coupon_discount, applied = await _apply_coupon(payload.coupon_code, subtotal, payload.customer.email, user) if payload.coupon_code else (0.0, None)
     profit_snapshot = _snapshot_order_profit(line_items, coupon_discount)
-    delivery = 0 if subtotal >= float(settings["free_shipping_threshold"]) else float(settings["delivery_charge"])
+    delivery = calculate_delivery_charge(subtotal, settings)
     grand_total = round(subtotal + delivery - coupon_discount, 2)
 
     order_id = str(uuid.uuid4())
