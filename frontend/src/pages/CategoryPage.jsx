@@ -9,6 +9,7 @@ const GROUP_TITLE = {
   women: ["Women", "Jewellery, bracelets, hair accessories & more"],
   kids: ["Kids", "Toys, giftables & trending kids picks"],
   gifts: ["Gifts", "Thoughtful gifts & hampers for every occasion"],
+  keychains: ["Keychains", "Personalized keepsakes and accessories for every day"],
   trending: ["Trending", "What everyone's loving right now"],
   "offer-zone": ["Offer Zone", "Live deals — auto-updated from real prices"],
   search: ["Search", ""],

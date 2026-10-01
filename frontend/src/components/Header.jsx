@@ -12,6 +12,7 @@ const NAV = [
   { label: "Women", to: "/women" },
   { label: "Kids", to: "/kids" },
   { label: "Gifts", to: "/gifts" },
+  { label: "Keychains", to: "/keychains" },
   { label: "Combo Offers", to: "/combo-offers" },
   { label: "Trending", to: "/trending" },
   { label: "Offer Zone", to: "/offer-zone", accent: true },

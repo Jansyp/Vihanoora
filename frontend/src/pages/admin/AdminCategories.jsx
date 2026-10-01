@@ -4,6 +4,8 @@ import api, { formatApiError } from "@/lib/api";
 import { toast } from "sonner";
 
 const BLANK = { name: "", group: "women", active: true };
+const MAIN_SECTIONS = ["women", "kids", "gifts", "keychains"];
+const sectionLabel = (group) => ({ women: "Women", kids: "Kids", gifts: "Gifts", keychains: "Keychains" }[group] || group);
 
 export default function AdminCategories() {
   const [cats, setCats] = useState([]);
@@ -93,7 +95,7 @@ export default function AdminCategories() {
           <div>
             <label className="text-xs font-semibold">Main Section</label>
             <select value={form.group} onChange={(e) => setForm({ ...form, group: e.target.value })} className="w-full mt-1 px-3 py-2.5 rounded-xl bg-[var(--card-2)] outline-none text-sm">
-              {['women', 'kids', 'gifts'].map((g) => <option key={g} value={g}>{g}</option>)}
+              {MAIN_SECTIONS.map((g) => <option key={g} value={g}>{sectionLabel(g)}</option>)}
             </select>
           </div>
           <div className="md:col-span-2">
@@ -121,7 +123,7 @@ export default function AdminCategories() {
                 <h3 className="font-semibold text-lg capitalize">{group.name}</h3>
                 <p className="text-xs text-[var(--ink-soft)]">{groupCategoryCount[group.group] || 0} active categories</p>
               </div>
-              <span className="px-3 py-1 rounded-full bg-[var(--card-2)] text-xs font-medium">{group.group}</span>
+              <span className="px-3 py-1 rounded-full bg-[var(--card-2)] text-xs font-medium">{sectionLabel(group.group)}</span>
             </div>
             <div className="flex flex-wrap gap-2">
               {(group.subcategories || []).map((item) => (

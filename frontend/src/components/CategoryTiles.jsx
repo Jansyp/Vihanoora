@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Gem, Baby, Gift, Package, Flame, Tag } from "lucide-react";
+import { Gem, Baby, Gift, KeyRound, Package, Flame, Tag } from "lucide-react";
 
 const TILES = [
   { label: "Women", to: "/women", icon: Gem, bg: "var(--blush)", ic: "var(--brand)" },
   { label: "Kids", to: "/kids", icon: Baby, bg: "var(--sage)", ic: "var(--sage-dark)" },
   { label: "Gifts", to: "/gifts", icon: Gift, bg: "var(--butter)", ic: "var(--amber)" },
+  { label: "Keychains", to: "/keychains", icon: KeyRound, bg: "var(--lavender)", ic: "var(--lavender-dark)" },
   { label: "Combos", to: "/combo-offers", icon: Package, bg: "var(--lavender)", ic: "var(--lavender-dark)" },
   { label: "Trending", to: "/trending", icon: Flame, bg: "var(--blush)", ic: "var(--terracotta)" },
   { label: "Offer Zone", to: "/offer-zone", icon: Tag, bg: "var(--sage)", ic: "var(--sage-dark)" },
@@ -13,7 +14,7 @@ const TILES = [
 
 export default function CategoryTiles() {
   return (
-    <div className="grid grid-cols-3 md:grid-cols-6 gap-4 sm:gap-6">
+    <div className="grid grid-cols-3 md:grid-cols-7 gap-4 sm:gap-6">
       {TILES.map((t, i) => (
         <motion.div key={t.label}
           initial={{ opacity: 0, scale: 0.8 }} whileInView={{ opacity: 1, scale: 1 }}

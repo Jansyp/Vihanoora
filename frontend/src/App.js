@@ -74,6 +74,7 @@ function AppRoutes() {
       <Route path="/women" element={<Store><CategoryPage type="group" group="women" /></Store>} />
       <Route path="/kids" element={<Store><CategoryPage type="group" group="kids" /></Store>} />
       <Route path="/gifts" element={<Store><CategoryPage type="group" group="gifts" /></Store>} />
+      <Route path="/keychains" element={<Store><CategoryPage type="group" group="keychains" /></Store>} />
       <Route path="/trending" element={<Store><CategoryPage type="trending" /></Store>} />
       <Route path="/offer-zone" element={<Store><CategoryPage type="offer-zone" /></Store>} />
       <Route path="/search" element={<Store><CategoryPage type="search" /></Store>} />

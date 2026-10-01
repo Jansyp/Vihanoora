@@ -6,7 +6,7 @@ import { viauraWhatsAppUrl } from "@/lib/whatsappOrder";
 export default function Footer() {
   const { settings, reduceMotion, setReduceMotion } = useSettings();
   const cols = [
-    { title: "Shop", links: [["Women", "/women"], ["Kids", "/kids"], ["Gifts", "/gifts"], ["Combo Offers", "/combo-offers"], ["Offer Zone", "/offer-zone"]] },
+    { title: "Shop", links: [["Women", "/women"], ["Kids", "/kids"], ["Gifts", "/gifts"], ["Keychains", "/keychains"], ["Combo Offers", "/combo-offers"], ["Offer Zone", "/offer-zone"]] },
     { title: "Help", links: [["Track Order", "/track"], ["Shipping Policy", "/page/shipping"], ["Returns & Refunds", "/page/returns"], ["FAQ", "/page/faq"], ["Contact", "/page/contact"]] },
     { title: "Company", links: [["About Us", "/page/about"], ["Privacy Policy", "/page/privacy"], ["Terms", "/page/terms"]] },
   ];

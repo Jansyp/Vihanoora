@@ -8,7 +8,7 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 export default function Layout({ children }) {
   const loc = useLocation();
   const navigationType = useNavigationType();
-  const isListing = ["/women", "/kids", "/gifts", "/trending", "/offer-zone", "/search"].includes(loc.pathname);
+  const isListing = ["/women", "/kids", "/gifts", "/keychains", "/trending", "/offer-zone", "/search"].includes(loc.pathname);
   const scrollKey = `viaura:listing-scroll:${loc.pathname}${loc.search}`;
 
   useEffect(() => {

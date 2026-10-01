@@ -12,6 +12,8 @@ const BLANK = {
   featured: false, giftable: false, active: true, flash_price: null, flash_start: null, flash_end: null,
 };
 const FLAGS = ["trending", "best_seller", "new_arrival", "featured", "giftable", "active"];
+const MAIN_SECTIONS = ["women", "kids", "gifts", "keychains"];
+const sectionLabel = (group) => ({ women: "Women", kids: "Kids", gifts: "Gifts", keychains: "Keychains" }[group] || group);
 const parseColors = (value) => [...new Set(value.split(",").map((color) => color.trim()).filter(Boolean))];
 
 export default function AdminProducts() {
@@ -147,7 +149,7 @@ export default function AdminProducts() {
               <Field label="Name" v={form.name} on={(x) => setForm({ ...form, name: x })} />
               <div><label className="text-xs font-semibold">Group</label>
                 <select value={form.group} onChange={(e) => { const nextGroup = e.target.value; const nextCategories = formCategories(nextGroup); const nextCategory = nextCategories[0]; setForm({ ...form, group: nextGroup, category: nextCategory?.name || "Uncategorized", category_id: nextCategory?.id || null }); }} className="w-full mt-1 px-3 py-2.5 rounded-xl bg-[var(--card-2)] outline-none text-sm">
-                  {["women", "kids", "gifts"].map((g) => <option key={g} value={g}>{g}</option>)}
+                  {MAIN_SECTIONS.map((g) => <option key={g} value={g}>{sectionLabel(g)}</option>)}
                 </select>
               </div>
               <div><label className="text-xs font-semibold">Category</label>

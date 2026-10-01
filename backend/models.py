@@ -1,9 +1,24 @@
 """Pydantic request/response models."""
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, Field, EmailStr, field_validator
 from typing import List, Optional, Dict, Any
 import uuid
 
 LEGACY_PRODUCT_CATEGORY = "Uncategorized"
+MAIN_PRODUCT_GROUPS = {"women", "kids", "gifts", "keychains"}
+
+
+def normalize_main_product_group(value: str) -> str:
+    normalized = str(value or "").strip().lower()
+    if normalized not in MAIN_PRODUCT_GROUPS:
+        raise ValueError("group must be one of: women, kids, gifts, keychains")
+    return normalized
+
+
+def normalize_category_group(value: str) -> str:
+    normalized = str(value or "").strip().lower()
+    if normalized == "combo":
+        return normalized
+    return normalize_main_product_group(normalized)
 
 
 def gen_id() -> str:
@@ -34,7 +49,7 @@ class ProductInput(BaseModel):
     description: str = ""
     details: str = ""
     material: str = ""
-    group: str  # women / kids / gifts
+    group: str
     category: str = ""  # category ID; legacy names/slugs are accepted during migration
     category_id: Optional[str] = None
     mrp: float
@@ -60,6 +75,11 @@ class ProductInput(BaseModel):
     flash_start: Optional[str] = None
     flash_end: Optional[str] = None
 
+    @field_validator("group", mode="before")
+    @classmethod
+    def validate_group(cls, value):
+        return normalize_main_product_group(value)
+
 
 class CategoryInput(BaseModel):
     name: str
@@ -69,6 +89,11 @@ class CategoryInput(BaseModel):
     order: int = 0
     active: bool = True
     subcategories: List[Dict[str, Any]] = []
+
+    @field_validator("group", mode="before")
+    @classmethod
+    def validate_group(cls, value):
+        return normalize_category_group(value)
 
 
 class ComboInput(BaseModel):

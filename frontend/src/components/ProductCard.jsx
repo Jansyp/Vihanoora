@@ -28,7 +28,7 @@ export default function ProductCard({ product, index = 0, imageWidths, imageSize
   const wished = inWishlist(product.id);
   const oos = product.stock_state === "Out of Stock";
   const rememberListingScroll = () => {
-    if (!["/women", "/kids", "/gifts", "/trending", "/offer-zone", "/search"].includes(location.pathname)) return;
+    if (!["/women", "/kids", "/gifts", "/keychains", "/trending", "/offer-zone", "/search"].includes(location.pathname)) return;
     sessionStorage.setItem(`viaura:listing-scroll:${location.pathname}${location.search}`, String(window.scrollY));
   };
   const selectProduct = () => trackEcommerce("select_item", [{ ...product, product_id: product.id, price: product.effective_price, qty: 1 }], { item_list_id: location.pathname });

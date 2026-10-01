@@ -52,6 +52,8 @@ CATEGORIES = [
                        {"name": "Women's", "slug": "womens-gifts"}, {"name": "Couple", "slug": "couple"},
                        {"name": "Return", "slug": "return"}, {"name": "Festival", "slug": "festival"},
                        {"name": "Hampers", "slug": "hampers"}]},
+    {"name": "Keychains", "slug": "keychains", "group": "keychains", "icon": "key", "order": 4,
+     "subcategories": []},
     {"name": "Combo Offers", "slug": "combo-offers", "group": "combo", "icon": "package", "order": 4,
      "subcategories": [{"name": "Women Combos", "slug": "women-combos"}, {"name": "Kids Combos", "slug": "kids-combos"},
                        {"name": "Gift Combos", "slug": "gift-combos"}, {"name": "Special Offers", "slug": "special-offers"}]},
@@ -128,6 +130,11 @@ async def seed():
             await db.users.update_one({"email": admin_email}, {"$set": {"password_hash": hash_password(admin_pw)}})
         if existing.get("role") != "admin":
             await db.users.update_one({"email": admin_email}, {"$set": {"role": "admin"}})
+
+    # Add the new main section on existing installs without altering products or legacy categories.
+    if not await db.categories.find_one({"group": "keychains"}):
+        keychains = next(category for category in CATEGORIES if category["group"] == "keychains")
+        await db.categories.insert_one({"id": str(uuid.uuid4()), **keychains})
 
     category_migration_marker = await db.seed_meta.find_one({"key": "dynamic_categories_migrated"})
     if not category_migration_marker:

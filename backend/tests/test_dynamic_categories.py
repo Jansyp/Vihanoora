@@ -138,6 +138,47 @@ def test_dynamic_category_is_valid_for_product_create_update_and_rejects_wrong_c
             client.delete(f"/api/admin/categories/{category['id']}")
 
 
+def test_keychains_is_a_separate_main_section_and_supports_catalog_and_admin_filters(client):
+    suffix = uuid.uuid4().hex[:8]
+    category = None
+    product_id = None
+    try:
+        created = client.post("/api/admin/categories", json={"name": f"Charms {suffix}", "group": " KeyChains ", "active": True})
+        assert created.status_code == 200, created.text
+        category = created.json()
+        assert category["group"] == "keychains"
+
+        listed_categories = client.get("/api/categories").json()
+        keychains_group = next(group for group in listed_categories if group["group"] == "keychains")
+        assert keychains_group["name"] == "Keychains"
+        assert keychains_group["subcategories"][0]["name"] == f"Charms {suffix}"
+
+        payload = {
+            "name": f"Keychain {suffix}", "group": "KEYCHAINS", "category": category["id"],
+            "category_id": category["id"], "mrp": 200, "selling_price": 150, "stock": 5,
+        }
+        product = client.post("/api/admin/products", json=payload)
+        assert product.status_code == 200, product.text
+        product_id = product.json()["id"]
+        assert product.json()["group"] == "keychains"
+
+        storefront = client.get("/api/products", params={"group": "keychains", "q": f"Keychain {suffix}"})
+        assert storefront.status_code == 200, storefront.text
+        assert [item["id"] for item in storefront.json()["items"]] == [product_id]
+
+        admin = client.get("/api/admin/products", params={"main_section": "keychains", "search": f"Keychain {suffix}"})
+        assert admin.status_code == 200, admin.text
+        assert [item["id"] for item in admin.json()["items"]] == [product_id]
+
+        invalid = client.post("/api/admin/products", json={**payload, "group": "combo"})
+        assert invalid.status_code == 422
+    finally:
+        if product_id:
+            client.delete(f"/api/admin/products/{product_id}")
+        if category:
+            client.delete(f"/api/admin/categories/{category['id']}")
+
+
 def test_buying_price_is_admin_only_and_preserved_by_older_updates(client):
     suffix = uuid.uuid4().hex[:8]
     payload = {

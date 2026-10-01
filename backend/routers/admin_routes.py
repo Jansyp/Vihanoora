@@ -339,14 +339,14 @@ async def _ensure_group_category(group: str):
     group_doc = await db.categories.find_one({"group": group})
     if group_doc:
         return group_doc
-    group_name = {"women": "Women", "kids": "Kids", "gifts": "Gifts"}.get(group, group.replace("-", " ").title())
+    group_name = {"women": "Women", "kids": "Kids", "gifts": "Gifts", "keychains": "Keychains"}.get(group, group.replace("-", " ").title())
     doc = {
         "id": str(uuid.uuid4()),
         "name": group_name,
         "slug": group,
         "group": group,
         "icon": "",
-        "order": {"women": 1, "kids": 2, "gifts": 3}.get(group, 99),
+        "order": {"women": 1, "kids": 2, "gifts": 3, "keychains": 4}.get(group, 99),
         "active": True,
         "subcategories": [],
     }
