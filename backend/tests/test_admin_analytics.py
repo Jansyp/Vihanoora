@@ -1,7 +1,9 @@
 import asyncio
 import os
+import sys
 import uuid
 from datetime import datetime, timezone
+from types import ModuleType
 from types import SimpleNamespace
 
 os.environ.setdefault("MONGO_URL", "mongodb://localhost:27017")
@@ -68,6 +70,98 @@ def test_date_range_uses_india_local_midnight():
     assert start_day.isoformat() == end_day.isoformat() == "2026-09-23"
     assert start_utc.isoformat() == "2026-09-22T18:30:00+00:00"
     assert end_utc.isoformat() == "2026-09-23T18:30:00+00:00"
+
+
+def test_ga4_data_api_reports_are_aggregated_and_mapped_without_user_dimensions(monkeypatch):
+    reports = [
+        {"metricHeaders": [{"name": name} for name in ["totalUsers", "sessions", "screenPageViews", "ecommercePurchases", "purchaseRevenue"]],
+         "rows": [{"metricValues": [{"value": value} for value in ["81", "96", "243", "4", "3799.5"]]}]},
+        {"dimensionHeaders": [{"name": "eventName"}], "metricHeaders": [{"name": "eventCount"}],
+         "rows": [{"dimensionValues": [{"value": "view_item"}], "metricValues": [{"value": "32"}]},
+                  {"dimensionValues": [{"value": "add_to_cart"}], "metricValues": [{"value": "9"}]},
+                  {"dimensionValues": [{"value": "whatsapp_order_click"}], "metricValues": [{"value": "3"}]}]},
+        {"dimensionHeaders": [{"name": name} for name in ["sessionSource", "sessionMedium", "sessionCampaignName"]],
+         "metricHeaders": [{"name": "sessions"}], "rows": [{"dimensionValues": [{"value": "google"}, {"value": "organic"}, {"value": "fall"}], "metricValues": [{"value": "51"}]}]},
+        {"dimensionHeaders": [{"name": "deviceCategory"}], "metricHeaders": [{"name": "sessions"}],
+         "rows": [{"dimensionValues": [{"value": "mobile"}], "metricValues": [{"value": "65"}]}]},
+        {"dimensionHeaders": [{"name": name} for name in ["itemId", "itemName", "itemCategory"]],
+         "metricHeaders": [{"name": name} for name in ["itemsViewed", "itemsAddedToCart", "itemsPurchased", "itemRevenue"]],
+         "rows": [{"dimensionValues": [{"value": "sku-1"}, {"value": "Pearl Bracelet"}, {"value": "Bracelets"}], "metricValues": [{"value": value} for value in ["20", "7", "2", "1500"]]}]},
+        {"dimensionHeaders": [{"name": "date"}], "metricHeaders": [{"name": name} for name in ["totalUsers", "sessions", "screenPageViews", "ecommercePurchases", "purchaseRevenue"]],
+         "rows": [{"dimensionValues": [{"value": "20261001"}], "metricValues": [{"value": value} for value in ["81", "96", "243", "4", "3799.5"]]}]},
+    ]
+    requested = []
+
+    def fake_run(start, end, dimensions, metrics, dimension_filter=None):
+        requested.append((start, end, dimensions, metrics, dimension_filter))
+        return reports[len(requested) - 1]
+
+    monkeypatch.setattr(analytics, "_ga4_run_report", fake_run)
+    result = analytics._ga4_data_sync("2026-10-01", "2026-10-01")
+
+    assert result["available"] is True
+    assert result["property_id"] == "556716338"
+    assert result["overview"] == {
+        "users": 81, "sessions": 96, "page_views": 243, "product_views": 32,
+        "add_to_cart": 9, "whatsapp_order_clicks": 3, "purchases": 4, "purchase_revenue": 3799.5,
+    }
+    assert requested[4][3] == ["itemsViewed", "itemsAddedToCart", "itemsPurchased", "itemRevenue"]
+    assert result["top_products"][0] == {
+        "product_id": "sku-1", "product_name": "Pearl Bracelet", "item_category": "Bracelets",
+        "views": 20, "add_to_cart": 7, "purchases": 2, "revenue": 1500.0,
+    }
+    assert result["daily_activity"][0]["date"] == "2026-10-01"
+    assert all("userId" not in dimensions and "userName" not in dimensions for _, _, dimensions, _, _ in requested)
+    assert requested[1][4]["filter"]["fieldName"] == "eventName"
+
+
+def test_ga4_request_uses_read_only_scope_and_target_property(monkeypatch):
+    captured = {}
+
+    class FakeResponse:
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {"rows": []}
+
+    class FakeSession:
+        def __init__(self, credentials):
+            captured["credentials"] = credentials
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def post(self, url, json, timeout):
+            captured.update({"url": url, "body": json, "timeout": timeout})
+            return FakeResponse()
+
+    def fake_default(scopes):
+        captured["scopes"] = scopes
+        return "mock-credential", "viaura-510318"
+
+    fake_google = ModuleType("google")
+    fake_google.__path__ = []
+    fake_auth = ModuleType("google.auth")
+    fake_auth.default = fake_default
+    fake_google.auth = fake_auth
+    fake_transport = ModuleType("google.auth.transport")
+    fake_transport.__path__ = []
+    fake_transport_requests = ModuleType("google.auth.transport.requests")
+    fake_transport_requests.AuthorizedSession = FakeSession
+    monkeypatch.setitem(sys.modules, "google", fake_google)
+    monkeypatch.setitem(sys.modules, "google.auth", fake_auth)
+    monkeypatch.setitem(sys.modules, "google.auth.transport", fake_transport)
+    monkeypatch.setitem(sys.modules, "google.auth.transport.requests", fake_transport_requests)
+
+    analytics._ga4_run_report("2026-10-01", "2026-10-01", [], ["sessions"])
+
+    assert captured["scopes"] == [analytics.GA4_READONLY_SCOPE]
+    assert captured["url"] == "https://analyticsdata.googleapis.com/v1beta/properties/556716338:runReport"
+    assert captured["body"]["dateRanges"] == [{"startDate": "2026-10-01", "endDate": "2026-10-01"}]
 
 
 def test_report_separates_order_intent_from_generic_whatsapp_and_uses_paid_orders(monkeypatch):

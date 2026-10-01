@@ -40,6 +40,14 @@ const FUNNEL = [
   ["Completed Orders", "completed_orders"],
 ];
 
+const GA4_UNAVAILABLE_MESSAGES = {
+  auth_library_unavailable: "The backend GA4 authentication dependency is not installed.",
+  credentials_unavailable: "Backend GA4 credentials are unavailable.",
+  access_denied: "The service account cannot read this GA4 property. Check its property access and Data API permissions.",
+  authentication_failed: "The backend could not authenticate with the GA4 Data API.",
+  api_unavailable: "The GA4 Data API could not return data for this period.",
+};
+
 function MetricValue({ value, money = false }) {
   if (value == null || !Number.isFinite(Number(value))) return <span>No data</span>;
   return <span>{money ? formatINR(Number(value)) : Number(value).toLocaleString("en-IN")}</span>;
@@ -85,6 +93,7 @@ export default function AdminAnalytics() {
 
   const products = useMemo(() => [...(data?.top_products || [])].sort((a, b) => Number(b[sortBy] || 0) - Number(a[sortBy] || 0)), [data, sortBy]);
   const activityAvailable = Boolean(data?.availability?.website_events);
+  const ga4 = data?.ga4;
   const deviceTotal = (data?.devices || []).reduce((sum, device) => sum + device.sessions, 0);
 
   return (
@@ -133,6 +142,38 @@ export default function AdminAnalytics() {
               </article>
             ))}
           </div>
+
+          <section className="bg-white rounded-2xl p-5 border border-[var(--line)]" aria-label="GA4 Data API report">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+              <div>
+                <h2 className="font-semibold text-lg">Google Analytics 4</h2>
+                <p className="text-xs text-[var(--ink-soft)] mt-1">Property {ga4?.property_id || "556716338"} Â· {data?.range?.start_date || ""} to {data?.range?.end_date || ""}</p>
+              </div>
+              <span className={`text-xs font-medium ${ga4?.available ? "text-green-700" : "text-[var(--ink-soft)]"}`} role="status">
+                {ga4?.available ? "Connected · live Data API report" : "Data API unavailable"}
+              </span>
+            </div>
+            {ga4?.available && ga4.overview ? (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+                {[
+                  ["Users", ga4.overview.users],
+                  ["Sessions", ga4.overview.sessions],
+                  ["Page Views", ga4.overview.page_views],
+                  ["Product Views", ga4.overview.product_views],
+                  ["Add to Cart", ga4.overview.add_to_cart],
+                  ["WhatsApp Order Clicks", ga4.overview.whatsapp_order_clicks],
+                  ["Purchases", ga4.overview.purchases],
+                  ["GA4 Purchase Revenue", ga4.overview.purchase_revenue],
+                ].map(([label, value]) => (
+                  <div key={label} className="rounded-xl bg-[var(--card-2)] p-3">
+                    <p className="text-[11px] text-[var(--ink-soft)]">{label}</p>
+                    <p className="mt-1 text-lg font-semibold"><MetricValue value={value} money={label === "GA4 Purchase Revenue"} /></p>
+                  </div>
+                ))}
+              </div>
+            ) : <p className="mt-4 text-sm text-[var(--ink-soft)]">{GA4_UNAVAILABLE_MESSAGES[ga4?.unavailable_reason] || "GA4 report data is not available. First-party event and paid-order reporting remains active."}</p>}
+            <p className="mt-3 text-[11px] text-[var(--ink-soft)]">GA4 metrics are aggregated property reports. VIAURA paid-order records remain the source for completed order and revenue figures above.</p>
+          </section>
 
           {!activityAvailable && Number(data?.overview?.orders || 0) === 0 && (
             <p className="bg-white rounded-xl border border-[var(--line)] p-4 text-sm text-[var(--ink-soft)]">Website event data is not available for this period yet. First-party analytics collection starts after this feature is deployed.</p>
@@ -200,7 +241,7 @@ export default function AdminAnalytics() {
             {products.length ? <div className="overflow-x-auto"><table className="w-full min-w-[720px] text-sm"><thead><tr className="text-left text-xs text-[var(--ink-soft)]"><th className="py-2">Product</th><th>Views</th><th>Add to Cart</th><th>WhatsApp Orders</th><th>Orders</th><th className="text-right">Revenue</th></tr></thead><tbody>{products.map((product) => <tr key={`${product.combo}-${product.product_id}`} className="border-t border-[var(--line)]"><td className="py-3 pr-3">{product.product_name || "Unknown product"}{product.combo ? " (Combo)" : ""}</td><td>{product.views}</td><td>{product.add_to_cart}</td><td>{product.whatsapp_orders}</td><td>{product.orders}</td><td className="text-right">{formatINR(product.revenue)}</td></tr>)}</tbody></table></div> : <p className="py-8 text-sm text-[var(--ink-soft)]">No product data for this period.</p>}
           </section>
 
-          <p className="text-[11px] text-[var(--ink-soft)]">Website event history begins when first-party collection is enabled. GA4 Data API is not connected. Completed orders and revenue use only actual paid VIAURA order records; a WhatsApp click is never counted as a sale.</p>
+          <p className="text-[11px] text-[var(--ink-soft)]">Website event history begins when first-party collection is enabled. Completed orders and revenue use only actual paid VIAURA order records; a WhatsApp click is never counted as a sale.</p>
         </>
       )}
     </div>

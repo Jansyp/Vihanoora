@@ -1,4 +1,7 @@
 """First-party, PII-minimized analytics collection and admin reporting."""
+import asyncio
+import logging
+import os
 import re
 import uuid
 from collections import defaultdict
@@ -7,11 +10,15 @@ from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import BaseModel, ConfigDict, Field
+import requests
 
 from core import db, require_admin
 
 router = APIRouter(tags=["analytics"])
+logger = logging.getLogger("Viaura.analytics")
 INDIA_TZ = timezone(timedelta(hours=5, minutes=30), name="Asia/Kolkata")
+GA4_PROPERTY_ID = os.environ.get("GA4_PROPERTY_ID", "556716338")
+GA4_READONLY_SCOPE = "https://www.googleapis.com/auth/analytics.readonly"
 EVENT_NAMES = {
     "page_view", "view_item_list", "select_item", "view_item", "add_to_cart",
     "remove_from_cart", "view_cart", "begin_checkout", "add_shipping_info",
@@ -57,6 +64,161 @@ def _date_range(start_date: date | None, end_date: date | None):
     start_local = datetime.combine(start_day, time.min, tzinfo=INDIA_TZ)
     end_local = datetime.combine(end_day + timedelta(days=1), time.min, tzinfo=INDIA_TZ)
     return start_day, end_day, start_local.astimezone(timezone.utc), end_local.astimezone(timezone.utc)
+
+
+class GA4ReportError(Exception):
+    def __init__(self, reason: str):
+        self.reason = reason
+        super().__init__(reason)
+
+
+def _ga4_authorized_session():
+    try:
+        import google.auth
+        from google.auth.transport.requests import AuthorizedSession
+    except ImportError:
+        raise GA4ReportError("auth_library_unavailable") from None
+    credentials, _ = google.auth.default(scopes=[GA4_READONLY_SCOPE])
+    return AuthorizedSession(credentials)
+
+
+def _ga4_run_report(start_date: str, end_date: str, dimensions: list[str], metrics: list[str], dimension_filter: dict | None = None):
+    url = f"https://analyticsdata.googleapis.com/v1beta/properties/{GA4_PROPERTY_ID}:runReport"
+    request_body = {
+        "dateRanges": [{"startDate": start_date, "endDate": end_date}],
+        "dimensions": [{"name": name} for name in dimensions],
+        "metrics": [{"name": name} for name in metrics],
+        "limit": 400,
+        "currencyCode": "INR",
+    }
+    if dimension_filter:
+        request_body["dimensionFilter"] = dimension_filter
+    try:
+        with _ga4_authorized_session() as session:
+            response = session.post(url, json=request_body, timeout=20)
+        response.raise_for_status()
+        return response.json()
+    except GA4ReportError:
+        raise
+    except requests.HTTPError as exc:
+        status = getattr(exc.response, "status_code", None)
+        reason = "access_denied" if status == 403 else "authentication_failed" if status == 401 else "api_unavailable"
+        raise GA4ReportError(reason) from None
+    except requests.RequestException:
+        raise GA4ReportError("api_unavailable") from None
+
+
+def _response_rows(report: dict):
+    dimension_names = [header.get("name") for header in report.get("dimensionHeaders", [])]
+    metric_names = [header.get("name") for header in report.get("metricHeaders", [])]
+    result = []
+    for row in report.get("rows", []):
+        dimensions = {name: value.get("value", "") for name, value in zip(dimension_names, row.get("dimensionValues", []))}
+        metrics = {name: value.get("value", "0") for name, value in zip(metric_names, row.get("metricValues", []))}
+        result.append({**dimensions, **metrics})
+    return result
+
+
+def _number(value, integer=False):
+    try:
+        parsed = float(value)
+        return int(parsed) if integer else parsed
+    except (TypeError, ValueError):
+        return 0 if integer else 0.0
+
+
+def _ga4_data_sync(start_date: str, end_date: str):
+    ecommerce_events = {
+        "inListFilter": {"values": ["view_item", "add_to_cart", "whatsapp_order_click"]}
+    }
+    event_filter = {"filter": {"fieldName": "eventName", **ecommerce_events}}
+    overview_report = _ga4_run_report(start_date, end_date, [], ["totalUsers", "sessions", "screenPageViews", "ecommercePurchases", "purchaseRevenue"])
+    event_report = _ga4_run_report(start_date, end_date, ["eventName"], ["eventCount"], event_filter)
+    source_report = _ga4_run_report(start_date, end_date, ["sessionSource", "sessionMedium", "sessionCampaignName"], ["sessions"])
+    device_report = _ga4_run_report(start_date, end_date, ["deviceCategory"], ["sessions"])
+    product_report = _ga4_run_report(start_date, end_date, ["itemId", "itemName", "itemCategory"], ["itemsViewed", "itemsAddedToCart", "itemsPurchased", "itemRevenue"])
+    daily_report = _ga4_run_report(start_date, end_date, ["date"], ["totalUsers", "sessions", "screenPageViews", "ecommercePurchases", "purchaseRevenue"])
+
+    overview_rows = _response_rows(overview_report)
+    totals = overview_rows[0] if overview_rows else {}
+    event_counts = {row.get("eventName"): _number(row.get("eventCount"), integer=True) for row in _response_rows(event_report)}
+    traffic_sources = []
+    for row in _response_rows(source_report):
+        source = _clean_label(row.get("sessionSource"))
+        medium = _clean_label(row.get("sessionMedium"))
+        campaign = _clean_label(row.get("sessionCampaignName"))
+        traffic_sources.append({"source": source or "(not set)", "medium": medium, "campaign": campaign, "sessions": _number(row.get("sessions"), integer=True)})
+    devices = [
+        {"device": _clean_label(row.get("deviceCategory")) or "(not set)", "sessions": _number(row.get("sessions"), integer=True)}
+        for row in _response_rows(device_report)
+    ]
+    top_products = []
+    for row in _response_rows(product_report):
+        top_products.append({
+            "product_id": _clean_label(row.get("itemId")),
+            "product_name": _clean_label(row.get("itemName")) or "Unknown item",
+            "item_category": _clean_label(row.get("itemCategory")),
+            "views": _number(row.get("itemsViewed"), integer=True),
+            "add_to_cart": _number(row.get("itemsAddedToCart"), integer=True),
+            "purchases": _number(row.get("itemsPurchased"), integer=True),
+            "revenue": _number(row.get("itemRevenue")),
+        })
+    top_products.sort(key=lambda item: (item["views"], item["add_to_cart"], item["purchases"]), reverse=True)
+    daily_activity = []
+    for row in _response_rows(daily_report):
+        raw_date = row.get("date", "")
+        formatted_date = f"{raw_date[:4]}-{raw_date[4:6]}-{raw_date[6:8]}" if len(raw_date) == 8 else raw_date
+        daily_activity.append({
+            "date": formatted_date,
+            "visitors": _number(row.get("totalUsers"), integer=True),
+            "sessions": _number(row.get("sessions"), integer=True),
+            "page_views": _number(row.get("screenPageViews"), integer=True),
+            "purchases": _number(row.get("ecommercePurchases"), integer=True),
+            "revenue": _number(row.get("purchaseRevenue")),
+        })
+    return {
+        "available": True,
+        "property_id": GA4_PROPERTY_ID,
+        "overview": {
+            "users": _number(totals.get("totalUsers"), integer=True),
+            "sessions": _number(totals.get("sessions"), integer=True),
+            "page_views": _number(totals.get("screenPageViews"), integer=True),
+            "product_views": event_counts.get("view_item", 0),
+            "add_to_cart": event_counts.get("add_to_cart", 0),
+            "whatsapp_order_clicks": event_counts.get("whatsapp_order_click", 0),
+            "purchases": _number(totals.get("ecommercePurchases"), integer=True),
+            "purchase_revenue": _number(totals.get("purchaseRevenue")),
+        },
+        "traffic_sources": traffic_sources,
+        "devices": devices,
+        "top_products": top_products,
+        "daily_activity": daily_activity,
+    }
+
+
+async def _ga4_data(start_date: date, end_date: date):
+    try:
+        return await asyncio.to_thread(_ga4_data_sync, start_date.isoformat(), end_date.isoformat())
+    except Exception as exc:
+        if type(exc).__name__ == "DefaultCredentialsError":
+            reason = "credentials_unavailable"
+        elif isinstance(exc, GA4ReportError):
+            reason = exc.reason
+        else:
+            # Keep analytics service failures from affecting the admin dashboard.
+            logger.warning("GA4 Data API integration error (%s)", type(exc).__name__)
+            reason = "api_unavailable"
+        logger.warning("GA4 Data API report unavailable (%s)", reason)
+    return {
+        "available": False,
+        "property_id": GA4_PROPERTY_ID,
+        "unavailable_reason": reason,
+        "overview": None,
+        "traffic_sources": [],
+        "devices": [],
+        "top_products": [],
+        "daily_activity": [],
+    }
 
 
 async def _read_cursor(cursor):
@@ -271,16 +433,18 @@ async def _analytics_report(start_date: date | None, end_date: date | None):
         product["revenue"] = round(product["revenue"], 2)
         top_products.append(product)
     top_products.sort(key=lambda product: (product["views"], product["add_to_cart"], product["whatsapp_orders"]), reverse=True)
+    ga4_data = await _ga4_data(start_day, end_day)
 
     return {
         "range": {"start_date": start_day.isoformat(), "end_date": end_day.isoformat(), "timezone": "Asia/Kolkata"},
-        "availability": {"website_events": website_events_available, "orders": True, "traffic_sources": bool(traffic_sources), "devices": bool(devices)},
+        "availability": {"website_events": website_events_available, "orders": True, "traffic_sources": bool(traffic_sources), "devices": bool(devices), "ga4": ga4_data["available"]},
         "overview": overview,
         "funnel": funnel,
         "traffic_sources": traffic_sources,
         "devices": devices,
         "top_products": top_products,
         "daily_activity": daily_activity,
+        "ga4": ga4_data,
     }
 
 

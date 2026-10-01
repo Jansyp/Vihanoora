@@ -101,3 +101,71 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: "Investigate backend test failures from Analytics implementation without changing Analytics functionality; run the normal suite against an isolated test environment."
+backend:
+  - task: "Implement GA4 Data API reporting for Admin Analytics"
+    implemented: true
+    working: "NA"
+    file: "backend/routers/analytics_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Read-only GA4 runReport queries and dashboard metrics are implemented; 9 Analytics tests pass. Live API verification could not run because GOOGLE_APPLICATION_CREDENTIALS is absent from this runtime and google-auth is not installed locally; pip install was blocked by the package index/network."
+  - task: "Classify full backend test failures and check Analytics regression"
+    implemented: true
+    working: true
+    file: "backend/tests"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Prior run reported 21 failures and 24 errors, with integration tests unable to connect to localhost:8000. Will rerun using local MongoDB and a fresh isolated DB_NAME, with the FastAPI server started on localhost:8000."
+      - working: true
+        agent: "main"
+        comment: "With localhost API and MongoDB on a fresh isolated DB, full serial suite completed 79 passed, 7 failed, 5 errors. Analytics tests passed. Remaining failures/errors are pre-existing suite/config mismatches: catalog featured-priority vs sort assertions; Cashfree disabled vs legacy mock-order tests; one missing fixture argument; expected prior paid order; pytest-asyncio not installed; dynamic-category TestClient tests fail only after preceding modules close the shared Motor event loop (isolated module passes 6/6). No Analytics-caused regression found."
+frontend:
+  - task: "Display GA4 Data API report metrics in the Admin Analytics dashboard"
+    implemented: true
+    working: true
+    file: "frontend/src/pages/admin/AdminAnalytics.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Added a separate GA4 property metrics panel; first-party and paid-order data remain separate. Frontend suite passes 31 tests and production build succeeds with existing lint warnings."
+  - task: "Report frontend and build status for Analytics integration"
+    implemented: true
+    working: true
+    file: "frontend/src/lib/analytics.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Prior verification: 30 frontend tests passed and production build succeeded with existing hook dependency warnings."
+metadata:
+  created_by: "main"
+  version: "1.0"
+  test_sequence: 2
+  run_ui: false
+test_plan:
+  current_focus:
+    - "Provide GOOGLE_APPLICATION_CREDENTIALS to the local backend runtime and install declared google-auth dependency to make a real API request"
+    - "Verify successful API response is displayed in the Admin Analytics GA4 panel"
+  stuck_tasks: []
+  test_all: true
+  test_priority: "sequential"
+agent_communication:
+  - agent: "main"
+    message: "GA4 Data API integration is implemented and mocked tests pass. The configured credential variable isn't visible in the local runtime, so a live report call is still unverified; credential contents were not accessed or printed."
+  - agent: "main"
+    message: "No separate testing agent is available. Running the test suite directly against a fresh local test database; production jave_house DB and remote MongoDB URLs are excluded."
