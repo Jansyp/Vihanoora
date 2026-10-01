@@ -7,6 +7,7 @@ import uuid
 from collections import defaultdict
 from datetime import date, datetime, time, timedelta, timezone
 from typing import Literal
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import BaseModel, ConfigDict, Field
@@ -16,8 +17,10 @@ from core import db, require_admin
 
 router = APIRouter(tags=["analytics"])
 logger = logging.getLogger("Viaura.analytics")
-INDIA_TZ = timezone(timedelta(hours=5, minutes=30), name="Asia/Kolkata")
-GA4_PROPERTY_ID = os.environ.get("GA4_PROPERTY_ID", "556716338")
+INDIA_TZ = ZoneInfo("Asia/Kolkata")
+GA4_PROPERTY_ID = "556716338"
+GA4_CONFIGURED_PROPERTY_ID = os.environ.get("GA4_PROPERTY_ID", GA4_PROPERTY_ID)
+GA4_FALLBACK_TIMEZONE = os.environ.get("GA4_PROPERTY_TIMEZONE", "Asia/Kolkata")
 GA4_READONLY_SCOPE = "https://www.googleapis.com/auth/analytics.readonly"
 EVENT_NAMES = {
     "page_view", "view_item_list", "select_item", "view_item", "add_to_cart",
@@ -54,15 +57,15 @@ def _clean_label(value: str | None) -> str | None:
     return cleaned[:100]
 
 
-def _date_range(start_date: date | None, end_date: date | None):
-    end_day = end_date or datetime.now(INDIA_TZ).date()
+def _date_range(start_date: date | None, end_date: date | None, report_timezone=INDIA_TZ):
+    end_day = end_date or (datetime.now(report_timezone).date() - timedelta(days=1))
     start_day = start_date or end_day - timedelta(days=6)
     if start_day > end_day:
         raise HTTPException(status_code=422, detail="start_date must be on or before end_date")
     if (end_day - start_day).days > 365:
         raise HTTPException(status_code=422, detail="Date range cannot exceed 366 days")
-    start_local = datetime.combine(start_day, time.min, tzinfo=INDIA_TZ)
-    end_local = datetime.combine(end_day + timedelta(days=1), time.min, tzinfo=INDIA_TZ)
+    start_local = datetime.combine(start_day, time.min, tzinfo=report_timezone)
+    end_local = datetime.combine(end_day + timedelta(days=1), time.min, tzinfo=report_timezone)
     return start_day, end_day, start_local.astimezone(timezone.utc), end_local.astimezone(timezone.utc)
 
 
@@ -73,6 +76,13 @@ class GA4ReportError(Exception):
 
 
 def _ga4_authorized_session():
+    credential_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+    if not credential_path:
+        raise GA4ReportError("credentials_path_unconfigured")
+    if not os.path.isfile(credential_path):
+        raise GA4ReportError("credentials_file_missing")
+    if not os.access(credential_path, os.R_OK):
+        raise GA4ReportError("credentials_file_unreadable")
     try:
         import google.auth
         from google.auth.transport.requests import AuthorizedSession
@@ -102,10 +112,70 @@ def _ga4_run_report(start_date: str, end_date: str, dimensions: list[str], metri
         raise
     except requests.HTTPError as exc:
         status = getattr(exc.response, "status_code", None)
-        reason = "access_denied" if status == 403 else "authentication_failed" if status == 401 else "api_unavailable"
+        reason = (
+            "access_denied" if status == 403 else
+            "authentication_failed" if status == 401 else
+            "invalid_report" if status == 400 else
+            "api_unavailable"
+        )
         raise GA4ReportError(reason) from None
     except requests.RequestException:
         raise GA4ReportError("api_unavailable") from None
+
+
+def _ga4_exception_category(exc: Exception) -> str:
+    if isinstance(exc, GA4ReportError):
+        return exc.reason
+    error_type = type(exc).__name__
+    if error_type == "DefaultCredentialsError":
+        return "credentials_unavailable"
+    if error_type == "RefreshError":
+        return "authentication_failed"
+    if error_type == "TransportError":
+        return "api_unavailable"
+    return "api_unavailable"
+
+
+def _ga4_unavailable(reason: str):
+    return {
+        "available": False,
+        "property_id": GA4_PROPERTY_ID,
+        "timezone": GA4_FALLBACK_TIMEZONE,
+        "unavailable_reason": reason,
+        "error_category": reason,
+        "overview": None,
+        "traffic_sources": [],
+        "devices": [],
+        "top_products": [],
+        "daily_activity": [],
+    }
+
+
+def _configured_timezone():
+    try:
+        return ZoneInfo(GA4_FALLBACK_TIMEZONE)
+    except ZoneInfoNotFoundError:
+        return INDIA_TZ
+
+
+def _ga4_property_timezone_sync():
+    if GA4_CONFIGURED_PROPERTY_ID != GA4_PROPERTY_ID:
+        raise GA4ReportError("property_misconfigured")
+    report = _ga4_run_report("yesterday", "yesterday", [], ["activeUsers"])
+    timezone_name = report.get("metadata", {}).get("timeZone")
+    if not timezone_name:
+        return _configured_timezone(), None
+    try:
+        return ZoneInfo(timezone_name), None
+    except ZoneInfoNotFoundError:
+        raise GA4ReportError("property_timezone_invalid") from None
+
+
+async def _ga4_property_timezone():
+    try:
+        return await asyncio.to_thread(_ga4_property_timezone_sync)
+    except Exception as exc:
+        return _configured_timezone(), _ga4_exception_category(exc)
 
 
 def _response_rows(report: dict):
@@ -132,15 +202,18 @@ def _ga4_data_sync(start_date: str, end_date: str):
         "inListFilter": {"values": ["view_item", "add_to_cart", "whatsapp_order_click"]}
     }
     event_filter = {"filter": {"fieldName": "eventName", **ecommerce_events}}
-    overview_report = _ga4_run_report(start_date, end_date, [], ["totalUsers", "sessions", "screenPageViews", "ecommercePurchases", "purchaseRevenue"])
+    if GA4_CONFIGURED_PROPERTY_ID != GA4_PROPERTY_ID:
+        raise GA4ReportError("property_misconfigured")
+    overview_report = _ga4_run_report(start_date, end_date, [], ["activeUsers", "sessions", "screenPageViews", "eventCount", "ecommercePurchases", "purchaseRevenue"])
     event_report = _ga4_run_report(start_date, end_date, ["eventName"], ["eventCount"], event_filter)
     source_report = _ga4_run_report(start_date, end_date, ["sessionSource", "sessionMedium", "sessionCampaignName"], ["sessions"])
     device_report = _ga4_run_report(start_date, end_date, ["deviceCategory"], ["sessions"])
     product_report = _ga4_run_report(start_date, end_date, ["itemId", "itemName", "itemCategory"], ["itemsViewed", "itemsAddedToCart", "itemsPurchased", "itemRevenue"])
-    daily_report = _ga4_run_report(start_date, end_date, ["date"], ["totalUsers", "sessions", "screenPageViews", "ecommercePurchases", "purchaseRevenue"])
+    daily_report = _ga4_run_report(start_date, end_date, ["date"], ["activeUsers", "sessions", "screenPageViews", "eventCount", "ecommercePurchases", "purchaseRevenue"])
 
     overview_rows = _response_rows(overview_report)
     totals = overview_rows[0] if overview_rows else {}
+    property_timezone = overview_report.get("metadata", {}).get("timeZone") or GA4_FALLBACK_TIMEZONE
     event_counts = {row.get("eventName"): _number(row.get("eventCount"), integer=True) for row in _response_rows(event_report)}
     traffic_sources = []
     for row in _response_rows(source_report):
@@ -170,19 +243,22 @@ def _ga4_data_sync(start_date: str, end_date: str):
         formatted_date = f"{raw_date[:4]}-{raw_date[4:6]}-{raw_date[6:8]}" if len(raw_date) == 8 else raw_date
         daily_activity.append({
             "date": formatted_date,
-            "visitors": _number(row.get("totalUsers"), integer=True),
+            "active_users": _number(row.get("activeUsers"), integer=True),
             "sessions": _number(row.get("sessions"), integer=True),
             "page_views": _number(row.get("screenPageViews"), integer=True),
+            "event_count": _number(row.get("eventCount"), integer=True),
             "purchases": _number(row.get("ecommercePurchases"), integer=True),
             "revenue": _number(row.get("purchaseRevenue")),
         })
     return {
         "available": True,
         "property_id": GA4_PROPERTY_ID,
+        "timezone": property_timezone,
         "overview": {
-            "users": _number(totals.get("totalUsers"), integer=True),
+            "active_users": _number(totals.get("activeUsers"), integer=True),
             "sessions": _number(totals.get("sessions"), integer=True),
             "page_views": _number(totals.get("screenPageViews"), integer=True),
+            "event_count": _number(totals.get("eventCount"), integer=True),
             "product_views": event_counts.get("view_item", 0),
             "add_to_cart": event_counts.get("add_to_cart", 0),
             "whatsapp_order_clicks": event_counts.get("whatsapp_order_click", 0),
@@ -196,29 +272,18 @@ def _ga4_data_sync(start_date: str, end_date: str):
     }
 
 
-async def _ga4_data(start_date: date, end_date: date):
+async def _ga4_data(start_date: date, end_date: date, preflight_error: str | None = None):
+    if preflight_error:
+        return _ga4_unavailable(preflight_error)
     try:
         return await asyncio.to_thread(_ga4_data_sync, start_date.isoformat(), end_date.isoformat())
     except Exception as exc:
-        if type(exc).__name__ == "DefaultCredentialsError":
-            reason = "credentials_unavailable"
-        elif isinstance(exc, GA4ReportError):
-            reason = exc.reason
-        else:
-            # Keep analytics service failures from affecting the admin dashboard.
+        # Keep analytics service failures from affecting the admin dashboard.
+        reason = _ga4_exception_category(exc)
+        if reason == "api_unavailable" and type(exc).__name__ not in {"TransportError"}:
             logger.warning("GA4 Data API integration error (%s)", type(exc).__name__)
-            reason = "api_unavailable"
         logger.warning("GA4 Data API report unavailable (%s)", reason)
-    return {
-        "available": False,
-        "property_id": GA4_PROPERTY_ID,
-        "unavailable_reason": reason,
-        "overview": None,
-        "traffic_sources": [],
-        "devices": [],
-        "top_products": [],
-        "daily_activity": [],
-    }
+        return _ga4_unavailable(reason)
 
 
 async def _read_cursor(cursor):
@@ -273,7 +338,8 @@ async def collect_analytics_event(payload: AnalyticsEventInput):
 
 
 async def _analytics_report(start_date: date | None, end_date: date | None):
-    start_day, end_day, start_utc, end_utc = _date_range(start_date, end_date)
+    report_timezone, ga4_preflight_error = await _ga4_property_timezone()
+    start_day, end_day, start_utc, end_utc = _date_range(start_date, end_date, report_timezone)
     event_cursor = db.analytics_events.find(
         {"timestamp": {"$gte": start_utc, "$lt": end_utc}},
         {"_id": 0, "event_name": 1, "timestamp": 1, "session_id": 1, "source": 1, "medium": 1, "campaign": 1, "device": 1, "items": 1},
@@ -349,7 +415,7 @@ async def _analytics_report(start_date: date | None, end_date: date | None):
         stamp = event["timestamp"]
         if stamp.tzinfo is None:
             stamp = stamp.replace(tzinfo=timezone.utc)
-        day_key = stamp.astimezone(INDIA_TZ).date().isoformat()
+        day_key = stamp.astimezone(report_timezone).date().isoformat()
         row = daily.get(day_key)
         if not row:
             continue
@@ -365,7 +431,7 @@ async def _analytics_report(start_date: date | None, end_date: date | None):
             stamp = datetime.fromisoformat(order_time.replace("Z", "+00:00"))
             if stamp.tzinfo is None:
                 stamp = stamp.replace(tzinfo=timezone.utc)
-            row = daily.get(stamp.astimezone(INDIA_TZ).date().isoformat())
+            row = daily.get(stamp.astimezone(report_timezone).date().isoformat())
             if row:
                 row["orders"] += 1
                 row["revenue"] += float(order.get("grand_total", 0) or 0)
@@ -433,10 +499,10 @@ async def _analytics_report(start_date: date | None, end_date: date | None):
         product["revenue"] = round(product["revenue"], 2)
         top_products.append(product)
     top_products.sort(key=lambda product: (product["views"], product["add_to_cart"], product["whatsapp_orders"]), reverse=True)
-    ga4_data = await _ga4_data(start_day, end_day)
+    ga4_data = await _ga4_data(start_day, end_day, ga4_preflight_error)
 
     return {
-        "range": {"start_date": start_day.isoformat(), "end_date": end_day.isoformat(), "timezone": "Asia/Kolkata"},
+        "range": {"start_date": start_day.isoformat(), "end_date": end_day.isoformat(), "timezone": getattr(report_timezone, "key", str(report_timezone))},
         "availability": {"website_events": website_events_available, "orders": True, "traffic_sources": bool(traffic_sources), "devices": bool(devices), "ga4": ga4_data["available"]},
         "overview": overview,
         "funnel": funnel,

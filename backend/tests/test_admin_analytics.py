@@ -72,10 +72,18 @@ def test_date_range_uses_india_local_midnight():
     assert end_utc.isoformat() == "2026-09-23T18:30:00+00:00"
 
 
+def test_default_date_range_uses_last_seven_complete_days():
+    start_day, end_day, start_utc, end_utc = analytics._date_range(None, None)
+    today = datetime.now(analytics.INDIA_TZ).date()
+    assert end_day == today.fromordinal(today.toordinal() - 1)
+    assert (end_day - start_day).days == 6
+    assert start_utc.tzinfo == timezone.utc and end_utc.tzinfo == timezone.utc
+
+
 def test_ga4_data_api_reports_are_aggregated_and_mapped_without_user_dimensions(monkeypatch):
     reports = [
-        {"metricHeaders": [{"name": name} for name in ["totalUsers", "sessions", "screenPageViews", "ecommercePurchases", "purchaseRevenue"]],
-         "rows": [{"metricValues": [{"value": value} for value in ["81", "96", "243", "4", "3799.5"]]}]},
+        {"metricHeaders": [{"name": name} for name in ["activeUsers", "sessions", "screenPageViews", "eventCount", "ecommercePurchases", "purchaseRevenue"]],
+         "rows": [{"metricValues": [{"value": value} for value in ["81", "96", "243", "3810", "4", "3799.5"]]}], "metadata": {"timeZone": "Asia/Kolkata"}},
         {"dimensionHeaders": [{"name": "eventName"}], "metricHeaders": [{"name": "eventCount"}],
          "rows": [{"dimensionValues": [{"value": "view_item"}], "metricValues": [{"value": "32"}]},
                   {"dimensionValues": [{"value": "add_to_cart"}], "metricValues": [{"value": "9"}]},
@@ -87,8 +95,8 @@ def test_ga4_data_api_reports_are_aggregated_and_mapped_without_user_dimensions(
         {"dimensionHeaders": [{"name": name} for name in ["itemId", "itemName", "itemCategory"]],
          "metricHeaders": [{"name": name} for name in ["itemsViewed", "itemsAddedToCart", "itemsPurchased", "itemRevenue"]],
          "rows": [{"dimensionValues": [{"value": "sku-1"}, {"value": "Pearl Bracelet"}, {"value": "Bracelets"}], "metricValues": [{"value": value} for value in ["20", "7", "2", "1500"]]}]},
-        {"dimensionHeaders": [{"name": "date"}], "metricHeaders": [{"name": name} for name in ["totalUsers", "sessions", "screenPageViews", "ecommercePurchases", "purchaseRevenue"]],
-         "rows": [{"dimensionValues": [{"value": "20261001"}], "metricValues": [{"value": value} for value in ["81", "96", "243", "4", "3799.5"]]}]},
+        {"dimensionHeaders": [{"name": "date"}], "metricHeaders": [{"name": name} for name in ["activeUsers", "sessions", "screenPageViews", "eventCount", "ecommercePurchases", "purchaseRevenue"]],
+         "rows": [{"dimensionValues": [{"value": "20261001"}], "metricValues": [{"value": value} for value in ["81", "96", "243", "3810", "4", "3799.5"]]}]},
     ]
     requested = []
 
@@ -102,7 +110,7 @@ def test_ga4_data_api_reports_are_aggregated_and_mapped_without_user_dimensions(
     assert result["available"] is True
     assert result["property_id"] == "556716338"
     assert result["overview"] == {
-        "users": 81, "sessions": 96, "page_views": 243, "product_views": 32,
+        "active_users": 81, "sessions": 96, "page_views": 243, "event_count": 3810, "product_views": 32,
         "add_to_cart": 9, "whatsapp_order_clicks": 3, "purchases": 4, "purchase_revenue": 3799.5,
     }
     assert requested[4][3] == ["itemsViewed", "itemsAddedToCart", "itemsPurchased", "itemRevenue"]
@@ -156,12 +164,49 @@ def test_ga4_request_uses_read_only_scope_and_target_property(monkeypatch):
     monkeypatch.setitem(sys.modules, "google.auth", fake_auth)
     monkeypatch.setitem(sys.modules, "google.auth.transport", fake_transport)
     monkeypatch.setitem(sys.modules, "google.auth.transport.requests", fake_transport_requests)
+    monkeypatch.setenv("GOOGLE_APPLICATION_CREDENTIALS", __file__)
 
     analytics._ga4_run_report("2026-10-01", "2026-10-01", [], ["sessions"])
 
     assert captured["scopes"] == [analytics.GA4_READONLY_SCOPE]
     assert captured["url"] == "https://analyticsdata.googleapis.com/v1beta/properties/556716338:runReport"
     assert captured["body"]["dateRanges"] == [{"startDate": "2026-10-01", "endDate": "2026-10-01"}]
+
+
+def test_property_timezone_comes_from_ga4_metadata(monkeypatch):
+    monkeypatch.setattr(analytics, "_ga4_run_report", lambda *args, **kwargs: {"metadata": {"timeZone": "America/Los_Angeles"}})
+    report_timezone, error = run(analytics._ga4_property_timezone())
+    assert error is None
+    assert report_timezone.key == "America/Los_Angeles"
+
+
+def test_missing_google_credentials_returns_safe_category(monkeypatch):
+    monkeypatch.delenv("GOOGLE_APPLICATION_CREDENTIALS", raising=False)
+    report_timezone, error = run(analytics._ga4_property_timezone())
+    assert report_timezone.key == "Asia/Kolkata"
+    assert error == "credentials_path_unconfigured"
+
+
+@pytest.mark.parametrize("file_state,expected", [("missing", "credentials_file_missing"), ("unreadable", "credentials_file_unreadable")])
+def test_bad_google_credentials_file_returns_safe_category(monkeypatch, file_state, expected):
+    credential_file = str(__file__) + ".missing"
+    if file_state == "unreadable":
+        credential_file = __file__
+        monkeypatch.setattr(analytics.os, "access", lambda *args: False)
+    monkeypatch.setenv("GOOGLE_APPLICATION_CREDENTIALS", str(credential_file))
+    with pytest.raises(analytics.GA4ReportError) as error:
+        analytics._ga4_authorized_session()
+    assert error.value.reason == expected
+
+
+def test_ga4_data_api_failure_returns_error_category_without_metrics(monkeypatch):
+    def fail(*args, **kwargs):
+        raise analytics.GA4ReportError("access_denied")
+    monkeypatch.setattr(analytics, "_ga4_data_sync", fail)
+    result = run(analytics._ga4_data(datetime(2026, 9, 25).date(), datetime(2026, 10, 1).date()))
+    assert result["available"] is False
+    assert result["error_category"] == "access_denied"
+    assert result["overview"] is None
 
 
 def test_report_separates_order_intent_from_generic_whatsapp_and_uses_paid_orders(monkeypatch):
@@ -182,6 +227,12 @@ def test_report_separates_order_intent_from_generic_whatsapp_and_uses_paid_order
     event_collection = FakeCollection(events)
     order_collection = FakeCollection(orders)
     monkeypatch.setattr(analytics, "db", SimpleNamespace(analytics_events=event_collection, orders=order_collection))
+    async def fake_property_timezone():
+        return analytics.INDIA_TZ, None
+    async def fake_ga4_data(start_day, end_day, preflight_error=None):
+        return {"available": True, "property_id": "556716338", "overview": {"active_users": 411}}
+    monkeypatch.setattr(analytics, "_ga4_property_timezone", fake_property_timezone)
+    monkeypatch.setattr(analytics, "_ga4_data", fake_ga4_data)
 
     report = run(analytics._analytics_report(datetime(2026, 9, 23).date(), datetime(2026, 9, 23).date()))
 
@@ -189,6 +240,8 @@ def test_report_separates_order_intent_from_generic_whatsapp_and_uses_paid_order
         "visitors": 1, "product_views": 1, "add_to_cart": 1,
         "whatsapp_order_clicks": 1, "orders": 1, "revenue": 520.0,
     }
+    assert report["ga4"]["overview"]["active_users"] == 411
+    assert report["overview"]["visitors"] == 1
     assert report["top_products"] == [{
         "product_id": product_id, "product_name": "Pearl Bracelet", "item_category": "Bracelets", "combo": False,
         "views": 1, "add_to_cart": 1, "whatsapp_orders": 1, "orders": 1, "revenue": 500.0,
@@ -200,6 +253,21 @@ def test_report_separates_order_intent_from_generic_whatsapp_and_uses_paid_order
     assert "secret@example.com" not in str(report)
     assert "9876543210" not in str(report)
     assert "Sensitive Name" not in str(report)
+
+
+def test_admin_report_dates_follow_ga4_property_timezone(monkeypatch):
+    property_timezone = analytics.ZoneInfo("America/Los_Angeles")
+    async def fake_property_timezone():
+        return property_timezone, None
+    async def fake_ga4_data(start_day, end_day, preflight_error=None):
+        assert end_day == datetime.now(property_timezone).date().fromordinal(datetime.now(property_timezone).date().toordinal() - 1)
+        return {"available": True, "property_id": "556716338", "overview": {"active_users": 0}}
+    empty = FakeCollection()
+    monkeypatch.setattr(analytics, "db", SimpleNamespace(analytics_events=empty, orders=empty))
+    monkeypatch.setattr(analytics, "_ga4_property_timezone", fake_property_timezone)
+    monkeypatch.setattr(analytics, "_ga4_data", fake_ga4_data)
+    report = run(analytics._analytics_report(None, None))
+    assert report["range"]["timezone"] == "America/Los_Angeles"
 
 
 def test_event_collection_stores_only_allowlisted_non_pii_fields(monkeypatch):
