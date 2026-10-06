@@ -58,6 +58,16 @@ const Lazy = ({ children }) => (
 function AppRoutes() {
   const location = useLocation();
   useEffect(() => {
+    const canonical = new URL(location.pathname, "https://vihaanora.com").toString();
+    let link = document.querySelector('link[rel="canonical"]');
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "canonical";
+      document.head.appendChild(link);
+    }
+    link.href = canonical;
+  }, [location.pathname]);
+  useEffect(() => {
     initializeAnalytics();
     trackPageView(location.pathname);
   }, [location.pathname]);
