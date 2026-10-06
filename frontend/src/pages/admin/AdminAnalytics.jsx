@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, ReceiptText } from "lucide-react";
 import { Line, LineChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import api, { formatINR } from "@/lib/api";
 
@@ -120,6 +120,9 @@ export default function AdminAnalytics() {
         <div>
           <h1 className="font-serif text-3xl font-semibold">Analytics</h1>
           <p className="text-sm text-[var(--ink-soft)] mt-1">Understand your VIAURA traffic, shopping activity and customer intent.</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2" aria-label="Analytics actions">
+          <a href="/admin/sales" className="inline-flex items-center gap-2 rounded-xl bg-[var(--ink)] text-white px-4 py-2.5 text-sm"><ReceiptText size={16} /> Sales Reports</a>
         </div>
         <div className="flex flex-wrap items-center gap-2" aria-label="Analytics date range">
           {[ ["Today", 1, "today"], ["7 Days", 7, "7"], ["30 Days", 30, "30"] ].map(([label, days, value]) => (
