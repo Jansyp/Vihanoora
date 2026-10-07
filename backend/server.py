@@ -4,7 +4,9 @@ load_dotenv(Path(__file__).parent / ".env")
 
 import os
 import logging
-from fastapi import FastAPI
+import re
+from xml.sax.saxutils import escape
+from fastapi import FastAPI, Response
 from starlette.middleware.cors import CORSMiddleware
 
 from core import db
@@ -15,6 +17,39 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("Viaura")
 
 app = FastAPI(title="Viaura API")
+
+SITEMAP_ORIGIN = "https://vihaanora.com"
+PUBLIC_STOREFRONT_PATHS = (
+    "/", "/women", "/kids", "/gifts", "/keychains", "/combo-offers",
+    "/trending", "/offer-zone", "/page/about", "/page/contact",
+    "/page/shipping", "/page/returns", "/page/faq", "/page/privacy", "/page/terms",
+)
+PUBLIC_SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$", re.IGNORECASE)
+
+
+def _public_slug(value):
+    return isinstance(value, str) and bool(PUBLIC_SLUG_RE.fullmatch(value))
+
+
+def _sitemap_xml(product_docs, combo_docs=()):
+    urls = {f"{SITEMAP_ORIGIN}{path}" for path in PUBLIC_STOREFRONT_PATHS}
+    for doc in product_docs:
+        slug = doc.get("slug") if doc.get("active") is True else None
+        if _public_slug(slug):
+            urls.add(f"{SITEMAP_ORIGIN}/product/{slug}")
+    for doc in combo_docs:
+        slug = doc.get("slug") if doc.get("active") is True else None
+        if _public_slug(slug):
+            urls.add(f"{SITEMAP_ORIGIN}/combo/{slug}")
+    locs = "\n".join(f"  <url><loc>{escape(url)}</loc></url>" for url in sorted(urls))
+    return f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{locs}\n</urlset>\n'
+
+
+@app.get("/sitemap.xml", include_in_schema=False)
+async def sitemap():
+    products = await db.products.find({"active": True}, {"_id": 0, "slug": 1, "active": 1}).to_list(None)
+    combos = await db.combos.find({"active": True}, {"_id": 0, "slug": 1, "active": 1}).to_list(None)
+    return Response(content=_sitemap_xml(products, combos), media_type="application/xml")
 
 app.include_router(auth_routes.router)
 app.include_router(catalog_routes.router)
