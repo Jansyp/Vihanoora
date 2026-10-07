@@ -9,21 +9,36 @@ function apiBase() {
   return `${origin.replace(/\/+$/, "")}/api`;
 }
 
-async function getJson(url) {
-  const res = await fetch(url, { headers: { Accept: "application/json" } });
-  if (!res.ok) throw new Error(`${url} -> HTTP ${res.status}`);
-  return res.json();
+async function getJson(url, attempts = 3) {
+  let lastError;
+  for (let i = 1; i <= attempts; i++) {
+    try {
+      const res = await fetch(url, { headers: { Accept: "application/json" } });
+      if (!res.ok) throw new Error(`${url} -> HTTP ${res.status}`);
+      return await res.json();
+    } catch (err) {
+      lastError = err;
+      if (i < attempts) await new Promise((r) => setTimeout(r, 1000 * i));
+    }
+  }
+  throw lastError;
 }
 
 const isPublic = (doc) => Boolean(doc) && doc.active !== false && SLUG_RE.test(doc.slug || "");
 
 async function fetchProducts(api) {
   const items = [];
+  let total = 0;
   for (let page = 1; page <= 500; page++) {
     const data = await getJson(`${api}/products?page=${page}&limit=12&sort=newest`);
     const batch = data.items || [];
+    total = data.total || 0;
     items.push(...batch);
-    if (!batch.length || items.length >= (data.total || 0)) break;
+    if (!batch.length || items.length >= total) break;
+  }
+  // A short read would silently drop products from the sitemap, so fail instead (callers keep the last good file).
+  if (new Set(items.map((i) => i.slug)).size < total - 2) {
+    throw new Error(`product listing incomplete: got ${items.length} of ${total}`);
   }
   return items;
 }

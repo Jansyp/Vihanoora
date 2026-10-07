@@ -70,6 +70,7 @@
     "prebuild": "node scripts/generate-sitemap.js",
     "build": "craco build",
     "postbuild": "node scripts/prerender-meta.js",
+    "verify:seo": "node scripts/verify-seo-build.js",
     "test": "craco test"
   },
   "browserslist": {
