@@ -18,7 +18,7 @@ logger = logging.getLogger("Viaura")
 
 app = FastAPI(title="Viaura API")
 
-SITEMAP_ORIGIN = "https://vihaanora.com"
+SITEMAP_ORIGIN = "https://www.vihaanora.com"
 PUBLIC_STOREFRONT_PATHS = (
     "/", "/women", "/kids", "/gifts", "/keychains", "/combo-offers",
     "/trending", "/offer-zone", "/page/about", "/page/contact",

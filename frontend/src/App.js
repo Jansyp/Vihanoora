@@ -58,7 +58,7 @@ const Lazy = ({ children }) => (
 function AppRoutes() {
   const location = useLocation();
   useEffect(() => {
-    const canonical = new URL(location.pathname, "https://vihaanora.com").toString();
+    const canonical = new URL(location.pathname, "https://www.vihaanora.com").toString();
     let link = document.querySelector('link[rel="canonical"]');
     if (!link) {
       link = document.createElement("link");

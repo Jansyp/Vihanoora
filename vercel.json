@@ -5,12 +5,18 @@
   "framework": "create-react-app",
   "rewrites": [
     {
+      "source": "/((?!sitemap\\.xml$|robots\\.txt$).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
       "source": "/sitemap.xml",
-      "destination": "https://api.vihaanora.com/sitemap.xml"
+      "headers": [{ "key": "Content-Type", "value": "application/xml; charset=utf-8" }]
     },
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "source": "/robots.txt",
+      "headers": [{ "key": "Content-Type", "value": "text/plain; charset=utf-8" }]
     }
   ]
 }

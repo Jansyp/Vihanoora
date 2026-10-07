@@ -48,10 +48,10 @@ def test_dynamic_public_sitemap_uses_active_slugs_and_valid_xml(monkeypatch):
     assert response.headers["content-type"].startswith("application/xml")
     root = ET.fromstring(response.content)
     locs = [node.text for node in root.findall("{http://www.sitemaps.org/schemas/sitemap/0.9}url/{http://www.sitemaps.org/schemas/sitemap/0.9}loc")]
-    assert "https://vihaanora.com/product/rose-gold-chain" in locs
-    assert "https://vihaanora.com/combo/gift-set" in locs
-    assert all(url.startswith("https://vihaanora.com/") for url in locs)
-    assert not any("localhost" in url or "www.vihaanora.com" in url for url in locs)
+    assert "https://www.vihaanora.com/product/rose-gold-chain" in locs
+    assert "https://www.vihaanora.com/combo/gift-set" in locs
+    assert all(url.startswith("https://www.vihaanora.com/") for url in locs)
+    assert not any("localhost" in url or "//vihaanora.com" in url for url in locs)
     assert not any(part in url for url in locs for part in ("/admin", "/login", "/account", "/cart", "/checkout", "/search", "/api/"))
     assert not any(url.endswith(("inactive-item", "draft-set")) or "../" in url for url in locs)
     assert products.query == {"active": True}
@@ -64,4 +64,4 @@ def test_public_robots_file_declares_dynamic_sitemap():
     robots = (Path(__file__).parents[2] / "frontend" / "public" / "robots.txt").read_text(encoding="utf-8")
     assert "User-agent: *" in robots
     assert "Allow: /" in robots
-    assert "Sitemap: https://vihaanora.com/sitemap.xml" in robots
+    assert "Sitemap: https://www.vihaanora.com/sitemap.xml" in robots
