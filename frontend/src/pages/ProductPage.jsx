@@ -9,6 +9,8 @@ import { toast } from "sonner";
 import { useSettings } from "@/context/SettingsContext";
 import { trackEcommerce } from "@/lib/analytics";
 import FreeDeliveryMessage from "@/components/FreeDeliveryMessage";
+import { applySeo } from "@/lib/seo";
+import { productMeta, notFoundMeta } from "@/lib/seoMeta";
 
 const Product3D = lazy(() => import("@/components/Product3D"));
 
@@ -37,6 +39,11 @@ export default function ProductPage() {
   useEffect(() => {
     if (d?.product?.slug === slug) trackEcommerce("view_item", [{ ...d.product, product_id: d.product.id, price: d.product.effective_price, qty: 1 }], { value: Number(d.product.effective_price || 0) });
   }, [d, slug]);
+
+  useEffect(() => {
+    if (d?.product?.slug === slug) applySeo(productMeta(d.product));
+    else if (!loading && !d) applySeo(notFoundMeta(`/product/${slug}`));
+  }, [d, loading, slug]);
 
   if (loading) return <Section><GridSkeleton n={4} /></Section>;
   if (!d) return <Section><p className="text-center py-20">Product not found.</p></Section>;

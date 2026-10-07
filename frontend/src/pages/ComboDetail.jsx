@@ -7,6 +7,8 @@ import { Section, GridSkeleton } from "@/components/common";
 import ProductCard from "@/components/ProductCard";
 import ProductImage from "@/components/ProductImage";
 import { trackEcommerce } from "@/lib/analytics";
+import { applySeo } from "@/lib/seo";
+import { comboMeta } from "@/lib/seoMeta";
 
 export default function ComboDetail() {
   const { slug } = useParams();
@@ -15,6 +17,9 @@ export default function ComboDetail() {
   useEffect(() => { setC(null); api.get(`/combos/${slug}`).then(({ data }) => setC(data)); }, [slug]);
   useEffect(() => {
     if (c?.slug === slug) trackEcommerce("view_item", [{ ...c, product_id: c.id, price: c.combo_price, qty: 1, category: "Combo Offers" }], { value: Number(c.combo_price || 0) });
+  }, [c, slug]);
+  useEffect(() => {
+    if (c?.slug === slug) applySeo(comboMeta(c));
   }, [c, slug]);
   if (!c) return <Section><GridSkeleton n={4} /></Section>;
 

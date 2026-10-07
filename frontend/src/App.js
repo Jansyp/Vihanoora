@@ -3,7 +3,9 @@ import { lazy, Suspense, useEffect } from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/context/AuthContext";
-import { SettingsProvider } from "@/context/SettingsContext";
+import { SettingsProvider, useSettings } from "@/context/SettingsContext";
+import { applySeo } from "@/lib/seo";
+import { pageMeta } from "@/lib/seoMeta";
 import { CartProvider } from "@/context/CartContext";
 import Layout from "@/components/Layout";
 import PageLoader, { HomePageLoader } from "@/components/PageLoader";
@@ -57,16 +59,13 @@ const Lazy = ({ children }) => (
 
 function AppRoutes() {
   const location = useLocation();
+  const { settings } = useSettings();
+  // Settings (social profiles) only matter for the homepage Organization data, so other routes
+  // are not re-applied when settings load and cannot clobber product/combo metadata.
+  const homeSettings = location.pathname === "/" ? settings : null;
   useEffect(() => {
-    const canonical = new URL(location.pathname, "https://www.vihaanora.com").toString();
-    let link = document.querySelector('link[rel="canonical"]');
-    if (!link) {
-      link = document.createElement("link");
-      link.rel = "canonical";
-      document.head.appendChild(link);
-    }
-    link.href = canonical;
-  }, [location.pathname]);
+    applySeo(pageMeta(location.pathname, { settings: homeSettings }));
+  }, [location.pathname, homeSettings]);
   useEffect(() => {
     initializeAnalytics();
     trackPageView(location.pathname);
