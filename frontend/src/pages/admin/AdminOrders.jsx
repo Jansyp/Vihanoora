@@ -16,6 +16,7 @@ export default function AdminOrders() {
   const [ship, setShip] = useState({ courier: "Professional Couriers", awb: "", tracking_url: "", shipping_date: "", expected_delivery: "" });
 
   const load = () => api.get(`/admin/orders${filter ? `?status=${encodeURIComponent(filter)}` : ""}`).then(({ data }) => setOrders(data));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { load(); }, [filter]);
 
   const updateStatus = async (status) => {

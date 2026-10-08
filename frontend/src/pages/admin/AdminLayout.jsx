@@ -29,6 +29,7 @@ export default function AdminLayout() {
       if (!user) nav("/login");
       else if (user.role !== "admin") nav("/");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, loading]);
 
   if (loading || !user || user.role !== "admin") return <div className="min-h-screen flex items-center justify-center text-[var(--ink-soft)]">Loading admin...</div>;

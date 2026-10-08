@@ -20,6 +20,7 @@ export default function Account() {
 
   useEffect(() => {
     if (!loading && !user) nav("/login");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, loading]);
 
   useEffect(() => {
