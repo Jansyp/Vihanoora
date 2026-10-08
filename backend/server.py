@@ -80,6 +80,7 @@ async def startup():
     await db.sales_records.create_index("sale_date")
     await db.sales_records.create_index("source")
     await db.sales_records.create_index("product_id")
+    await db.sales_records.create_index("products.product_id")
     await db.sales_records.create_index("order_reference")
     await db.sales_records.create_index("selling_person_name")
     await db.analytics_events.create_index("timestamp")

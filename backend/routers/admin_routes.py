@@ -203,6 +203,9 @@ async def admin_products(
                 {"name": {"$regex": re.escape(search_value), "$options": "i"}},
                 {"id": {"$regex": re.escape(search_value), "$options": "i"}},
                 {"sku": {"$regex": re.escape(search_value), "$options": "i"}},
+                {"category": {"$regex": re.escape(search_value), "$options": "i"}},
+                {"category_name": {"$regex": re.escape(search_value), "$options": "i"}},
+                {"group": {"$regex": re.escape(search_value), "$options": "i"}},
             ]})
     if product_ids:
         ids = [item.strip() for item in product_ids.split(",") if item.strip()]
