@@ -126,6 +126,49 @@ export default function FeaturedProductHero() {
   const productDiscount = productMrp && productPrice ? Math.round((1 - productPrice / productMrp) * 100) : 0;
   const productAlt = useMemo(() => product?.name || "Featured Viaura product", [product?.name]);
 
+  if (active?.image) {
+    const dots = banners.length > 1 && (
+      <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 gap-2">
+        {banners.map((_, index) => (
+          <button key={index} onClick={() => setBannerIndex(index)} data-testid={`hero-dot-${index}`}
+            className={`h-2 rounded-full transition-all ${index === bannerIndex ? "w-6 bg-[var(--brand)]" : "w-2 bg-white/80"}`} aria-label={`banner ${index + 1}`} />
+        ))}
+      </div>
+    );
+    const artwork = (
+      <ProductImage
+        src={active.image}
+        alt={active.title || "Viaura promotion"}
+        priority={bannerIndex === 0}
+        sizes="(max-width: 1280px) 100vw, 1280px"
+        widths={[640, 960, 1280, 1600, 2000]}
+        width={1600}
+        height={600}
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+    );
+    const hasLink = Boolean(active.cta_link);
+    return (
+      <section data-testid="hero-banner" className="w-full overflow-hidden bg-[#FAF7F2]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-4 sm:py-6">
+          <div className="relative w-full aspect-[16/9] sm:aspect-[2/1] lg:aspect-[21/8] overflow-hidden rounded-2xl sm:rounded-3xl bg-[var(--card-2)]">
+            <AnimatePresence mode="wait">
+              <motion.div key={active.id} className="absolute inset-0"
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
+                {hasLink ? (
+                  <Link data-testid="hero-banner-link" to={active.cta_link} aria-label={active.cta_text || active.title || "View promotion"}
+                    onClick={() => trackEvent("select_promotion", { promotion_id: String(active.id), promotion_name: active.title || "Homepage banner" })}
+                    className="absolute inset-0 block">{artwork}</Link>
+                ) : artwork}
+              </motion.div>
+            </AnimatePresence>
+            {dots}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-[#FCEEE9] via-[#FAF7F2] to-[#FAF7F2]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-14 sm:py-20 grid lg:grid-cols-2 gap-8 items-center">
