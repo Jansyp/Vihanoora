@@ -19,7 +19,7 @@ from models import (ValidateCartInput, CreateOrderInput, VerifyPaymentInput, New
 
 router = APIRouter(prefix="/api", tags=["commerce"])
 
-FREE_SHIPPING_THRESHOLD = 199
+FREE_SHIPPING_THRESHOLD = 300
 STANDARD_DELIVERY_CHARGE = 50
 
 VIAURA_WHATSAPP_NUMBER = "917010177567"
@@ -67,7 +67,7 @@ DEFAULT_SETTINGS = {
     "sender_country": "India",
     "sender_phone": "+917010177567",
     "sender_email": "hello@Viaura.com",
-    "announcement_bar_text": "\U0001F389 Free delivery on orders of \u20b9199 or more - Flat \u20b950 delivery below \u20b9199",
+    "announcement_bar_text": "\U0001F389 Free delivery on orders of \u20b9300 or more - Flat \u20b950 delivery below \u20b9300",
     "announcement_enabled": True,
     "home_sections": [
         {"key": "trending", "label": "Trending on Instagram", "enabled": True, "order": 1, "theme": "white", "subtitle": "#Viaura", "title": "Trending on Instagram"},
@@ -93,7 +93,7 @@ async def get_settings() -> dict:
         await db.store_settings.update_one({"id": "singleton"}, {"$set": {"free_shipping_threshold": FREE_SHIPPING_THRESHOLD}})
         s["free_shipping_threshold"] = FREE_SHIPPING_THRESHOLD
     announcement = s.get("announcement_bar_text", "")
-    if "Free shipping on orders above" in announcement:
+    if "Free shipping on orders above" in announcement or "\u20b9199" in announcement:
         s["announcement_bar_text"] = DEFAULT_SETTINGS["announcement_bar_text"]
         await db.store_settings.update_one({"id": "singleton"}, {"$set": {"announcement_bar_text": s["announcement_bar_text"]}})
     merged = {**DEFAULT_SETTINGS, **s, "whatsapp": VIAURA_WHATSAPP_NUMBER,

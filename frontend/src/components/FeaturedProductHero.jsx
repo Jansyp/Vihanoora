@@ -7,6 +7,7 @@ import { getCatalog, formatINR } from "@/lib/api";
 import { PRODUCT_PAGE_SIZE } from "@/components/common";
 import ProductImage from "@/components/ProductImage";
 import { trackEvent } from "@/lib/analytics";
+import { inStockOnly } from "@/lib/stock";
 
 const ROTATION_MS = 5000;
 
@@ -82,14 +83,14 @@ export default function FeaturedProductHero() {
 
   useEffect(() => {
     getCatalog("/banners").then(({ data }) => setBanners(data || [])).catch(() => {});
-    getCatalog(`/products?limit=${PRODUCT_PAGE_SIZE}&sort=best_selling`)
-      .then(({ data }) => setProducts(data?.items || []))
+    getCatalog(`/products?limit=${PRODUCT_PAGE_SIZE}&sort=best_selling&stock_status=in_stock`)
+      .then(({ data }) => setProducts(inStockOnly(data?.items)))
       .catch(() => {});
     getCatalog("/combos")
       .then(({ data }) => setCombos(data || []))
       .catch(() => {});
-    getCatalog(`/offer-zone?limit=${PRODUCT_PAGE_SIZE}`)
-      .then(({ data }) => setOfferItems(data?.items || []))
+    getCatalog(`/offer-zone?in_stock_only=true&limit=${PRODUCT_PAGE_SIZE}`)
+      .then(({ data }) => setOfferItems(inStockOnly(data?.items)))
       .catch(() => {});
   }, []);
 

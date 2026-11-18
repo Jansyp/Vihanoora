@@ -266,9 +266,12 @@ async def list_banners():
 
 
 @router.get("/offer-zone")
-async def offer_zone(min_discount: int = 0, sort: str = "biggest_discount", page: int = 1, limit: int = PRODUCT_PAGE_SIZE):
+async def offer_zone(min_discount: int = 0, sort: str = "biggest_discount", page: int = 1, limit: int = PRODUCT_PAGE_SIZE, in_stock_only: bool = False):
+    query = {"active": True}
+    if in_stock_only:
+        query["stock"] = {"$gt": 0}
     return await _product_page(
-        {"active": True}, page, limit, sort, min_discount,
+        query, page, limit, sort, min_discount,
         discount_only=True, sort_by_effective_price=True,
     )
 

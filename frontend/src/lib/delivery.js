@@ -1,4 +1,4 @@
-export const FREE_SHIPPING_THRESHOLD = 199;
+export const FREE_SHIPPING_THRESHOLD = 300;
 export const STANDARD_DELIVERY_CHARGE = 50;
 
 export function getFreeDeliveryMessage(eligibleSubtotal, threshold = FREE_SHIPPING_THRESHOLD) {

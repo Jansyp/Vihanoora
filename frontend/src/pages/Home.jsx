@@ -10,6 +10,7 @@ import { useSettings } from "@/context/SettingsContext";
 import { themeBg } from "@/lib/themes";
 import { Section, SectionHeader, ProductRow, GridSkeleton, Reveal, PRODUCT_PAGE_SIZE } from "@/components/common";
 import { trackEvent } from "@/lib/analytics";
+import { inStockOnly } from "@/lib/stock";
 
 const REVIEWS = [
   { name: "Ananya R.", text: "The crystal bracelet is even prettier in person. Packaging felt so premium!", rating: 5 },
@@ -101,21 +102,21 @@ export default function Home() {
 
   useEffect(() => {
     let active = true;
-    const bestRequest = getCatalog(`/products?best_seller=true&limit=${PRODUCT_PAGE_SIZE}`);
-    const trendRequest = getCatalog(`/products?trending=true&limit=${PRODUCT_PAGE_SIZE}`);
+    const bestRequest = getCatalog(`/products?best_seller=true&stock_status=in_stock&limit=${PRODUCT_PAGE_SIZE}`);
+    const trendRequest = getCatalog(`/products?trending=true&stock_status=in_stock&limit=${PRODUCT_PAGE_SIZE}`);
     Promise.all([bestRequest, trendRequest]).then(([best, trend]) => {
-      if (active) setData((current) => ({ ...current, best: best.data.items, trend: trend.data.items }));
+      if (active) setData((current) => ({ ...current, best: inStockOnly(best.data.items), trend: inStockOnly(trend.data.items) }));
     }).catch(() => {}).finally(() => { if (active) setLoading(false); });
 
     const loadSecondary = () => {
-      getCatalog(`/products?new_arrival=true&limit=${PRODUCT_PAGE_SIZE}`).then(({ data: result }) => {
-        if (active) setData((current) => ({ ...current, arr: result.items }));
+      getCatalog(`/products?new_arrival=true&stock_status=in_stock&limit=${PRODUCT_PAGE_SIZE}`).then(({ data: result }) => {
+        if (active) setData((current) => ({ ...current, arr: inStockOnly(result.items) }));
       }).catch(() => {});
-      getCatalog(`/products?giftable=true&limit=${PRODUCT_PAGE_SIZE}`).then(({ data: result }) => {
-        if (active) setData((current) => ({ ...current, gift: result.items }));
+      getCatalog(`/products?giftable=true&stock_status=in_stock&limit=${PRODUCT_PAGE_SIZE}`).then(({ data: result }) => {
+        if (active) setData((current) => ({ ...current, gift: inStockOnly(result.items) }));
       }).catch(() => {});
       getCatalog("/combos").then(({ data: result }) => { if (active) setCombos(result); }).catch(() => {});
-      getCatalog(`/offer-zone?limit=${PRODUCT_PAGE_SIZE}`).then(({ data: result }) => { if (active) setOffer(result); }).catch(() => {});
+      getCatalog(`/offer-zone?in_stock_only=true&limit=${PRODUCT_PAGE_SIZE}`).then(({ data: result }) => { if (active) setOffer({ ...result, items: inStockOnly(result.items) }); }).catch(() => {});
     };
     const timer = window.setTimeout(loadSecondary, 900);
     return () => { active = false; window.clearTimeout(timer); };

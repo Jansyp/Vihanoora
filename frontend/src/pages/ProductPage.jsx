@@ -219,7 +219,7 @@ export default function ProductPage() {
                 <FreeDeliveryMessage subtotal={deliverySubtotal} />
               </div>
               <div className="flex flex-wrap gap-4 mt-3 text-xs text-[var(--ink-soft)]">
-                <span className="flex items-center gap-1.5"><Truck size={14} /> ₹50 delivery below ₹199</span>
+                <span className="flex items-center gap-1.5"><Truck size={14} /> ₹50 delivery below ₹300</span>
                 <span className="flex items-center gap-1.5"><ShieldCheck size={14} /> {paymentsEnabled ? "Secure checkout" : "WhatsApp ordering available"}</span>
                 <span className="flex items-center gap-1.5"><RotateCcw size={14} /> Easy returns</span>
               </div>

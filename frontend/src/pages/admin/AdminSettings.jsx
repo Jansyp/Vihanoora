@@ -106,7 +106,7 @@ export default function AdminSettings() {
       </div>
 
       <button data-testid="save-settings-btn" onClick={save} className="mt-6 px-7 py-3.5 rounded-full bg-[var(--brand)] text-white font-medium">Save All Settings</button>
-      <p className="text-xs text-[var(--ink-soft)] mt-3">Delivery charge, free-delivery policy, section order & visibility all read live across the store. Free delivery starts at &#8377;199.</p>
+      <p className="text-xs text-[var(--ink-soft)] mt-3">Delivery charge, free-delivery policy, section order & visibility all read live across the store. Free delivery starts at &#8377;300.</p>
     </div>
   );
 }

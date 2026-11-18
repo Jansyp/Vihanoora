@@ -34,6 +34,8 @@ export function assetUrl(url, { width } = {}) {
     // directly to Cloudinary.
     if (
       parsed.pathname.includes("/api/files/") &&
+      parsed.hostname !== "localhost" &&
+      parsed.hostname !== "127.0.0.1" &&
       /\/api\/files\/(vihaanora|viaura|javehouse)\/products\//i.test(
         parsed.pathname
       )
