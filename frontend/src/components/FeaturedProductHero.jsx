@@ -10,6 +10,8 @@ import { trackEvent } from "@/lib/analytics";
 import { inStockOnly } from "@/lib/stock";
 
 const ROTATION_MS = 5000;
+const BUNDLED_BANNER_IMAGE = "/images/year-end-offer.png";
+const LEGACY_BANNER_IMAGE_FILE = "125f4937e0724744a0c458e7802a7de6.png";
 
 const FEATURED_SLOTS = [
   { key: "women", label: "Women", groups: ["women"], href: "/women" },
@@ -128,6 +130,10 @@ export default function FeaturedProductHero() {
   const productAlt = useMemo(() => product?.name || "Featured Viaura product", [product?.name]);
 
   if (active?.image) {
+    const storedImagePath = active.image.split(/[?#]/, 1)[0];
+    const image = storedImagePath.endsWith(`/${LEGACY_BANNER_IMAGE_FILE}`)
+      ? BUNDLED_BANNER_IMAGE
+      : active.image;
     const dots = banners.length > 1 && (
       <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 gap-2">
         {banners.map((_, index) => (
@@ -138,7 +144,7 @@ export default function FeaturedProductHero() {
     );
     const artwork = (
       <ProductImage
-        src={active.image}
+        src={image}
         alt={active.title || "Viaura promotion"}
         priority={bannerIndex === 0}
         sizes="(max-width: 1280px) 100vw, 1280px"

@@ -24,6 +24,7 @@ export function assetUrl(url, { width } = {}) {
 
   // Handle relative backend paths
   if (path.startsWith("/")) {
+    if (path.startsWith("/images/")) return path;
     path = `${BACKEND_URL}${path}`;
   }
 

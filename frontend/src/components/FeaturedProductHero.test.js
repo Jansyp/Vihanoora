@@ -91,6 +91,18 @@ describe("FeaturedProductHero", () => {
     expect(img.className).not.toMatch(/\bw-\[\d+px\]/);
   });
 
+  it("uses the bundled public image for the banner URL stored from localhost", async () => {
+    mockData([{
+      id: "year-end",
+      title: "Year End Offer",
+      image: "http://localhost:8000/api/files/Viaura/products/125f4937e0724744a0c458e7802a7de6.png",
+      cta_link: "/offer-zone",
+    }]);
+    await render();
+    expect(container.querySelector('[data-testid="hero-banner"] img').getAttribute("src"))
+      .toBe("/images/year-end-offer.png");
+  });
+
   it("rotates banners in order", async () => {
     mockData(banners);
     await render();
